@@ -1,11 +1,9 @@
 import React from 'react';
 
-const ChatComments = ({ messages }) => {
+const ChatComments = ({ chatMessages = [] }) => {
     return (
-        <ul
-            className="chat-window"
-            style={{ overflow: 'auto' }}>
-            {messages.map((message, index) => (
+        <ul className="chat-window">
+            {chatMessages.map((message, index) => (
                 <li key={index} className="chat-message">
                     {message}
                 </li>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const InputForm = ({ onSendMessage }) => {
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState([]);
 
     const handleSendMessage = (e) => {
         e.preventDefault();
