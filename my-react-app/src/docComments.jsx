@@ -50,7 +50,8 @@ const DocComments = ({ docMessages = [], onChangeDoc}) => {
     };
 
     return (
-        <ul className="chat-window">
+        <ul className="chat-window"
+            style={{overflowY: 'auto', height: '100%' }}>
             {docMessages.map((message, index) => (
                 <li
                     id={index}
@@ -63,11 +64,11 @@ const DocComments = ({ docMessages = [], onChangeDoc}) => {
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, index)}
                 >
-                    <p
+                    <span
                         contentEditable={true}
                     >
                         {message}
-                    </p>
+                    </span>
 
                 </li>
             ))}

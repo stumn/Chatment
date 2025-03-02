@@ -18,6 +18,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -28,6 +29,15 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: hsl(225deg 6.06% 87.06%);
+  color: #4a4a4a;
+  user-select: none;
+  position: relative;
+  cursor: text;
+  font-family: "Roboto", Helvetica, Arial, "Hiragino Sans", sans-serif;
+  /* font-size: 15px; */
+  line-height: 28px;
+  color: var(--page-text-color, #4a4a4a);
 }
 
 h1 {
@@ -38,43 +48,50 @@ h1 {
 ul {
   list-style-type: disc;
   text-align: left;
+  margin: 0;
 }
 
 form {
   margin: 1em auto 0 auto;
-  gap: 1em;
+  width: 80%;
+  height: 80px;
+  display: flex;
+  border: 1px solid #353b4899;
+  border-radius: 8px;
+  background-color: #fefefe;
+  transition: border-color 0.2s ease-in-out;
+}
+
+form:focus-within {
+  border: 1.5px solid #4a4a4a;
 }
 
 input {
-  width:60%;
+  flex: 1;
+  height: auto;
+  border: none;
   border-radius: 8px;
-  border: 1px solid #646cff;
   padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  font-size: 15px;
   font-family: inherit;
-  background-color: transparent;
   color: inherit;
   transition: border-color 0.25s;
+  background-color: transparent;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  height: 100%;
+  border: none;
   cursor: pointer;
   transition: border-color 0.25s;
+  border-radius: 8px;
 }
-button:hover {
-  border-color: #646cff;
-}
+
+input:focus,
+button:hover,
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: none;
 }
 
 @media (prefers-color-scheme: light) {
@@ -82,9 +99,11 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }

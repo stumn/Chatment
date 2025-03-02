@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import icon from "./assets/sendicon.png";
 
 const InputForm = ({ onSendMessage }) => {
     const [message, setMessage] = useState([]);
@@ -20,7 +21,9 @@ const InputForm = ({ onSendMessage }) => {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type a message"
                 />
-                <button onClick={handleSendMessage}>Send</button>
+                <button onClick={handleSendMessage}>
+                    <img src={icon} alt='icon' width='30' height='30' />
+                </button>
             </form>
         </div>
     );
