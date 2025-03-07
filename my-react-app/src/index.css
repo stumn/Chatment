@@ -51,6 +51,10 @@ ul {
   margin: 0;
 }
 
+li:focus {
+  outline: none;
+}
+
 form {
   margin: 1em auto 0 auto;
   width: 80%;

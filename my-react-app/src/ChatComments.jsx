@@ -4,7 +4,11 @@ const ChatComments = ({ chatMessages = [] }) => {
     return (
         <ul className="chat-window">
             {chatMessages.map((message, index) => (
-                <li key={index} className="chat-message">
+                <li
+                    key={index}
+                    className="chat-message"
+                    contentEditable={true}
+                >
                     {message}
                 </li>
             ))}

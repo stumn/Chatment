@@ -1,27 +1,31 @@
 import React, { use, useState } from 'react';
 
-const DocComments = ({ docMessages = [], onChangeDoc}) => {
+const DocComments = ({ docMessages = [], onChangeDoc }) => {
 
-    // イベントハンドラを定義
     const handleDragStart = (e, index) => {
-        // ドラッグ開始時の処理を実装
         console.log('ドラッグ開始:', index);
         e.dataTransfer.setData('text/plain', index);
     };
 
     const handleDragEnd = (e) => {
-        // ドラッグ終了時の処理を実装
         console.log('ドラッグ終了');
     };
 
-    const handleDragOver = (e, index) => {
-        e.preventDefault(); // ドロップを許可するためにデフォルト動作をキャンセル
+    const handleDragOver = (e, overIndex) => {
+        e.preventDefault();
         // ドラッグ中の処理を実装
-        console.log('ドラッグオーバー:', index);
+        const dragIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        if (dragIndex === overIndex) return; // 同じ場所なら何もしない
+        // overIndex の要素をハイライトする
+        // e.target.style.backgroundColor = 'lightgray';
+        e.target.style.borderBottom = '3px solid lightgray';
+        console.log('ドラッグオーバー:', overIndex);
     };
 
     const handleDragLeave = (e) => {
         // ドラッグ離れたときの処理を実装
+        // e.target.style.backgroundColor = '';
+        e.target.style.borderBottom = '';
         console.log('ドラッグリーブ');
     };
 
@@ -31,6 +35,9 @@ const DocComments = ({ docMessages = [], onChangeDoc}) => {
         console.log('ドロップ先:', dropIndex, 'ドラッグ元:', dragIndex);
 
         if (dragIndex === dropIndex) return; // 同じ場所なら何もしない
+
+        // e.target.style.backgroundColor = '';
+        e.target.style.borderBottom = '';
 
         // 配列のコピーを作成して操作
         const newDocMessages = [...docMessages];
@@ -51,7 +58,7 @@ const DocComments = ({ docMessages = [], onChangeDoc}) => {
 
     return (
         <ul className="chat-window"
-            style={{overflowY: 'auto', height: '100%' }}>
+            style={{ overflowY: 'auto', height: '100%' }}>
             {docMessages.map((message, index) => (
                 <li
                     id={index}
@@ -63,13 +70,9 @@ const DocComments = ({ docMessages = [], onChangeDoc}) => {
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, index)}
+                    contentEditable={true}
                 >
-                    <span
-                        contentEditable={true}
-                    >
-                        {message}
-                    </span>
-
+                    {message}
                 </li>
             ))}
         </ul>
