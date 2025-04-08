@@ -56,6 +56,18 @@ const DocComments = ({ docMessages = [], onChangeDoc }) => {
         onChangeDoc(newDocMessages);
     };
 
+    // contentEditable のイベントハンドラ
+    const handleEdit = (e) => {
+        // edit された要素を取得
+        // edit された　＝変更内容を取得
+        // 配列のコピーを作成
+        // 配列の変更部分を変更
+        // userState は今の状況だけ　DBに編集履歴を残す
+        // onChangeDoc();
+    }
+
+    const className = "doc-message" + " latest";
+
     return (
         <ul className="chat-window"
             style={{ overflowY: 'auto', height: '100%' }}>
@@ -63,7 +75,7 @@ const DocComments = ({ docMessages = [], onChangeDoc }) => {
                 <li
                     id={index}
                     key={index}
-                    className="doc-message"
+                    className={className}
                     draggable={true}
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragEnd={handleDragEnd}
@@ -72,7 +84,7 @@ const DocComments = ({ docMessages = [], onChangeDoc }) => {
                     onDrop={(e) => handleDrop(e, index)}
                     contentEditable={true}
                 >
-                    {message}
+                    {message.message}
                 </li>
             ))}
         </ul>

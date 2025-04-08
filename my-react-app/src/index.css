@@ -51,7 +51,23 @@ ul {
   margin: 0;
 }
 
+/* li.doc-message.latest {
+  border-left: 4px solid green;
+}
+
+li.midium {
+  border-left: 2px solid green;
+}
+
+li.old {
+  border-left: none;
+} */
+
 li:focus {
+  outline: none;
+}
+
+span:focus {
   outline: none;
 }
 
