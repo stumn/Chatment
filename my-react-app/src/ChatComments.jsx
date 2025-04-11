@@ -1,6 +1,9 @@
 import React from 'react';
 
 const ChatComments = ({ chatMessages = [], onFavClick }) => {
+    const MALTIPILER = 1.1; // フォントサイズの倍率
+    const FONT_SIZE = 16; // 基本フォントサイズ
+
     return (
         <ul className="chat-window">
             {chatMessages.map((message, index) => (
@@ -14,9 +17,9 @@ const ChatComments = ({ chatMessages = [], onFavClick }) => {
                     <span
                         contentEditable={true}
                         style={{
-                            fontSize: `${16 + message.fav * 2}px`,
+                            fontSize: `${FONT_SIZE + message.fav * MALTIPILER}px`,
                             marginLeft: '10px',
-                            cursor: 'pointer',
+                            cursor: 'text',
                             border: 'none',
                             background: 'none',
                         }}
@@ -28,7 +31,7 @@ const ChatComments = ({ chatMessages = [], onFavClick }) => {
                         onClick={() => onFavClick(index)}
                         contentEditable={false}
                         style={{
-                            fontSize: `${16 + message.fav * 2}px`,
+                            fontSize: `${FONT_SIZE + message.fav * MALTIPILER}px`,
                             marginLeft: '10px',
                             cursor: 'pointer',
                             border: 'none',

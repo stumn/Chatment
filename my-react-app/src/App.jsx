@@ -4,6 +4,8 @@ import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 
 function App() {
+  const [isName, setIsName] = useState(); // socketの接続状態を管理するステート
+
   const [messages, setMessages] = useState([
     { name: 'Alice', message: '昨日から始めたゲーム、気づいたら朝だった…。', time: "10:00", fav: 0 },
     { name: 'Bob', message: 'あるある。で、朝になってめちゃくちゃ後悔するやつ。', time: "10:01", fav: 0 },
@@ -56,6 +58,9 @@ function App() {
 
   return (
     <div>
+      <h6 style={{ fontSize: '20px', marginBottom: '8px', textAlign: 'left'}}>
+        {isName ? 'Logged in as ' + isName : 'Please enter your name'}
+      </h6>
       <ResizablePanels
         chatMessages={chatMessages}
         docMessages={docMessages}
@@ -63,7 +68,8 @@ function App() {
         onChangeLines={setLines}
         onUpdateFav={handleUpdateFav}
       />
-      <InputForm onSendMessage={handleSendMessage} />
+      <InputForm isLoggedin={isName} onLogin={setIsName
+      } onSendMessage={handleSendMessage} />
     </div>
   )
 }
