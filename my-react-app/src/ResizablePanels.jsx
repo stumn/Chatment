@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
+import Paper from "@mui/material/Paper";
 
-const CONTAINER_HEIGHT = 600;
+const CONTAINER_WIDTH = Math.min(1200, Math.max(600, window.innerWidth * 0.75)); // 画面サイズに応じて幅を調整
+const CONTAINER_HEIGHT = Math.min(800, Math.max(600, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
 const DIVIDER_HEIGHT = 20;
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT;
 
@@ -35,7 +37,7 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
     };
 
     const slicedChatMessages = chatMessages.slice(-calculateLines(bottomHeight));
-    
+
     const handleMouseDown = (event) => {
         const startY = event.clientY;
         const startHeight = topHeight;
@@ -63,7 +65,20 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
     };
 
     return (
-        <div style={{ width: "90vw", height: `${CONTAINER_HEIGHT}px`, display: "flex", flexDirection: "column" }}>
+        <Paper
+            elevation={3}
+            style={{
+                width: `${CONTAINER_WIDTH}px`,
+                height: `${CONTAINER_HEIGHT}px`,
+                display: "flex",
+                flexDirection: "column",
+                backgroundColor: 'var(--page-bg, #fefefe)',
+                color: '#4A4A4A',
+                boxShadow: '0 4px 0 rgba(0,0,0,.16)',
+                borderTopLeftRadius: '4px',
+                borderTopRightRadius: '4px',
+            }}
+        >
             <div style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${topHeight}px` }}>
                 <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} />
             </div>
@@ -74,6 +89,6 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
             <div style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} />
             </div>
-        </div>
+        </Paper>
     );
 }

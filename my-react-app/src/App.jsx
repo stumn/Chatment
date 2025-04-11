@@ -58,7 +58,7 @@ function App() {
 
   return (
     <div>
-      <h6 style={{ fontSize: '20px', marginBottom: '8px', textAlign: 'left'}}>
+      <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left'}}>
         {isName ? 'Logged in as ' + isName : 'Please enter your name'}
       </h6>
       <ResizablePanels
