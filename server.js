@@ -23,7 +23,7 @@ const options = {
     virtuals: true,
     versionKey: false,
     transform: (_, ret) => { delete ret._id; return ret; }
-  } 
+  }
 };
 
 // Define the shape of data (= schema) to be saved, and construct a model from the schema.
@@ -35,6 +35,15 @@ app.use(express.static('my-react-app/dist')); // 追加
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
+
+const heightMemory = []; // 高さを記憶するためのオブジェクト
+function addHeightMemory(id, height) {
+  const index = heightMemory.findIndex(item => item.id === id);
+  index !== -1
+    ? heightMemory[index].height = height
+    : heightMemory.push({ id, height });
+  return heightMemory.map(item => item.height); // 高さを全て返す
+}
 
 io.on('connection', (socket) => {
   console.log('a user connected');
@@ -50,12 +59,12 @@ io.on('connection', (socket) => {
     socket.on('chat message', async (msg) => {
       try {
         const p = await Post.create({ name, msg, count: 0 }); // save data to database
-        io.emit('chat message', p);          
+        io.emit('chat message', p);
       } catch (e) { console.error(e); }
     });
 
     socket.on('fav', async id => {
-      const update = { $inc: { count: 1 }};
+      const update = { $inc: { count: 1 } };
       const options = { new: true };
       try {
         const p = await Post.findByIdAndUpdate(id, update, options);
@@ -63,8 +72,13 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
+    socket.on('heightChange', height => {
+      const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
+      io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+    });
+
   })
-  
+
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });

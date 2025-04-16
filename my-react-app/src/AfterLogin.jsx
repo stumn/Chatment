@@ -1,4 +1,3 @@
-import './App.css'
 import { useState, useEffect } from 'react'
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
