@@ -6,7 +6,8 @@ import Paper from "@mui/material/Paper";
 const CONTAINER_WIDTH = Math.min(1200, Math.max(600, window.innerWidth * 0.75)); // 画面サイズに応じて幅を調整
 const CONTAINER_HEIGHT = Math.min(800, Math.max(600, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
 const DIVIDER_HEIGHT = 20;
-const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT;
+const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
+const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
 export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
     const [topHeight, setTopHeight] = useState(460);
@@ -24,7 +25,7 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
 
         for (let i = chatMessages.length - 1; i >= 0; i--) {
             const favCount = chatMessages[i].fav || 0;
-            const fontSize = 16 + favCount * 2;
+            const fontSize = STANDARD_FONT_SIZE + favCount * 2;
             const lineHeight = fontSize + 12;
 
             if (totalHeight + lineHeight > newBottomHeight) break;
@@ -32,6 +33,8 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
             totalHeight += lineHeight;
             lineCount++;
         }
+
+        if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
 
         return lineCount;
     };

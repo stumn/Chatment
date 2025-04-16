@@ -4,21 +4,15 @@ import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { Stack } from '@mui/material';
 
-const InputForm = ({ isLoggedin, onLogin, onSendMessage }) => {
-    const isLoggedIn = isLoggedin;  // propsからisLoggedInを取得
+const InputForm = ({ onSendMessage }) => {
     const [message, setMessage] = useState("");
 
     const handleSendMessage = (e) => {
         e.preventDefault();
         if (message.trim() === "") return;  // 空のメッセージは送信しない
 
-        if (isLoggedIn) {
-            // socket.emit('chat message', text);
-            onSendMessage(message);  // 親コンポーネントにメッセージを送信
-        } else {
-            // socket.emit('login', text);
-            onLogin(message);  // 親コンポーネントに名前を送信
-        }
+        onSendMessage(message);  // 親コンポーネントにメッセージを送信
+        
         setMessage("");  // 送信後、入力フィールドをクリア
     };
 
@@ -35,7 +29,7 @@ const InputForm = ({ isLoggedin, onLogin, onSendMessage }) => {
             sx={{ margin: '8px 8%', alignItems: 'center' }}
         >
             <TextField
-                label={isLoggedIn ? "Message" : "Name"}
+                label={"Message"}
                 variant="standard"
                 fullWidth
                 value={message}
@@ -48,7 +42,7 @@ const InputForm = ({ isLoggedin, onLogin, onSendMessage }) => {
                 endIcon={<SendIcon />}
                 disabled={message.trim() === ""} // 空または空白スペースのみの場合は無効化
             >
-                {isLoggedIn ? "Send" : "Login"}
+                Send
             </Button>
         </Stack>
     );

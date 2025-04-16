@@ -73,8 +73,6 @@ span:focus {
 
 form {
   margin: 1em auto 0 auto;
-  width: 80%;
-  height: 80px;
   display: flex;
   border: 1px solid #353b4899;
   border-radius: 8px;

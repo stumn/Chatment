@@ -1,14 +1,15 @@
 import React from 'react';
 
-const ChatComments = ({ chatMessages = [], onFavClick }) => {
+const ChatComments = ({ chatMessages, onFavClick }) => {
     const MALTIPILER = 1.1; // フォントサイズの倍率
     const FONT_SIZE = 16; // 基本フォントサイズ
 
     return (
         <ul className="chat-window">
-            {chatMessages.map((message, index) => (
+            {chatMessages.map((message) => (
                 <li
-                    key={index}
+                    key={message.order}
+                    id={message.id}
                     className="chat-message"
                     style={{
                         listStyleType: 'none',
@@ -24,7 +25,7 @@ const ChatComments = ({ chatMessages = [], onFavClick }) => {
                             background: 'none',
                         }}
                     >
-                        <strong>{message.name}</strong> [{message.time}]- {message.message}
+                        <strong>{message.name}</strong> [{message.time}]- {message.msg}
                     </span>
 
                     <button
