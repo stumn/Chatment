@@ -10,7 +10,7 @@ const io = new Server(server, {
   }
 });
 
-const port = 3000;
+const PORT = 3000;
 const MONGODB_URL = 'mongodb://127.0.0.1:27017';
 
 const mongoose = require('mongoose');
@@ -63,10 +63,6 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
-    socket.on('typing', () => {
-      console.log('typing')
-      io.emit('typing', name);
-    })
   })
   
   socket.on('disconnect', () => {
@@ -74,6 +70,6 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(port, () => {
-  console.log('listening on port:' + port);
+server.listen(PORT, () => {
+  console.log('listening on PORT:' + PORT);
 });
