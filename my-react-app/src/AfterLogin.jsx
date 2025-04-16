@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 
-export default function AfterLogin({ isName, onLogout }) {
+export default function AfterLogin({ socket, topHeight, setTopHeight, isName, onLogout }) {
 
     // window が閉じられる等の場合に、isNameをundefinedにする
 
@@ -53,6 +53,9 @@ export default function AfterLogin({ isName, onLogout }) {
             </h6>
 
             <ResizablePanels
+                socket={socket}
+                topHeight={topHeight}
+                setTopHeight={setTopHeight}
                 chatMessages={messages}
                 docMessages={docMessages}
                 onChangeDoc={setDocMessages}

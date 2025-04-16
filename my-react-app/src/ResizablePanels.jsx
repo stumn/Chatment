@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
-import { io } from "socket.io-client";
 
 const CONTAINER_WIDTH = Math.min(1200, Math.max(600, window.innerWidth * 0.75)); // 画面サイズに応じて幅を調整
 const CONTAINER_HEIGHT = Math.min(800, Math.max(600, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
@@ -10,10 +9,8 @@ const DIVIDER_HEIGHT = 20;
 const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
-const socket = io(); // Socket.IOの初期化
-
-export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
-    const [topHeight, setTopHeight] = useState(460);
+export default function ResizablePanels({ socket, topHeight, setTopHeight, chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
+    
 
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - topHeight;
 
@@ -51,9 +48,9 @@ export default function ResizablePanels({ chatMessages, docMessages, onChangeDoc
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
             let newTopHeight = startHeight + (currentY - startY);
-            newTopHeight = Math.max(0, Math.min(MAX_TOP_HEIGHT, newTopHeight));
+            newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setTopHeight(newTopHeight);
-            socket.emit("heightChange", newTopHeight); // サーバーに新しい高さを送信
+            console.log("Top Height (resizable):", newTopHeight); // デバッグ用
         };
 
         const onMouseUp = () => {

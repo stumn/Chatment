@@ -48,6 +48,12 @@ function addHeightMemory(id, height) {
 io.on('connection', (socket) => {
   console.log('a user connected');
 
+  socket.on('heightChange', height => {
+    console.log('heightChange', height);
+    const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
+    io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+  });
+
   socket.on('login', async (name) => {
     try {
       const posts = await Post.find({}).limit(10); // fetch 10 latest posts from database
@@ -70,11 +76,6 @@ io.on('connection', (socket) => {
         const p = await Post.findByIdAndUpdate(id, update, options);
         io.emit('fav', p);
       } catch (e) { console.error(e); }
-    });
-
-    socket.on('heightChange', height => {
-      const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
-      io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
     });
 
   })
