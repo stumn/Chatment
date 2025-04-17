@@ -10,8 +10,13 @@ const io = new Server(server, {
   }
 });
 
+// ローカル環境でのテスト用
+// const PORT = 3000;
+// const MONGODB_URL = 'mongodb://127.0.0.1:27017';
+
+// デプロイ環境でのテスト用
 const PORT = 3000;
-const MONGODB_URL = 'mongodb://127.0.0.1:27017';
+const MONGODB_URL = process.env.MONGODB_URL;
 
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URL);
