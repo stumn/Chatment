@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-app.use(express.static('my-react-app/dist'));
 
 const http = require('http');
 const server = http.createServer(app);
@@ -40,10 +39,16 @@ const options = {
 const postSchema = new mongoose.Schema({ name: String, msg: String, count: Number }, options);
 const Post = mongoose.model("Post", postSchema);
 
-app.use(express.static('my-react-app/dist')); // 追加
+// React のビルドファイルを静的配信
+app.use(express.static(path.join(__dirname, 'my-react-app', 'dist')));
 
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
+});
+
+// その他のルートは React の index.html にフォールバック
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'my-react-app', 'dist', 'index.html'));
 });
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
