@@ -11,8 +11,7 @@ const io = new Server(server, {
   }
 });
 
-// デプロイ環境でのテスト用
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017';
 
 const mongoose = require('mongoose');
