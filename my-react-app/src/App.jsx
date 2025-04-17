@@ -16,15 +16,21 @@ function App() {
     console.log('Connected to server');
   });
 
+  // 本番用 heightArray arary
+  const [heightArray, setHeightArray] = useState([]);
   socket.on('heightChange', (heightArray) => {
     console.log(' ON heightChange', heightArray);
+    setHeightArray([...heightArray, heightArray[heightArray.length - 1]]); // 最新の高さを追加
+    console.log('heightArray', heightArray); // デバッグ用
   });
 
   const [topHeight, setTopHeight] = useState(460); // 初期値を460に設定
   function handleHeightChange(newTopHeight) {
     setTopHeight(newTopHeight);
     console.log("Top Height (App):", newTopHeight); // デバッグ用
+    
     socket.emit("heightChange", newTopHeight); // サーバーに新しい高さを送信
+
     console.log("Top Height (after emit):", newTopHeight); // デバッグ用
   }
 
@@ -32,7 +38,7 @@ function App() {
     isName === undefined
       ? <BeforeLogin onLogin={setIsName} />
       : <AfterLogin
-        socket={socket}
+        heightArray={heightArray}
         topHeight={topHeight}
         setTopHeight={handleHeightChange}
         isName={isName}
