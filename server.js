@@ -41,7 +41,7 @@ const postSchema = new mongoose.Schema({ name: String, msg: String, count: Numbe
 const Post = mongoose.model("Post", postSchema);
 
 // React のビルドファイルを静的配信
-app.use(express.static(path.join(__dirname, 'my-react-app', 'dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
@@ -49,7 +49,7 @@ app.get('/plain', (req, res) => { // 変更
 
 // その他のルートは React の index.html にフォールバック
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'my-react-app', 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
