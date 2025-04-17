@@ -13,7 +13,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
-const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017';
+const MONGODB_URL = process.env.MONGODB_URL;
 
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URL);
