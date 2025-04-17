@@ -1,9 +1,12 @@
 require('dotenv').config();
+
 const express = require('express');
 const app = express();
-app.use(express.static('client/dist'));
+app.use(express.static('my-react-app/dist'));
+
 const http = require('http');
 const server = http.createServer(app);
+
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
@@ -14,6 +17,11 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URL = process.env.MONGODB_URL;
+
+if (!MONGODB_URL) {
+  console.error('Error: MONGODB_URL is not defined');
+  process.exit(1);
+}
 
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URL);
