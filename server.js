@@ -37,6 +37,7 @@ app.get('/plain', (req, res) => { // 変更
 });
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
+
 function addHeightMemory(id, height) {
   const index = heightMemory.findIndex(item => item.id === id);
   index !== -1
@@ -45,11 +46,23 @@ function addHeightMemory(id, height) {
   return heightMemory.map(item => item.height); // 高さを全て返す
 }
 
+function removeHeightMemory(id) {
+  // じわじわとフェードアウトする(30秒後に削除)
+  setTimeout(() => {
+    const index = heightMemory.findIndex(item => item.id === id);
+    if (index !== -1) {
+      heightMemory.splice(index, 1);
+    }
+
+    return heightMemory.map(item => item.height); // 高さを全て返す
+  }, 10000); // 30秒後に削除  
+}
+
 io.on('connection', (socket) => {
   console.log('a user connected');
 
   socket.on('heightChange', height => {
-    console.log('heightChange', height);
+    // console.log('heightChange', height);
     const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
     io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
   });
@@ -82,6 +95,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+
+    // hightArray から 削除する
+    const heightArray = removeHeightMemory(socket.id);
+
+    socket.broadcast.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+    console.log('disconnect -> remove heightMemory', heightMemory);
   });
 });
 
