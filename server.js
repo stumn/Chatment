@@ -10,8 +10,9 @@ const io = new Server(server, {
   }
 });
 
-const PORT = 3000;
-const MONGODB_URL = 'mongodb://127.0.0.1:27017';
+require('dotenv').config();
+const PORT = process.env.PORT || 3000;
+const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017';
 
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URL);
