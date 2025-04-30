@@ -1,27 +1,17 @@
-require('dotenv').config();
-
 const express = require('express');
-const path = require('path');
 const app = express();
-
+app.use(express.static('client/dist'));
 const http = require('http');
 const server = http.createServer(app);
-
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
-    origin: "https://chatment.onrender.com",
-    methods: ["GET", "POST"],
+    origin: "http://127.0.0.1:5173"
   }
 });
 
-const PORT = process.env.PORT || 3000;
-const MONGODB_URL = process.env.MONGODB_URL;
-
-if (!MONGODB_URL) {
-  console.error('Error: MONGODB_URL is not defined');
-  process.exit(1);
-}
+const PORT = 3000;
+const MONGODB_URL = 'mongodb://127.0.0.1:27017';
 
 const mongoose = require('mongoose');
 mongoose.connect(MONGODB_URL);
@@ -40,19 +30,14 @@ const options = {
 const postSchema = new mongoose.Schema({ name: String, msg: String, count: Number }, options);
 const Post = mongoose.model("Post", postSchema);
 
-// React のビルドファイルを静的配信
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static('my-react-app/dist')); // 追加
 
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-// その他のルートは React の index.html にフォールバック
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
 const heightMemory = []; // 高さを記憶するためのオブジェクト
+
 function addHeightMemory(id, height) {
   const index = heightMemory.findIndex(item => item.id === id);
   index !== -1
@@ -61,11 +46,23 @@ function addHeightMemory(id, height) {
   return heightMemory.map(item => item.height); // 高さを全て返す
 }
 
+function removeHeightMemory(id) {
+  // じわじわとフェードアウトする(30秒後に削除)
+  setTimeout(() => {
+    const index = heightMemory.findIndex(item => item.id === id);
+    if (index !== -1) {
+      heightMemory.splice(index, 1);
+    }
+
+    return heightMemory.map(item => item.height); // 高さを全て返す
+  }, 10000); // 30秒後に削除  
+}
+
 io.on('connection', (socket) => {
   console.log('a user connected');
 
   socket.on('heightChange', height => {
-    console.log('heightChange', height);
+    // console.log('heightChange', height);
     const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
     io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
   });
@@ -98,6 +95,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+
+    // hightArray から 削除する
+    const heightArray = removeHeightMemory(socket.id);
+
+    socket.broadcast.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+    console.log('disconnect -> remove heightMemory', heightMemory);
   });
 });
 
