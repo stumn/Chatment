@@ -3,9 +3,9 @@ const { mongoose, User, Post } = require('./db');
 const { handleErrors, organizeLogs } = require('./utils');
 
 // ユーザーモデルに保存
-async function saveUser(name, socketId, randomString) {
+async function saveUser(name, socketId) { // socketId は配列で保存
     try {
-        const userData = { name, socketId, randomString };
+        const userData = { name, socketId };
         const newUser = await User.create(userData);
         return newUser;
     } catch (error) {
@@ -14,31 +14,26 @@ async function saveUser(name, socketId, randomString) {
 }
 
 // ユーザー情報を取得
-async function getUserInfo(name) {
+async function getUserInfo(name) { // name 検索(何に使うか未定)
     try {
         const userInfo = await User.findOne().where('name').equals(name);
-        const randomString = userInfo.randomString;
-        return randomString;
+        return userInfo;
     } catch {
         handleErrors(error, 'ユーザー情報取得時にエラーが発生しました');
     }
 }
 
-// const PAST_POST = 10 // 過去ログ取得数
-
 // ログイン時・過去ログをDBから取得
 async function getPastLogs(name) {
     try {
-        let memos = await Memo.find({ 'isBeingOpened': false, 'name': name });
         let posts = await Post.find({});
-        let stacks = posts.filter(e => e.parentPostId !== null);
+        // let stacks = posts.filter(e => e.parentPostId !== null);
 
         posts = posts.filter(e => e.parentPostId === null);
-        myPastArray = memos.concat(posts);
         myPastArray.sort((a, b) => a.createdAt - b.createdAt);
 
         const pastLogs = await processXlogs(myPastArray);
-        const stackLogs = await processXlogs(stacks);
+        // const stackLogs = await processXlogs(stacks);
         return { pastLogs, stackLogs };
     } catch (error) {
         handleErrors(error, 'getPastLogs 過去ログ取得中にエラーが発生しました');
@@ -50,9 +45,8 @@ async function processXlogs(xLogs, name) {
     const result = [];
     xLogs.forEach(e => {
         e.createdAt = e.createdAt;
-        if (e.memoCreatedAt) { e.memoCreatedAt = e.memoCreatedAt; }
-        if (e.bookmarks > 0) {
-            e.bookmarks.forEach(e => {
+        if (e.stars > 0) {
+            e.stars.forEach(e => {
                 e.isBookmarked = e.name === name ? true : false;
             });
         }
@@ -72,14 +66,12 @@ function organizeCreatedAt(createdAt) {
 }
 
 // データベースにレコードを保存
-async function saveRecord(name, msg, inqury = {}, stack = {}, memo = {}) {
+async function saveRecord(name, msg, stack = {}) {
     try {
-        const { options = [], voters = [] } = inqury;
         const { parentPostId = null, childPostIds = [] } = stack;
-        const { memoId = null, memoCreatedAt = null } = memo;
-        const bookmarks = [];
+        const stars = [];
 
-        const npData = { name, msg, options, voters, bookmarks, parentPostId, childPostIds, memoId, memoCreatedAt };
+        const npData = { name, msg, options, voters, stars, parentPostId, childPostIds };
         const newPost = await Post.create(npData);
         return newPost;
     } catch (error) {
@@ -101,7 +93,10 @@ async function SaveChatMessage(name, msg) {
 
 const retries = 3;
 const delay = 3000;
+
 async function findPost(msgId) {
+
+    // リトライ機能を追加 -> 3回リトライしても見つからない場合はエラーを投げる
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             console.log(`findPost (attempt ${attempt}): `, msgId);
@@ -122,69 +117,61 @@ async function findPost(msgId) {
 }
 
 // ドキュメントページ用 DBからの過去ログ取得の関数
-async function fetchPosts(randomString) {
+async function fetchPosts(name) {
+
     // まずユーザー情報のDBから、nameTomatchを取得
-    const nameToMatch = await getUserInfo_rsnm(randomString);
-    if (nameToMatch) {
-        try {
-            // 配列を用意
-            const messages = [];
+    const nameToMatch = await getUserInfo(name);
 
-            // チャットを取得・格納
-            const posts = await Post.find({ 'bookmarks': { '$elemMatch': { 'name': nameToMatch } } });
-            posts.forEach(e => organizeAndPush(messages, e));
-
-            // memo を取得・格納
-            const memos = await Memo.find({ name: nameToMatch });
-            memos.forEach(e => organizeAndPush(messages, e, false));
-
-            // createdAt でソート
-            messages.sort((a, b) => a.createdAt - b.createdAt);
-
-            return messages;
-        }
-        catch (error) {
-            handleErrors(error, 'api 過去ログ取得中にエラーが発生しました');
-        }
+    if (!nameToMatch) {
+        console.error('ユーザー情報が見つかりませんでした:', name);
+        return null; // ユーザー情報が見つからない場合は null を返す
     }
+
+    try {
+        const messages = [];
+
+        const posts = await Post.find({ 'stars': { '$elemMatch': { 'name': nameToMatch } } });
+        posts.forEach(e => organizeAndPush(messages, e));
+
+        messages.sort((a, b) => a.createdAt - b.createdAt);
+
+        return messages;
+    } catch (error) {
+        handleErrors(error, 'api 過去ログ取得中にエラーが発生しました');
+    }
+
 }
 
 async function fetchPosts_everybody() {
     try {
-        // 配列を用意
         const messages = [];
 
-        // チャットを取得
         const posts = await Post.find({
             $or: [
-                { "bookmarks.1": { $exists: true } }, // bookmarks配列の長さが2以上
+                { "stars.1": { $exists: true } }, // stars配列の長さが2以上
                 { "childPostIds.0": { $exists: true } } // childPostIds配列の長さが1以上
             ]
         });
 
-        // チャットを格納
         posts.forEach(e => {
-            console.log('fetchPosts_everybody posts:', e.bookmarks.length, e.childPostIds.length);
+            console.log('fetchPosts_everybody posts:', e.stars.length, e.childPostIds.length);
+            organizeAndPush(messages, e);
         });
-        posts.forEach(e => { organizeAndPush(messages, e); });
 
-        // console.log('fetchPosts_everybody messages:', messages);
         return messages;
-    } catch (error) {
+    }
+    catch (error) {
         handleErrors(error, 'api 過去ログ取得中にエラーが発生しました');
     }
 }
 
 function organizeAndPush(messages, e, isChat = true) {
     if (isChat) {
-        const wasRocketed = e.memoId ? true : false;
-        console.log('chat -> e.memoId:', e, 'wasRocketed:', wasRocketed);
         messages.push({ name: e.name, msg: e.msg, createdAt: e.createdAt, id: e.id, wasRocketed: wasRocketed });
 
     } else {
-        console.log('memo');
         messages.push({ name: '', msg: e.msg, createdAt: e.createdAt, id: e.id, wasRocketed: false });
     }
 }
 
-module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SavePersonalMemo, SaveSurveyMessage, SaveRevealMemo, SaveKasaneteMemo, findPost, findMemo, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost };
+module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost };
