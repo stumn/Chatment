@@ -7,31 +7,22 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-
 export default function BeforeLogin({ onLogin }) {
 
-    const [open, setOpen] = React.useState(false);
-
-    const handleClickOpen = () => { setOpen(true); };
+    const [open, setOpen] = React.useState(true); // 初期状態を true に変更
 
     const handleClose = () => { setOpen(false); };
 
     const handleSubmit = (event) => {
-
         event.preventDefault();
-
         const name = event.target[0].value;
         console.log(name);
-
         onLogin(name); // 親コンポーネントに名前を送信
         setOpen(false); // ダイアログを閉じる
     }
 
     return (
         <React.Fragment>
-            <Button variant="outlined" onClick={handleClickOpen}>
-                名前を入力してログインする
-            </Button>
             <Dialog
                 open={open}
                 onClose={handleClose}

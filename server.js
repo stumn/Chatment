@@ -12,30 +12,17 @@ const io = new Server(server, {
 
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017';
+const { mongoose, User, Post } = require('./db');
 
-const mongoose = require('mongoose');
-mongoose.connect(MONGODB_URL);
-
-// Database options
-const options = {
-  timestamps: true, // add timestamp
-  toJSON: { // change the way how data is converted to JSON
-    virtuals: true,
-    versionKey: false,
-    transform: (_, ret) => { delete ret._id; return ret; }
-  }
-};
-
-// Define the shape of data (= schema) to be saved, and construct a model from the schema.
-const postSchema = new mongoose.Schema({ name: String, msg: String, count: Number }, options);
-const Post = mongoose.model("Post", postSchema);
 
 app.use(express.static('my-react-app/dist')); // 追加
 
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
+
+// const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SavePersonalMemo, SaveSurveyMessage, SaveRevealMemo, SaveKasaneteMemo, findPost, findMemo, fetchPosts, saveStackRelation, SaveParentPost } = require('./dbOperations');
+// const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
@@ -47,20 +34,20 @@ function addHeightMemory(id, height) {
   return heightMemory.map(item => item.height); // 高さを全て返す
 }
 
+const FADE_OUT_TIME = 10000; // 10秒後に削除
 function removeHeightMemory(id) {
-  // じわじわとフェードアウトする(30秒後に削除)
-  setTimeout(() => {
+
+  setTimeout(() => {  
     const index = heightMemory.findIndex(item => item.id === id);
-    if (index !== -1) {
-      heightMemory.splice(index, 1);
-    }
+    if (index !== -1) heightMemory.splice(index, 1);
 
     return heightMemory.map(item => item.height); // 高さを全て返す
-  }, 10000); // 30秒後に削除  
+
+  }, FADE_OUT_TIME); // 10秒後に削除  
 }
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('a user connected', socket.id);
 
   socket.on('heightChange', height => {
     // console.log('heightChange', height);

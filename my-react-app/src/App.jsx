@@ -15,11 +15,10 @@ const socket = io(); // Socket.IOの初期化
 
 function App() {
   const [isName, setIsName] = useState(undefined);
-  // console.log('isName', isName); // useState が変更するたびに表示される
+
   useEffect(() => {
     console.log('isName changed:', isName); // useState が変更するたびに表示される
   }, [isName]); // isName が変更するたびに表示される
-
 
   socket.on('connect', () => {
     console.log('Connected to server');
