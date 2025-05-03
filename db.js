@@ -35,7 +35,6 @@ const starSchema = new mongoose.Schema({
 const postSchema = new mongoose.Schema({
     name: String,
     msg: String,
-    options: [String],
     stars: [{ type: starSchema, default: () => ({}) }],
 }, options);
 

@@ -21,8 +21,8 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-// const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SavePersonalMemo, SaveSurveyMessage, SaveRevealMemo, SaveKasaneteMemo, findPost, findMemo, fetchPosts, saveStackRelation, SaveParentPost } = require('./dbOperations');
-// const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
+const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost } = require('./dbOperations');
+const { handleErrors, organizeLogs, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
@@ -37,7 +37,7 @@ function addHeightMemory(id, height) {
 const FADE_OUT_TIME = 10000; // 10秒後に削除
 function removeHeightMemory(id) {
 
-  setTimeout(() => {  
+  setTimeout(() => {
     const index = heightMemory.findIndex(item => item.id === id);
     if (index !== -1) heightMemory.splice(index, 1);
 
