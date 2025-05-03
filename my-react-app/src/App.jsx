@@ -1,9 +1,8 @@
-import { useState, useEffect, use } from 'react'
-import BeforeLogin from './BeforeLogin';
-import AfterLogin from './AfterLogin';
-
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { socket, emitLoginName, emitHeightChange } from './SocketFunctions';
-import { set } from 'mongoose';
+
+const BeforeLogin = lazy(() => import('./BeforeLogin'));
+const AfterLogin = lazy(() => import('./AfterLogin'));
 
 function App() {
 
@@ -43,7 +42,7 @@ function App() {
   ///////////////////////////////////////////////////////////////////////
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <BeforeLogin onLogin={setIsName} />
       <AfterLogin
         myHeight={myHeight}
@@ -52,8 +51,7 @@ function App() {
         isName={isName}
         onLogout={setIsName}
       />
-    </>
-
+    </Suspense>
   )
 }
 
