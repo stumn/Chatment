@@ -3,8 +3,8 @@ import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
 
-const CONTAINER_WIDTH = Math.min(1200, Math.max(400, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
-const CONTAINER_HEIGHT = Math.min(800, Math.max(500, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
+const CONTAINER_WIDTH = Math.min(1000, Math.max(400, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
+const CONTAINER_HEIGHT = Math.min(700, Math.max(500, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
 const DIVIDER_HEIGHT = 20;
 const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
