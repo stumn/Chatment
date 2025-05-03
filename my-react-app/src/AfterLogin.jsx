@@ -47,8 +47,6 @@ export default function AfterLogin({ heightArray, topHeight, setTopHeight, isNam
     }, [messages, lines]);
     // /////////////////////////////////////////////////////////////////////////////////////////////
 
-    console.log('AfterLogin', heightArray); // デバッグ用
-
     return (
         <>
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
@@ -73,27 +71,14 @@ export default function AfterLogin({ heightArray, topHeight, setTopHeight, isNam
                     onUpdateFav={handleUpdateFav}
                 />
 
-                <div id="telomere-div"
-                    style={{
-                        width: '10px',
-                        height: '80vh'
-                    }}>
-                    <div style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '100%',
-                    }}>
+                <div id="telomere-div" style={{ width: '10px', height: '80vh' }}>
 
-                        <Telomere heightArray={heightArray} />
-                    
-                    </div>
+                    <Telomere heightArray={heightArray} />
 
                 </div>
             </div>
 
             <InputForm onSendMessage={handleSendMessage} />
         </>
-
-
     );
 }
