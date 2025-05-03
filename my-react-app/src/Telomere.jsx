@@ -6,7 +6,6 @@ export default function Telomere({ heightArray }) {
     return (
         <div>
             {heightArray.map((height, index) => {
-                console.log(`Height ${index}:`, height); // デバッグ用
 
                 return (
                     <div

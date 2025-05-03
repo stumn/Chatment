@@ -3,7 +3,7 @@ import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
 
-export default function AfterLogin({ heightArray, topHeight, setTopHeight, isName, onLogout }) {
+export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName, onLogout }) {
 
     // window が閉じられる等の場合に、isNameをundefinedにする
 
@@ -62,8 +62,8 @@ export default function AfterLogin({ heightArray, topHeight, setTopHeight, isNam
                 }}>
 
                 <ResizablePanels
-                    topHeight={topHeight}
-                    setTopHeight={setTopHeight}
+                    myHeight={myHeight}
+                    setMyHeight={setMyHeight}
                     chatMessages={messages}
                     docMessages={docMessages}
                     onChangeDoc={setDocMessages}

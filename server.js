@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-app.use(express.static('client/dist'));
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
@@ -14,15 +13,13 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const { mongoose, User, Post } = require('./db');
 
-
 app.use(express.static('my-react-app/dist')); // 追加
-
 app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost } = require('./dbOperations');
-const { handleErrors, organizeLogs, checkEventStatus } = require('./utils');
+// const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SavePersonalMemo, SaveSurveyMessage, SaveRevealMemo, SaveKasaneteMemo, findPost, findMemo, fetchPosts, saveStackRelation, SaveParentPost } = require('./dbOperations');
+// const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
@@ -37,7 +34,7 @@ function addHeightMemory(id, height) {
 const FADE_OUT_TIME = 10000; // 10秒後に削除
 function removeHeightMemory(id) {
 
-  setTimeout(() => {
+  setTimeout(() => {  
     const index = heightMemory.findIndex(item => item.id === id);
     if (index !== -1) heightMemory.splice(index, 1);
 
@@ -49,8 +46,8 @@ function removeHeightMemory(id) {
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
-  socket.on('heightChange', height => {
-    // console.log('heightChange', height);
+  socket.on('heightChange', (height) => {
+    console.log('heightChange', height);
     const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
     io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
   });
@@ -85,10 +82,10 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
 
     // hightArray から 削除する
-    const heightArray = removeHeightMemory(socket.id);
+    // const heightArray = removeHeightMemory(socket.id);
 
-    socket.broadcast.emit('heightChange', heightArray); // 他のクライアントに高さを通知
-    console.log('disconnect -> remove heightMemory', heightMemory);
+    // socket.broadcast.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+    // console.log('disconnect -> remove heightMemory', heightMemory);
   });
 });
 

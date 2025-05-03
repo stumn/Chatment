@@ -2,7 +2,8 @@ import { useState, useEffect, use } from 'react'
 import BeforeLogin from './BeforeLogin';
 import AfterLogin from './AfterLogin';
 
-import { socket, setLoginName } from './SocketFunctions';
+import { socket, emitLoginName, emitHeightChange } from './SocketFunctions';
+import { set } from 'mongoose';
 
 function App() {
 
@@ -12,36 +13,32 @@ function App() {
 
   useEffect(() => { // useEffectはuseStateが変更時に実行
 
-    console.log('isName', isName); // デバッグ用
+    if (isName === undefined) return; // isNameがundefinedの場合は何もしない
+    emitLoginName(isName); // サーバーにログイン名を送信
 
-    setLoginName(isName); // サーバーにログイン名を送信
-
-  }, [isName]); // isName が変更するたびに表示される
-
-  socket.on('connect', (userInfo) => {
-    console.log('Connected to server', userInfo); // デバッグ用
-  });
+  }, [isName]);
 
   // height & telomere ////////////////////////////////////////////////////////////////////
 
-  const INITIAL_HEIGHT = 300; // 初期値
-  const [heightArray, setHeightArray] = useState([INITIAL_HEIGHT]); // 初期値を含む配列
+  // 1. 各ユーザーの高さを記憶するuseState
+  const [myHeight, setMyHeight] = useState(300);
 
+  // 1 -> server 各ユーザの高さが変更されたら、サーバーに送信
+  useEffect(() => {
+    console.log('myHeight', myHeight); // デバッグ用
+    emitHeightChange(myHeight); // サーバーに高さを送信
+  }, [myHeight]); // myHeightが変更されたら実行
+  
+  // 2. ユーザ全体の高さを記憶するuseState（配列 socket.id + height) 
+  const [heightArray, setHeightArray] = useState  ([]);
+
+  // server -> 2 サーバーから受信したら高さを配列に追加
   socket.on('heightChange', (heightArray) => {
-    console.log(' ON heightChange', heightArray);
+    console.log(' ON heightChange', heightArray); // デバッグ用
 
-    setHeightArray([...heightArray, heightArray[heightArray.length - 1]]); // 最新の高さを追加
-
-    console.log('heightArray', heightArray); // デバッグ用
+    // heightArrayは受信したデータをそのまま配列に追加する
+    setHeightArray(heightArray); // 受信した高さを配列に追加
   });
-
-  function handleHeightChange(newTopHeight) {
-    setHeightArray([...heightArray, newTopHeight]); // 新しい高さを追加
-    socket.emit("heightChange", newTopHeight); // サーバーに新しい高さを送信
-    console.log("Top Height (after emit):", newTopHeight); // デバッグ用
-  }
-
-  const topHeight = heightArray[heightArray.length - 1]; // 最新の高さを取得
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -49,9 +46,9 @@ function App() {
     <>
       <BeforeLogin onLogin={setIsName} />
       <AfterLogin
+        myHeight={myHeight}
+        setMyHeight={setMyHeight}
         heightArray={heightArray}
-        topHeight={topHeight}
-        setTopHeight={handleHeightChange}
         isName={isName}
         onLogout={setIsName}
       />

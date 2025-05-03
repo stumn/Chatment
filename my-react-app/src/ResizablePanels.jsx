@@ -9,10 +9,10 @@ const DIVIDER_HEIGHT = 20;
 const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
-export default function ResizablePanels({ topHeight, setTopHeight, chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
+export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
     
 
-    const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - topHeight;
+    const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
@@ -43,13 +43,13 @@ export default function ResizablePanels({ topHeight, setTopHeight, chatMessages,
 
     const handleMouseDown = (event) => {
         const startY = event.clientY;
-        const startHeight = topHeight;
+        const startHeight = myHeight;
 
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
             let newTopHeight = startHeight + (currentY - startY);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
-            setTopHeight(newTopHeight);
+            setMyHeight(newTopHeight);
             console.log("Top Height (resizable):", newTopHeight); // デバッグ用
         };
 
@@ -83,7 +83,7 @@ export default function ResizablePanels({ topHeight, setTopHeight, chatMessages,
                 borderTopRightRadius: '4px',
             }}
         >
-            <div style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${topHeight}px` }}>
+            <div style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
                 <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} />
             </div>
             <div
