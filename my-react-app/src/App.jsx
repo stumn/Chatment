@@ -1,17 +1,8 @@
 import { useState, useEffect, use } from 'react'
 import BeforeLogin from './BeforeLogin';
 import AfterLogin from './AfterLogin';
-import { io } from 'socket.io-client';
 
-const socket = io(); // Socket.IOの初期化
-
-// const socket = io.connect('https://chatment.onrender.com', {
-//     reconnect: true,                // 自動再接続を有効にする
-//     reconnectionAttempts: Infinity, // 無限回再接続を試みる
-//     reconnectionDelay: 1000,        // 再接続前の待機時間（ミリ秒）
-//     reconnectionDelayMax: 5000,     // 最大待機時間（ミリ秒）
-//     timeout: 10000,                 // 接続試行のタイムアウト時間（ミリ秒）
-// });
+import { socket, setLoginName } from './SocketFunctions';
 
 function App() {
 
@@ -21,9 +12,9 @@ function App() {
 
   useEffect(() => { // useEffectはuseStateが変更時に実行
 
-    socket.emit('isName', isName); // サーバーに isName を送信
-    
     console.log('isName', isName); // デバッグ用
+
+    setLoginName(isName); // サーバーにログイン名を送信
 
   }, [isName]); // isName が変更するたびに表示される
 
@@ -55,15 +46,17 @@ function App() {
   ///////////////////////////////////////////////////////////////////////
 
   return (
-    isName === undefined
-      ? <BeforeLogin onLogin={setIsName} />
-      : <AfterLogin
+    <>
+      <BeforeLogin onLogin={setIsName} />
+      <AfterLogin
         heightArray={heightArray}
         topHeight={topHeight}
         setTopHeight={handleHeightChange}
         isName={isName}
         onLogout={setIsName}
       />
+    </>
+
   )
 }
 
