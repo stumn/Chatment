@@ -14,15 +14,24 @@ const socket = io(); // Socket.IOの初期化
 // });
 
 function App() {
+
+  // login & name ////////////////////////////////////////////////////////////////////
+
   const [isName, setIsName] = useState(undefined);
 
-  useEffect(() => {
-    console.log('isName changed:', isName); // useState が変更するたびに表示される
+  useEffect(() => { // useEffectはuseStateが変更時に実行
+
+    socket.emit('isName', isName); // サーバーに isName を送信
+    
+    console.log('isName', isName); // デバッグ用
+
   }, [isName]); // isName が変更するたびに表示される
 
-  socket.on('connect', () => {
-    console.log('Connected to server');
+  socket.on('connect', (userInfo) => {
+    console.log('Connected to server', userInfo); // デバッグ用
   });
+
+  // height & telomere ////////////////////////////////////////////////////////////////////
 
   const INITIAL_HEIGHT = 300; // 初期値
   const [heightArray, setHeightArray] = useState([INITIAL_HEIGHT]); // 初期値を含む配列
@@ -43,6 +52,8 @@ function App() {
 
   const topHeight = heightArray[heightArray.length - 1]; // 最新の高さを取得
 
+  ///////////////////////////////////////////////////////////////////////
+
   return (
     isName === undefined
       ? <BeforeLogin onLogin={setIsName} />
@@ -55,4 +66,5 @@ function App() {
       />
   )
 }
+
 export default App
