@@ -1,17 +1,20 @@
 import React from 'react';
-import { FixedSizeList as List } from 'react-window';
+import { useState, useEffect } from 'react';
 import useChatStore from './store/chatStore';
 
-const ChatComments = () => {
+const ChatComments = ({ bottomHeight, lines }) => {
     const MALTIPILER = 1.1; // フォントサイズの倍率
     const FONT_SIZE = 16; // 基本フォントサイズ
 
     const messages = useChatStore((state) => state.messages);
-    const updateMessage = useChatStore((state) => state.updateMessage);
+    const [chatMessages, setChatMessages] = useState([]);
+    useEffect(() => {
+        setChatMessages(messages.slice(- lines));
+    }, [messages, lines]);
 
     return (
         <ul className="chat-window">
-            {messages.map((message) => (
+            {chatMessages.map((message) => (
                 <li
                     key={message.order}
                     id={message.id}

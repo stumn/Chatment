@@ -2,9 +2,10 @@ import React from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import useChatStore from './store/chatStore';
+import { useEffect, useState } from 'react';
 
 const Row = ({ data, index, style }) => {
-    const message = data.messages[index];
+    const message = data.docMessages[index];
     const [isEditing, setIsEditing] = React.useState(false);
     const contentRef = React.useRef(null);
 
@@ -56,7 +57,7 @@ const Row = ({ data, index, style }) => {
                             wordBreak: 'break-word',
                             cursor: isEditing ? 'text' : 'default',
                             textAlign: 'left',
-                            paddingLeft: isEditing? 0: '8px',
+                            paddingLeft: isEditing ? 0 : '8px',
                         }}
                     >
                         {message?.msg || ''}
@@ -68,19 +69,24 @@ const Row = ({ data, index, style }) => {
 };
 
 
-const DocComments = ({ myHeight }) => {
+const DocComments = ({ myHeight, lines }) => {
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
 
+    const [docMessages, setDocMessages] = useState([]);
+    useEffect(() => {
+        setDocMessages(messages.slice(0, Math.max(0, messages.length - lines)));
+    }, [messages, lines]);
+
     // アイテムの高さを動的に計算する関数
     const getItemSize = (index) => {
-        if (!messages || !messages[index]) {
+        if (!docMessages || !docMessages[index]) {
             return 30; // メッセージがない場合のデフォルト高さ
         }
 
         const lineHeight = 24; // 1行の高さ
-        const charCount = messages[index].msg.length; // msgプロパティを使用
+        const charCount = docMessages[index].msg.length; // msgプロパティを使用
         const estimatedLines = Math.ceil(charCount / 40); // 1行40文字 ★この文字数を、width に合わせて調整したい
         return estimatedLines * lineHeight + 16; // paddingを加算
     };
@@ -104,18 +110,18 @@ const DocComments = ({ myHeight }) => {
                         {...provided.dragHandleProps}
                         style={provided.draggableProps.style}
                     >
-                        {messages[rubric.source.index] ? messages[rubric.source.index].msg : ''}
+                        {docMessages[rubric.source.index] ? docMessages[rubric.source.index].msg : ''}
                     </div>
                 )}
             >
                 {(provided) => (
                     <List
                         height={myHeight}
-                        itemCount={messages ? messages.length : 0} // messagesが存在する場合のみitemCountを設定
+                        itemCount={docMessages ? docMessages.length : 0} // docMessagesが存在する場合のみitemCountを設定
                         itemSize={getItemSize} // 高さを動的に設定
                         width="100%"
                         outerRef={provided.innerRef}
-                        itemData={{ messages, updateMessage }}
+                        itemData={{ docMessages, updateMessage }}
                         style={{ overflowX: 'hidden' }} // スクロールを有効にする
                     >
                         {Row}

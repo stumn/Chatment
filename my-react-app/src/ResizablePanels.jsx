@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
+import useChatStore from "./store/chatStore";
 
 const CONTAINER_WIDTH = Math.min(1000, Math.max(300, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
 const CONTAINER_HEIGHT = Math.min(700, Math.max(400, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
@@ -9,21 +10,23 @@ const DIVIDER_HEIGHT = 20;
 const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
-export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
+export default function ResizablePanels({ myHeight, setMyHeight }) {
 
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
+    const messages = useChatStore((state) => state.messages);
 
+    const [lines, setLines] = useState(3);
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
-        onChangeLines(newLines);
-    }, [bottomHeight, chatMessages]);
+        setLines(newLines);
+    }, [bottomHeight, messages]);
 
     const calculateLines = (newBottomHeight) => {
         let totalHeight = 0;
         let lineCount = 0;
 
-        for (let i = chatMessages.length - 1; i >= 0; i--) {
-            const favCount = chatMessages[i].fav || 0;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            const favCount = messages[i].fav || 0;
             const fontSize = STANDARD_FONT_SIZE + favCount * 2;
             const lineHeight = fontSize + 12;
 
@@ -37,8 +40,6 @@ export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, d
 
         return lineCount;
     };
-
-    const slicedChatMessages = chatMessages.slice(-calculateLines(bottomHeight));
 
     const handleMouseDown = (event) => {
         const startY = event.clientY;
@@ -61,12 +62,6 @@ export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, d
         document.addEventListener("mouseup", onMouseUp);
     };
 
-    const handleFavClick = (index) => {
-        // slicedChatMessages はスライスされたメッセージの配列なので、元のインデックスを計算する必要があります。
-        const originalIndex = chatMessages.length - calculateLines(bottomHeight) + index;
-        onUpdateFav(originalIndex); // 親コンポーネントに更新を通知
-    };
-
     return (
         <Paper
             elevation={3}
@@ -86,7 +81,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, d
                 id='doc-container'
                 style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
                 {/* <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} myHeight={myHeight} /> */}
-                <DocComments myHeight={myHeight} />
+                <DocComments myHeight={myHeight} lines={lines} />
             </div>
 
             <div
@@ -99,7 +94,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, d
                 id='chat-container'
                 style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 {/* <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} /> */}
-                <ChatComments bottomHeight={bottomHeight} />
+                <ChatComments bottomHeight={bottomHeight} lines={lines} />
             </div>
         </Paper>
     );
