@@ -14,8 +14,8 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
         <div
             id="after-login-container"
             style={{
-                width: `${CONTAINER_WIDTH}px`, 
-                height: `${CONTAINER_HEIGHT}px`, 
+                width: `${CONTAINER_WIDTH}px`,
+                height: `${CONTAINER_HEIGHT}px`,
             }}>
 
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
@@ -40,11 +40,8 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                     CONTAINER_HEIGHT={CONTAINER_HEIGHT} // Adjust height for the resizable panel
                 />
 
-                <div id="telomere-div" style={{ width: '10px', height: CONTAINER_HEIGHT }}>
+                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT} />
 
-                    <Telomere heightArray={heightArray} />
-
-                </div>
             </div>
 
             <InputForm />

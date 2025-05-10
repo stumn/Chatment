@@ -1,34 +1,20 @@
-
-export default function Telomere({ heightArray }) {
-
-    console.log('Telomere', heightArray); // デバッグ用
-
+export default function Telomere({ heightArray, CONTAINER_HEIGHT }) {
     return (
-        <div>
-            {heightArray.map((height, index) => {
-
-                return (
-                    <div
-                        className="telomere-container"
-                        style={{ position: 'relative', width: '100%', height: '100%', }}>
-
-                        <div key={index}
-                            className="telomere"
-                            style={{
-                                position: 'absolute',
-                                top: `${height}px`,
-                                // left: `${index * 5}px`, // 横に並べるための位置調整
-                                width: '10px',
-                                height: `20px`,
-                                backgroundColor: 'hsla(133,95%,30%,0.51)', /* 緑・透明 */
-                                mixBlendMode: 'multiply', /* "screen", "overlay" なども試すと面白い */
-                            }}>
-                        </div>
-
-                    </div>
-                );
-            })}
-        </div >
+        <div id="telomere-div" style={{ width: '10px', height: CONTAINER_HEIGHT }}>
+            {heightArray.map((height, index) => (
+                <div
+                    key={index}
+                    className="telomere"
+                    style={{
+                        position: 'absolute',
+                        top: `${height}px`,
+                        width: '10px',
+                        height: '20px',
+                        backgroundColor: 'hsla(133,95%,30%,0.51)',
+                        mixBlendMode: 'multiply',
+                    }}
+                />
+            ))}
+        </div>
     );
-
 }

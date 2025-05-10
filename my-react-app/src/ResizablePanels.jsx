@@ -78,7 +78,6 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
             <div
                 id='doc-container'
                 style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                {/* <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} myHeight={myHeight} /> */}
                 <DocComments myHeight={myHeight} lines={lines} />
             </div>
 
@@ -91,7 +90,6 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                {/* <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} /> */}
                 <ChatComments lines={lines} />
             </div>
         </Paper>
