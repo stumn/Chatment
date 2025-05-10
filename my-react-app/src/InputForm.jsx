@@ -26,7 +26,7 @@ const InputForm = () => {
     <Stack
       direction="row"
       spacing={2}
-      sx={{ margin: '8px 8%', alignItems: 'center' }}
+      sx={{ margin: '24px 8%', alignItems: 'center' }}
     >
       <TextField
         label="Message"

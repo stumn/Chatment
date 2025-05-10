@@ -4,13 +4,10 @@ import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
 import useChatStore from "./store/chatStore";
 
-const CONTAINER_WIDTH = Math.min(1000, Math.max(300, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
-const CONTAINER_HEIGHT = Math.min(700, Math.max(400, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
-const DIVIDER_HEIGHT = 20;
-const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
-const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
-
-export default function ResizablePanels({ myHeight, setMyHeight }) {
+export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH, CONTAINER_HEIGHT }) {
+    const DIVIDER_HEIGHT = 20;
+    const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
+    const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
 
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
     const messages = useChatStore((state) => state.messages);
@@ -38,7 +35,8 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
 
         if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
 
-        return lineCount;
+        console.log("Line Count:", lineCount / 2); // デバッグ用
+        return lineCount / 2; // 1行の余白を加算
     };
 
     const handleMouseDown = (event) => {
@@ -47,7 +45,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
 
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
-            let newTopHeight = startHeight + (currentY - startY);
+            let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
             console.log("Top Height (resizable):", newTopHeight); // デバッグ用
@@ -94,7 +92,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
                 id='chat-container'
                 style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 {/* <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} /> */}
-                <ChatComments bottomHeight={bottomHeight} lines={lines} />
+                <ChatComments lines={lines} />
             </div>
         </Paper>
     );
