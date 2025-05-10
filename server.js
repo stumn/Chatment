@@ -18,7 +18,7 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-// const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SavePersonalMemo, SaveSurveyMessage, SaveRevealMemo, SaveKasaneteMemo, findPost, findMemo, fetchPosts, saveStackRelation, SaveParentPost } = require('./dbOperations');
+const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost } = require('./dbOperation');
 // const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -31,39 +31,44 @@ function addHeightMemory(id, height) {
   return heightMemory.map(item => item.height); // 高さを全て返す
 }
 
-const FADE_OUT_TIME = 10000; // 10秒後に削除
-function removeHeightMemory(id) {
+// const FADE_OUT_TIME = 10000; // 10秒後に削除
+// function removeHeightMemory(id) {
 
-  setTimeout(() => {  
-    const index = heightMemory.findIndex(item => item.id === id);
-    if (index !== -1) heightMemory.splice(index, 1);
+//   setTimeout(() => {  
+//     const index = heightMemory.findIndex(item => item.id === id);
+//     if (index !== -1) heightMemory.splice(index, 1);
 
-    return heightMemory.map(item => item.height); // 高さを全て返す
+//     return heightMemory.map(item => item.height); // 高さを全て返す
 
-  }, FADE_OUT_TIME); // 10秒後に削除  
-}
+//   }, FADE_OUT_TIME); // 10秒後に削除  
+// }
 
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
-  socket.on('heightChange', (height) => {
-    console.log('heightChange', height);
-    const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
-    io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
-  });
-
   socket.on('login', async (name) => {
     try {
-      const posts = await Post.find({}).limit(10); // fetch 10 latest posts from database
-      posts.forEach(p => socket.emit('chat message', p));
+      console.log('login name:', name, socket.id);
+      const newUser = saveUser(name, socket.id); // save user to database
+      socket.emit('connect OK', newUser); // emit to client
     } catch (e) { console.error(e); }
 
-    io.emit('login', name);
-
-    socket.on('chat message', async (msg) => {
+    socket.on('fetch-history', async () => {
       try {
-        const p = await Post.create({ name, msg, count: 0 }); // save data to database
-        io.emit('chat message', p);
+        const messages = await fetchPosts(name); // fetch posts from database
+        socket.emit('history', messages); // emit to client
+      } catch (e) { console.error(e); }
+    });
+
+    socket.on('heightChange', (height) => {
+      const heightArray = addHeightMemory(socket.id, height); // 高さを記憶する関数を呼び出す
+      io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
+    });
+
+    socket.on('chat-message', async (msg) => {
+      try {
+        const p = await SaveChatMessage(name, msg); // save message to database
+        io.emit('chat-message', p);
       } catch (e) { console.error(e); }
     });
 

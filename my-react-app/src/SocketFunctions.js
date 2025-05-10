@@ -14,8 +14,16 @@ function emitLoginName(name) {
     console.log('Login name emitted:', name); // デバッグ用
 }
 
-socket.on('connect', (userInfo) => {
+socket.on('connect OK', (userInfo) => {
     console.log('Connected to server', userInfo); // デバッグ用
+    socket.emit('fetch-history'); // サーバーに過去の投稿を要求
+});
+
+socket.on('history', (messages) => {
+    console.log('History received:', messages); // デバッグ用
+    // ここで受信したメッセージを処理することができます
+    // 必要になれば、App.jsxのstateに保存する
+    // そのために、App.jsx に配置する
 });
 
 function emitHeightChange(heightArray) {
@@ -23,4 +31,28 @@ function emitHeightChange(heightArray) {
     console.log('Height change emitted:', heightArray); // デバッグ用
 }
 
-export { socket, emitLoginName, emitHeightChange };
+function emitChatMessage(msg) {
+    socket.emit('chat-message', msg); // サーバーにチャットメッセージを送信
+    console.log('Chat message emitted:', msg); // デバッグ用
+}
+
+socket.on('chat-message', (msg) => {
+    console.log('Chat message received:', msg); // デバッグ用
+    // ここで受信したメッセージを処理することができます
+    // 必要になれば、App.jsxのstateに保存する
+    // そのために、App.jsx に配置する
+});
+
+function emitFav(id) {
+    socket.emit('fav', id); // サーバーにお気に入りを送信
+    console.log('Favorite emitted:', id); // デバッグ用
+}
+
+socket.on('fav', (post) => {
+    console.log('Favorite received:', post); // デバッグ用
+    // ここで受信したお気に入りを処理することができます
+    // 必要になれば、App.jsxのstateに保存する
+    // そのために、App.jsx に配置する
+});
+
+export { socket, emitLoginName, emitHeightChange, emitChatMessage };

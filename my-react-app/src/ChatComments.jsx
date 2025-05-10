@@ -1,12 +1,17 @@
 import React from 'react';
+import { FixedSizeList as List } from 'react-window';
+import useChatStore from './store/chatStore';
 
-const ChatComments = ({ chatMessages, onFavClick }) => {
+const ChatComments = () => {
     const MALTIPILER = 1.1; // フォントサイズの倍率
     const FONT_SIZE = 16; // 基本フォントサイズ
 
+    const messages = useChatStore((state) => state.messages);
+    const updateMessage = useChatStore((state) => state.updateMessage);
+
     return (
         <ul className="chat-window">
-            {chatMessages.map((message) => (
+            {messages.map((message) => (
                 <li
                     key={message.order}
                     id={message.id}
@@ -44,6 +49,7 @@ const ChatComments = ({ chatMessages, onFavClick }) => {
                 </li>
             ))}
         </ul>
+
     );
 };
 

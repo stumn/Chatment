@@ -1,93 +1,128 @@
-import React, { use, useState } from 'react';
+import React from 'react';
+import { VariableSizeList as List } from 'react-window';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import useChatStore from './store/chatStore';
 
-const DocComments = ({ docMessages = [], onChangeDoc }) => {
+const Row = ({ data, index, style }) => {
+    const message = data.messages[index];
+    const [isEditing, setIsEditing] = React.useState(false);
+    const contentRef = React.useRef(null);
 
-    const handleDragStart = (e, index) => {
-        console.log('ドラッグ開始:', index);
-        e.dataTransfer.setData('text/plain', index);
+    const handleBlur = (e) => {
+        data.updateMessage(index, e.target.textContent);
+        setIsEditing(false);
     };
-
-    const handleDragEnd = (e) => {
-        console.log('ドラッグ終了');
-    };
-
-    const handleDragOver = (e, overIndex) => {
-        e.preventDefault();
-        // ドラッグ中の処理を実装
-        const dragIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
-        if (dragIndex === overIndex) return; // 同じ場所なら何もしない
-        // overIndex の要素をハイライトする
-        // e.target.style.backgroundColor = 'lightgray';
-        e.target.style.borderBottom = '3px solid lightgray';
-        console.log('ドラッグオーバー:', overIndex);
-    };
-
-    const handleDragLeave = (e) => {
-        // ドラッグ離れたときの処理を実装
-        // e.target.style.backgroundColor = '';
-        e.target.style.borderBottom = '';
-        console.log('ドラッグリーブ');
-    };
-
-    const handleDrop = (e, dropIndex) => {
-        e.preventDefault();
-        const dragIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
-        console.log('ドロップ先:', dropIndex, 'ドラッグ元:', dragIndex);
-
-        if (dragIndex === dropIndex) return; // 同じ場所なら何もしない
-
-        // e.target.style.backgroundColor = '';
-        e.target.style.borderBottom = '';
-
-        // 配列のコピーを作成して操作
-        const newDocMessages = [...docMessages];
-        // ドラッグ元の要素を削除（削除した要素を取得）
-        const [draggedItem] = newDocMessages.splice(dragIndex, 1);
-
-        // ドロップ先がドラッグ元の後ろにある場合、削除でインデックスがずれるので調整
-        if (dragIndex < dropIndex) {
-            // ドロップ先の位置は削除後、1つ前にずれるのでそのまま挿入すると「後」に配置できる
-            newDocMessages.splice(dropIndex, 0, draggedItem);
-        } else {
-            // ドラッグ元がドロップ先より後ろの場合は、ドロップ先の次に挿入する
-            newDocMessages.splice(dropIndex + 1, 0, draggedItem);
-        }
-
-        onChangeDoc(newDocMessages);
-    };
-
-    // contentEditable のイベントハンドラ
-    const handleEdit = (e) => {
-        // edit された要素を取得
-        // edit された　＝変更内容を取得
-        // 配列のコピーを作成
-        // 配列の変更部分を変更
-        // userState は今の状況だけ　DBに編集履歴を残す
-        // onChangeDoc();
-    }
-
-    const className = "doc-message" + " latest";
 
     return (
-        <ul className="chat-window"
-            style={{ overflowY: 'auto', height: '100%' }}>
-            {docMessages.map((message) => (
-                <li
-                    id={message.id}
-                    key={message.order}
-                    className={className}
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, index)}
-                    contentEditable={true}
+        <Draggable draggableId={String(index)} index={index} key={index}>
+            {(provided) => (
+                <div
+                    className='doc-comment-item'
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    style={{
+                        ...style,
+                        ...provided.draggableProps.style,
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '4px 16px',
+                        boxSizing: 'border-box',
+                    }}
+                    onDoubleClick={() => setIsEditing(true)}
                 >
-                    {message.msg}
-                </li>
-            ))}
-        </ul>
+                    {/* ドラッグハンドルはここだけ */}
+                    {!isEditing && (
+                        <span {...provided.dragHandleProps}
+                            style={{
+                                marginRight: 8,
+                                cursor: 'grab',
+                                userSelect: 'none'
+                            }}>
+                            ≡
+                        </span>
+                    )}
+
+                    {/* 編集可能領域 */}
+                    <div
+                        className='doc-comment-content'
+                        contentEditable={isEditing}
+                        suppressContentEditableWarning
+                        onBlur={handleBlur}
+                        ref={contentRef}
+                        style={{
+                            flex: 1,
+                            outline: isEditing ? '1px solid #ccc' : 'none',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            cursor: isEditing ? 'text' : 'default',
+                            textAlign: 'left',
+                            paddingLeft: isEditing? 0: '8px',
+                        }}
+                    >
+                        {message?.msg || ''}
+                    </div>
+                </div>
+            )}
+        </Draggable>
+    );
+};
+
+
+const DocComments = ({ myHeight }) => {
+    const messages = useChatStore((state) => state.messages);
+    const updateMessage = useChatStore((state) => state.updateMessage);
+    const reorderMessages = useChatStore((state) => state.reorderMessages);
+
+    // アイテムの高さを動的に計算する関数
+    const getItemSize = (index) => {
+        if (!messages || !messages[index]) {
+            return 30; // メッセージがない場合のデフォルト高さ
+        }
+
+        const lineHeight = 24; // 1行の高さ
+        const charCount = messages[index].msg.length; // msgプロパティを使用
+        const estimatedLines = Math.ceil(charCount / 40); // 1行40文字 ★この文字数を、width に合わせて調整したい
+        return estimatedLines * lineHeight + 16; // paddingを加算
+    };
+
+    const onDragEnd = (result) => {
+        const { source, destination } = result;
+        if (!destination || source.index === destination.index) return;
+        reorderMessages(source.index, destination.index);
+    };
+
+    return (
+        <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable
+                droppableId="droppable"
+                mode="virtual"
+                renderClone={(provided, snapshot, rubric) => (
+                    <div
+                        className='doc-comment'
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        style={provided.draggableProps.style}
+                    >
+                        {messages[rubric.source.index] ? messages[rubric.source.index].msg : ''}
+                    </div>
+                )}
+            >
+                {(provided) => (
+                    <List
+                        height={myHeight}
+                        itemCount={messages ? messages.length : 0} // messagesが存在する場合のみitemCountを設定
+                        itemSize={getItemSize} // 高さを動的に設定
+                        width="100%"
+                        outerRef={provided.innerRef}
+                        itemData={{ messages, updateMessage }}
+                        style={{ overflowX: 'hidden' }} // スクロールを有効にする
+                    >
+                        {Row}
+                    </List>
+                )}
+            </Droppable>
+        </DragDropContext>
     );
 };
 

@@ -3,14 +3,13 @@ import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
 
-const CONTAINER_WIDTH = Math.min(1000, Math.max(400, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
-const CONTAINER_HEIGHT = Math.min(700, Math.max(500, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
+const CONTAINER_WIDTH = Math.min(1000, Math.max(300, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
+const CONTAINER_HEIGHT = Math.min(700, Math.max(400, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
 const DIVIDER_HEIGHT = 20;
 const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
 const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
 export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, docMessages, onChangeDoc, onChangeLines, onUpdateFav }) {
-    
 
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
@@ -83,15 +82,24 @@ export default function ResizablePanels({ myHeight, setMyHeight, chatMessages, d
                 borderTopRightRadius: '4px',
             }}
         >
-            <div style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} />
-            </div>
             <div
+                id='doc-container'
+                style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
+                {/* <DocComments docMessages={docMessages} onChangeDoc={onChangeDoc} myHeight={myHeight} /> */}
+                <DocComments myHeight={myHeight} />
+            </div>
+
+            <div
+                id='slide-bar'
                 style={{ height: `${DIVIDER_HEIGHT}px`, backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
                 onMouseDown={handleMouseDown}
             />
-            <div style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} />
+
+            <div
+                id='chat-container'
+                style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
+                {/* <ChatComments chatMessages={slicedChatMessages} onFavClick={handleFavClick} /> */}
+                <ChatComments bottomHeight={bottomHeight} />
             </div>
         </Paper>
     );

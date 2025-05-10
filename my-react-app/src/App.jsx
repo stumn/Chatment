@@ -27,9 +27,9 @@ function App() {
     console.log('myHeight', myHeight); // デバッグ用
     emitHeightChange(myHeight); // サーバーに高さを送信
   }, [myHeight]); // myHeightが変更されたら実行
-  
+
   // 2. ユーザ全体の高さを記憶するuseState（配列 socket.id + height) 
-  const [heightArray, setHeightArray] = useState  ([]);
+  const [heightArray, setHeightArray] = useState([]);
 
   // server -> 2 サーバーから受信したら高さを配列に追加
   socket.on('heightChange', (heightArray) => {
@@ -42,17 +42,22 @@ function App() {
   ///////////////////////////////////////////////////////////////////////
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BeforeLogin onLogin={setIsName} />
-      <AfterLogin
-        myHeight={myHeight}
-        setMyHeight={setMyHeight}
-        heightArray={heightArray}
-        isName={isName}
-        onLogout={setIsName}
-      />
-    </Suspense>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Suspense fallback={<div>Loading...</div>}>
+
+        <BeforeLogin onLogin={setIsName} />
+
+        <AfterLogin
+          myHeight={myHeight}
+          setMyHeight={setMyHeight}
+          heightArray={heightArray}
+          isName={isName}
+          onLogout={setIsName}
+        />
+
+      </Suspense>
+    </div>
   )
 }
 
-export default App
+export default App;

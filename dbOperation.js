@@ -66,12 +66,11 @@ function organizeCreatedAt(createdAt) {
 }
 
 // データベースにレコードを保存
-async function saveRecord(name, msg, stack = {}) {
+async function saveRecord(name, msg) {
     try {
-        const { parentPostId = null, childPostIds = [] } = stack;
         const stars = [];
 
-        const npData = { name, msg, options, voters, stars, parentPostId, childPostIds };
+        const npData = { name, msg, stars };
         const newPost = await Post.create(npData);
         return newPost;
     } catch (error) {
@@ -174,4 +173,4 @@ function organizeAndPush(messages, e, isChat = true) {
     }
 }
 
-module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost };
+module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, findPost, fetchPosts, fetchPosts_everybody };
