@@ -6,7 +6,7 @@ const AfterLogin = lazy(() => import('./AfterLogin'));
 
 function App() {
 
-  // login & name ////////////////////////////////////////////////////////////////////
+  // login & name //////////////////////////////////////////
 
   const [isName, setIsName] = useState(undefined);
 
@@ -17,7 +17,7 @@ function App() {
 
   }, [isName]);
 
-  // height & telomere ////////////////////////////////////////////////////////////////////
+  // height & telomere /////////////////////////////////////
 
   // 1. 各ユーザーの高さを記憶するuseState
   const [myHeight, setMyHeight] = useState(300);
@@ -39,7 +39,7 @@ function App() {
     setHeightArray(heightArray); // 受信した高さを配列に追加
   });
 
-  ///////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import useChatStore from './store/chatStore';
-import { set } from 'mongoose';
 
 const ChatComments = ({ lines }) => {
     const MALTIPILER = 1.1; // フォントサイズの倍率

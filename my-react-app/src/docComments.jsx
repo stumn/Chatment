@@ -3,7 +3,7 @@ import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
 import { useEffect, useState } from 'react';
 
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import Row from './Row';
 
 const DocComments = ({ myHeight, lines }) => {

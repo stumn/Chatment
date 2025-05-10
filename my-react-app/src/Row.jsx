@@ -1,6 +1,5 @@
 import React from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-
+import { Draggable } from '@hello-pangea/dnd';
 
 const Row = ({ data, index, style }) => {
     const message = data.docMessages[index];

@@ -13,10 +13,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
     return (
         <div
             id="after-login-container"
-            style={{
-                width: `${CONTAINER_WIDTH}px`,
-                height: `${CONTAINER_HEIGHT}px`,
-            }}>
+            style={{ width: `${CONTAINER_WIDTH}px`, height: `${CONTAINER_HEIGHT}px` }}>
 
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
                 {'Logged in as ' + isName}
