@@ -12,10 +12,10 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
     const messages = useChatStore((state) => state.messages);
 
-    const [lines, setLines] = useState({num: 3, timestamp: 0}); // 初期値は1行分の高さ
+    const [lines, setLines] = useState({ num: 3, timestamp: 0 }); // 初期値は1行分の高さ
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
-        setLines({num: newLines, timestamp: Date.now()});
+        setLines({ num: newLines, timestamp: Date.now() });
     }, [bottomHeight, messages]);
 
     // サイズ変更
@@ -48,9 +48,10 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
         }
 
         if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
+        lineCount = Math.round(lineCount / 2.2);
 
-        console.log("Line Count:", lineCount / 2); // デバッグ用
-        return lineCount / 2; // 1行の余白を加算
+        console.log("Line Count:", lineCount); // デバッグ用
+        return lineCount; // 1行の余白を加算
     };
 
     const handleMouseDown = (event) => {
