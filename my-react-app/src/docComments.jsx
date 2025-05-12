@@ -1,9 +1,9 @@
+import React, { useEffect, useState, useRef } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
-import React, { useEffect, useState, useRef } from 'react';
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
-import Row from './Row';
+import DocRow from './DocRow';
 
 const DocComments = ({ myHeight, lines }) => {
 
@@ -69,7 +69,7 @@ const DocComments = ({ myHeight, lines }) => {
                         itemData={{ docMessages, updateMessage }}
                         style={{ overflowX: 'hidden' }}
                     >
-                        {Row}
+                        {DocRow}
                     </List>
                 )}
             </Droppable>

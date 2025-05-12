@@ -1,7 +1,7 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-const Row = ({ data, index, style }) => {
+const DocRow = ({ data, index, style }) => {
     const message = data.docMessages[index];
     const [isEditing, setIsEditing] = React.useState(false);
     const contentRef = React.useRef(null);
@@ -65,4 +65,4 @@ const Row = ({ data, index, style }) => {
     );
 };
 
-export default Row;
+export default DocRow;
