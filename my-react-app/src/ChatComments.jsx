@@ -13,9 +13,9 @@ const ChatComments = ({ lines }) => {
         if (!messages || messages.length === 0) return;
 
         const recentMessages =
-            lines < 1.5
+            lines.num < 1.5
                 ? [messages[messages.length - 1]] // ← 配列にしておく
-                : messages.slice(-Math.ceil(lines)); // ← 小数対応
+                : messages.slice(-Math.ceil(lines.num)); // ← 小数対応
 
         setChatMessages(recentMessages);
 

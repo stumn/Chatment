@@ -67,6 +67,7 @@ io.on('connection', (socket) => {
 
     socket.on('chat-message', async (msg) => {
       try {
+        console.log('chat-message:', msg);
         const p = await SaveChatMessage(name, msg); // save message to database
         io.emit('chat-message', p);
       } catch (e) { console.error(e); }

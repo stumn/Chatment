@@ -41,7 +41,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
 
             </div>
 
-            <InputForm />
+            <InputForm name={isName} />
         </div>
     );
 }

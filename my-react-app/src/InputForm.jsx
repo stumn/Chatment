@@ -4,8 +4,9 @@ import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { Stack } from '@mui/material';
 import useChatStore from './store/chatStore';
+import { emitChatMessage } from './SocketFunctions';
 
-const InputForm = () => {
+const InputForm = ({name}) => {
   const [message, setMessage] = useState('');
   const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
 
@@ -13,9 +14,10 @@ const InputForm = () => {
     e.preventDefault();
     if (message.trim()) {
       console.log('Sending message:', message); // デバッグ用
-      addMessage({ text: message, time: new Date().toLocaleTimeString() }); // オブジェクト形式で追加
+      addMessage(name, message); // chatStore.jsに追加
+      emitChatMessage(message); // emitChatMessage関数を呼び出す
       setMessage(''); // 送信後、入力フィールドをクリア
-    };
+    }
   };
 
   const handleKeyDown = (e) => {

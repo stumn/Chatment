@@ -13,8 +13,8 @@ const DocComments = ({ myHeight, lines }) => {
 
     const [docMessages, setDocMessages] = useState([]);
     useEffect(() => {
-        setDocMessages(messages.slice(0, Math.max(0, messages.length - lines)));
-    }, [messages, lines]);
+        setDocMessages(messages.slice(0, Math.max(0, messages.length - lines.num)));
+    }, [messages, lines.num]);
 
     // アイテムの高さを動的に計算する関数
     const getItemSize = (index) => {

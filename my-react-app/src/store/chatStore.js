@@ -66,18 +66,24 @@ const useChatStore = create((set) => ({
   ],
 
   // メッセージの追加　id 自動生成
-  addMessage: (message) =>
+  addMessage: (name, message) =>
     set((state) => {
       const newId = state.messages.length + 1;
       const newOrder = state.messages[state.messages.length - 1]?.order + 1 || 1;
+      const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // 現在の時刻を取得
+      const initialFav = 0; // 初期値は0
+
+      console.log(newId, newOrder, name, message, newTime, initialFav);
       return {
         messages: [
           ...state.messages,
           {
             id: newId,
             order: newOrder,
-            fav: 0,
-            ...message, // msg, name, time を含むオブジェクトを追加
+            name: name,
+            msg: message,
+            time: newTime,
+            fav: initialFav,
           },
         ],
       };

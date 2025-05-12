@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
@@ -12,11 +12,31 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
     const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
     const messages = useChatStore((state) => state.messages);
 
-    const [lines, setLines] = useState(3);
+    const [lines, setLines] = useState({num: 3, timestamp: 0}); // 初期値は1行分の高さ
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
-        setLines(newLines);
-    }, [bottomHeight, messages]);
+        setLines({num: newLines, timestamp: Date.now()});
+    }, [bottomHeight]);
+
+    useEffect(() => {
+        console.log("Messages updated:", messages); // デバッグ用
+        const newLines = calculateLines(bottomHeight);
+        setLines({num: newLines, timestamp: Date.now()});
+    }, [messages]);
+
+    // サイズ変更
+    // useEffect(() => {
+    //     const handleResize = () => {
+    //         const newBottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
+    //         const newLines = calculateLines(newBottomHeight);
+    //         setLines(newLines);
+    //     };
+
+    //     window.addEventListener("resize", handleResize);
+    //     return () => {
+    //         window.removeEventListener("resize", handleResize);
+    //     };
+    // }, [myHeight, CONTAINER_HEIGHT]);
 
     const calculateLines = (newBottomHeight) => {
         let totalHeight = 0;
