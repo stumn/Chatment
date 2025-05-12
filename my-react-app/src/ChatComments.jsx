@@ -29,7 +29,6 @@ const ChatComments = ({ lines }) => {
             className="chat-window"
             style={{
                 textAlign: 'left',
-
             }}>
 
             {chatMessages.map((cMsg) => (

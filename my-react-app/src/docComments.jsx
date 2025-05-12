@@ -1,12 +1,14 @@
-import React from 'react';
 import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import Row from './Row';
 
 const DocComments = ({ myHeight, lines }) => {
+
+    const listRef = useRef(null);  // ← Listコンポーネントに使うref
+
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
@@ -16,16 +18,21 @@ const DocComments = ({ myHeight, lines }) => {
         setDocMessages(messages.slice(0, Math.max(0, messages.length - lines.num)));
     }, [messages, lines.num]);
 
-    // アイテムの高さを動的に計算する関数
+    useEffect(() => {
+        if (listRef.current) {
+            listRef.current.scrollToItem(docMessages.length - 1, "end"); // ← 最下部にスクロール
+        }
+    }, [myHeight, lines.num, docMessages.length]);
+
     const getItemSize = (index) => {
         if (!docMessages || !docMessages[index]) {
-            return 30; // メッセージがない場合のデフォルト高さ
+            return 30;
         }
 
-        const lineHeight = 24; // 1行の高さ
-        const charCount = docMessages[index].msg.length; // msgプロパティを使用
-        const estimatedLines = Math.ceil(charCount / 40); // 1行40文字 ★この文字数を、width に合わせて調整したい
-        return estimatedLines * lineHeight + 16; // paddingを加算
+        const lineHeight = 24;
+        const charCount = docMessages[index].msg.length;
+        const estimatedLines = Math.ceil(charCount / 40); // TODO: 幅による調整が必要なら実装検討
+        return estimatedLines * lineHeight + 16;
     };
 
     const onDragEnd = (result) => {
@@ -53,13 +60,14 @@ const DocComments = ({ myHeight, lines }) => {
             >
                 {(provided) => (
                     <List
+                        ref={listRef}  // ← ここでListにrefを適用
                         height={myHeight}
-                        itemCount={docMessages ? docMessages.length : 0} // docMessagesが存在する場合のみitemCountを設定
-                        itemSize={getItemSize} // 高さを動的に設定
+                        itemCount={docMessages.length}
+                        itemSize={getItemSize}
                         width="100%"
                         outerRef={provided.innerRef}
                         itemData={{ docMessages, updateMessage }}
-                        style={{ overflowX: 'hidden' }} // スクロールを有効にする
+                        style={{ overflowX: 'hidden' }}
                     >
                         {Row}
                     </List>

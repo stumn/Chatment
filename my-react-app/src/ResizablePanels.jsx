@@ -63,6 +63,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
             let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
+            // mouseMove をすると、docComments の方で、スクロールを最下にする
             console.log("Top Height (resizable):", newTopHeight); // デバッグ用
         };
 
@@ -92,7 +93,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
         >
             <div
                 id='doc-container'
-                style={{ paddingTop: "5px", backgroundColor: "#fefefe", height: `${myHeight}px` }}>
+                style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
                 <DocComments myHeight={myHeight} lines={lines} />
             </div>
 
@@ -105,7 +106,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight}/>
             </div>
         </Paper>
     );
