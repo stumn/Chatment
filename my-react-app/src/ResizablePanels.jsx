@@ -16,13 +16,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
         setLines({num: newLines, timestamp: Date.now()});
-    }, [bottomHeight]);
-
-    useEffect(() => {
-        console.log("Messages updated:", messages); // デバッグ用
-        const newLines = calculateLines(bottomHeight);
-        setLines({num: newLines, timestamp: Date.now()});
-    }, [messages]);
+    }, [bottomHeight, messages]);
 
     // サイズ変更
     // useEffect(() => {

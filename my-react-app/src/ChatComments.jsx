@@ -8,7 +8,7 @@ const ChatComments = ({ lines }) => {
 
     const messages = useChatStore((state) => state.messages);
     const [chatMessages, setChatMessages] = useState([]);
-    
+
     useEffect(() => {
         if (!messages || messages.length === 0) return;
 
@@ -25,7 +25,13 @@ const ChatComments = ({ lines }) => {
 
 
     return (
-        <ul className="chat-window">
+        <div
+            className="chat-window"
+            style={{
+                textAlign: 'left',
+
+            }}>
+
             {chatMessages.map((cMsg) => (
                 <div
                     key={cMsg.order}
@@ -35,7 +41,7 @@ const ChatComments = ({ lines }) => {
                     <span
                         style={{
                             fontSize: `${FONT_SIZE + cMsg.fav * MALTIPILER}px`,
-                            marginLeft: '10px',
+                            marginLeft: '20px',
                             cursor: 'text',
                             border: 'none',
                             background: 'none',
@@ -49,7 +55,7 @@ const ChatComments = ({ lines }) => {
                         suppressContentEditableWarning={true}
                         style={{
                             fontSize: `${FONT_SIZE + cMsg.fav * MALTIPILER}px`,
-                            marginLeft: '10px',
+                            marginLeft: '40px',
                             cursor: 'text',
                             border: 'none',
                             background: 'none',
@@ -74,8 +80,7 @@ const ChatComments = ({ lines }) => {
                     </button>
                 </div>
             ))}
-        </ul>
-
+        </div>
     );
 };
 
