@@ -50,6 +50,16 @@ const InputForm = ({ name }) => {
       >
         Send
       </Button>
+      <span
+        style={{
+          fontSize: '0.8em',
+          color: '#888',
+          marginLeft: '8px',
+          cursor: 'default',
+          whiteSpace: 'nowrap',
+        }}>
+        or Ctrl + Enter
+      </span>
     </Stack>
   );
 };
