@@ -14,9 +14,8 @@ const DocComments = ({ myHeight, lines }) => {
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
 
-    const [docMessages, setDocMessages] = useState([]);
-    useEffect(() => {
-        setDocMessages(messages.slice(0, Math.max(0, messages.length - lines.num)));
+    const docMessages = useMemo(() => {
+        return messages.slice(0, Math.max(0, messages.length - lines.num));
     }, [messages, lines.num]);
 
     useEffect(() => {
@@ -31,10 +30,6 @@ const DocComments = ({ myHeight, lines }) => {
     const charsPerLine = Math.floor(listWidth / 13);
 
     const getItemSize = (index) => {
-        if (!docMessages || !docMessages[index]){
-            console.log(`docMessages${index} is undefined`, docMessages);
-            return 28; // デフォルトの高さを28pxに設定
-        }        
         const lineHeight = 28; // 1行あたりの高さを28pxに設定
         const charCount = docMessages[index].msg.length;
         const estimatedLines = Math.ceil(charCount / charsPerLine); // 計算した文字数で行数を計算

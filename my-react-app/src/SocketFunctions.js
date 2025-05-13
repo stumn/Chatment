@@ -11,7 +11,6 @@ const socket = io(); // サーバーに接続するためのSocket.IOクライ�
 
 function emitLoginName(name) {
     socket.emit('login', name); // サーバーにログイン名を送信
-    console.log('Login name emitted:', name); // デバッグ用
 }
 
 socket.on('connect OK', (userInfo) => {
@@ -28,12 +27,10 @@ socket.on('history', (messages) => {
 
 function emitHeightChange(heightArray) {
     socket.emit('heightChange', heightArray); // サーバーに高さを送信
-    console.log('Height change emitted:', heightArray); // デバッグ用
 }
 
 function emitChatMessage(msg) {
     socket.emit('chat-message', msg); // サーバーにチャットメッセージを送信
-    console.log('Chat message emitted:', msg); // デバッグ用
 }
 
 socket.on('chat-message', (msg) => {

@@ -73,7 +73,7 @@ const useChatStore = create((set) => ({
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // 現在の時刻を取得
       const initialFav = 0; // 初期値は0
 
-      console.log(newId, newOrder, name, message, newTime, initialFav);
+      // console.log(newId, newOrder, name, message, newTime, initialFav);
       return {
         messages: [
           ...state.messages,

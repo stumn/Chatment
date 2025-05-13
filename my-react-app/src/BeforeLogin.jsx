@@ -16,7 +16,6 @@ export default function BeforeLogin({ onLogin }) {
     const handleSubmit = (event) => {
         event.preventDefault();
         const name = event.target[0].value;
-        console.log(name);
         onLogin(name); // 親コンポーネントに名前を送信
         setOpen(false); // ダイアログを閉じる
     }

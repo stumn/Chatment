@@ -14,7 +14,6 @@ const InputForm = ({ name }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim()) {
-      console.log('Sending message:', message); // デバッグ用
       addMessage(name, message); // chatStore.jsに追加
       emitChatMessage(message); // emitChatMessage関数を呼び出す
       setMessage(''); // 送信後、入力フィールドをクリア
@@ -26,7 +25,6 @@ const InputForm = ({ name }) => {
   };
 
   const textBoxWidth = useSizeStore((state) => state.width) * 0.8; // 80%の幅を使用
-  console.log('TextBox Width:', textBoxWidth); // デバッグ用
 
   return (
     <Stack
