@@ -3,16 +3,21 @@ import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
 import useChatStore from "./store/chatStore";
+import useSizeStore from "./store/sizeStore";
 
-export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH, CONTAINER_HEIGHT }) {
-    const DIVIDER_HEIGHT = 20;
+export default function ResizablePanels({ myHeight, setMyHeight }) {
+    // sizeStore から取得
+    const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
+    const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
+
+    const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
-    const MAX_TOP_HEIGHT = CONTAINER_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
+    const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
 
-    const bottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
+    const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
     const messages = useChatStore((state) => state.messages);
 
-    const [lines, setLines] = useState({ num: 3, timestamp: 0 }); // 初期値は1行分の高さ
+    const [lines, setLines] = useState({ num: 9, timestamp: 0 }); // 初期値は1行分の高さ
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
         setLines({ num: newLines, timestamp: Date.now() });
@@ -21,7 +26,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
     // サイズ変更
     // useEffect(() => {
     //     const handleResize = () => {
-    //         const newBottomHeight = CONTAINER_HEIGHT - DIVIDER_HEIGHT - myHeight;
+    //         const newBottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
     //         const newLines = calculateLines(newBottomHeight);
     //         setLines(newLines);
     //     };
@@ -30,7 +35,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
     //     return () => {
     //         window.removeEventListener("resize", handleResize);
     //     };
-    // }, [myHeight, CONTAINER_HEIGHT]);
+    // }, [myHeight, CONTAINER_resizable_HEIGHT]);
 
     const calculateLines = (newBottomHeight) => {
         let totalHeight = 0;
@@ -50,8 +55,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
         if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
         lineCount = Math.round(lineCount / 2.2);
 
-        console.log("Line Count:", lineCount); // デバッグ用
-        return lineCount; // 1行の余白を加算
+        return lineCount;
     };
 
     const handleMouseDown = (event) => {
@@ -80,8 +84,8 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
         <Paper
             elevation={3}
             style={{
-                width: `${CONTAINER_WIDTH}px`,
-                height: `${CONTAINER_HEIGHT}px`,
+                width: `${CONTAINER_resizable_WIDTH}px`,
+                height: `${CONTAINER_resizable_HEIGHT}px`,
                 display: "flex",
                 flexDirection: "column",
                 backgroundColor: 'var(--page-bg, #fefefe)',
@@ -106,7 +110,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, CONTAINER_WIDTH
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight}/>
+                <ChatComments lines={lines} bottomHeight={bottomHeight} />
             </div>
         </Paper>
     );

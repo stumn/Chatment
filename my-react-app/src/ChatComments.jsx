@@ -1,11 +1,13 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
+const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines }) => {
+const ChatComments = ({ lines, bottomHeight }) => {
     const MALTIPILER = 1.1; // フォントサイズの倍率
     const FONT_SIZE = 16; // 基本フォントサイズ
 
+    const listRef = React.createRef(); // Listコンポーネントに使うref
     const messages = useChatStore((state) => state.messages);
     const [chatMessages, setChatMessages] = useState([]);
 
@@ -21,65 +23,44 @@ const ChatComments = ({ lines }) => {
 
         console.log('Chat Messages:', recentMessages);
         console.log('Lines:', lines);
-    }, [lines]);
+    }, [bottomHeight, lines, messages]);
 
+    // スクロールを最下部に
+    useEffect(() => {
+        if (listRef.current) {
+            listRef.current.scrollToItem(chatMessages.length - 1, 'end');
+        }
+    }, [chatMessages]);
+
+    const getItemSize = (index) => {
+        console.log('getItemSize:', index, chatMessages[index]);
+        if (!chatMessages || !chatMessages[index]) {
+            console.log('No chat message found, 68px returned');
+            return 68;
+        }
+
+        const lineHeight = 24;
+        const charCount = chatMessages[index].msg.length;
+        const estimatedLines = Math.ceil(charCount / 30); // TODO: 幅による調整が必要なら実装検討
+        console.log('estimatedLines:', estimatedLines);
+        return estimatedLines * lineHeight + 16;
+    };
 
     return (
-        <div
-            className="chat-window"
+        <List
+            ref={listRef}
+            height={bottomHeight}
+            itemCount={chatMessages.length}
+            itemSize={getItemSize}
+            width="100%"
+            itemData={{ chatMessages, FONT_SIZE, MALTIPILER }}
             style={{
+                overflow: 'hidden',
                 textAlign: 'left',
-            }}>
-
-            {chatMessages.map((cMsg) => (
-                <div
-                    key={cMsg.order}
-                    id={cMsg.id}
-                    className="chat-cMsg"
-                >
-                    <span
-                        style={{
-                            fontSize: `${FONT_SIZE + cMsg.fav * MALTIPILER}px`,
-                            marginLeft: '20px',
-                            cursor: 'text',
-                            border: 'none',
-                            background: 'none',
-                        }}
-                    >
-                        <strong>{cMsg.name}</strong> [{cMsg.time}]
-                    </span>
-                    <br />
-                    <span
-                        contentEditable={true}
-                        suppressContentEditableWarning={true}
-                        style={{
-                            fontSize: `${FONT_SIZE + cMsg.fav * MALTIPILER}px`,
-                            marginLeft: '40px',
-                            cursor: 'text',
-                            border: 'none',
-                            background: 'none',
-                        }}
-                    >
-                        {cMsg.msg}
-                    </span>
-
-                    <button
-                        onClick={() => onFavClick(index)}
-                        contentEditable={false}
-                        style={{
-                            fontSize: `${FONT_SIZE + cMsg.fav * MALTIPILER}px`,
-                            marginLeft: '10px',
-                            cursor: 'pointer',
-                            border: 'none',
-                            background: 'none',
-                            color: cMsg.fav ? 'gold' : 'gray',
-                        }}
-                    >
-                        ★
-                    </button>
-                </div>
-            ))}
-        </div>
+            }}
+        >
+            {ChatRow}
+        </List>
     );
 };
 

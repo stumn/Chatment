@@ -55,6 +55,9 @@ const DocRow = ({ data, index, style }) => {
                             cursor: isEditing ? 'text' : 'default',
                             textAlign: 'left',
                             paddingLeft: isEditing ? 0 : '8px',
+                            fontSize: '15px',
+                            lineHeight: '1.5',
+                            backgroundColor: isEditing ? 'rgb(121 182 150 / 87%)' : 'transparent',
                         }}
                     >
                         {message?.msg || ''}

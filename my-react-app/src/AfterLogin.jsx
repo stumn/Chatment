@@ -1,15 +1,14 @@
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
+import sizeStore from './store/sizeStore';
 
 export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName, onLogout }) {
 
-    // const CONTAINER_WIDTH = Math.min(1000, Math.max(300, window.innerWidth * 0.7)); // 画面サイズに応じて幅を調整
-    // const CONTAINER_HEIGHT = Math.min(700, Math.max(400, window.innerHeight * 0.8)); // 画面サイズに応じて高さを調整
-
-    const CONTAINER_WIDTH = 1000; // 画面サイズに応じて幅を調整
-    const CONTAINER_HEIGHT = 900; // 画面サイズに応じて高さを調整
-
+    // sizeStore から取得
+    const CONTAINER_WIDTH = sizeStore((state) => state.width);
+    const CONTAINER_HEIGHT = sizeStore((state) => state.height);
+    
     return (
         <div
             id="after-login-container"
@@ -23,7 +22,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                 id="resizable-container"
                 style={{
                     width: `${CONTAINER_WIDTH}px`,
-                    height: `${CONTAINER_HEIGHT}px`,
+                    height: `${CONTAINER_HEIGHT * 0.8}px`,
                     display: 'flex',
                     flexDirection: 'row', // Change to row for horizontal layout
                     alignItems: 'flex-start', // Align items at the top
@@ -33,8 +32,6 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                 <ResizablePanels
                     myHeight={myHeight}
                     setMyHeight={setMyHeight}
-                    CONTAINER_WIDTH={CONTAINER_WIDTH}
-                    CONTAINER_HEIGHT={CONTAINER_HEIGHT} // Adjust height for the resizable panel
                 />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT} />

@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
+import useSizeStore from './store/sizeStore';
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
-import DocRow from './DocRow';
+const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
 
 const DocComments = ({ myHeight, lines }) => {
 
@@ -24,15 +25,20 @@ const DocComments = ({ myHeight, lines }) => {
         }
     }, [myHeight, lines.num, docMessages.length]);
 
-    const getItemSize = (index) => {
-        if (!docMessages || !docMessages[index]) {
-            return 30;
-        }
+    // Listの幅を取得 幅 * 0.8 を切り捨て
+    const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8); // 80%の幅を使用
+    // 幅に基づいて1行あたりの文字数を計算（800に対して60文字になるよう、仮に1文字あたり13pxと仮定）
+    const charsPerLine = Math.floor(listWidth / 13);
 
-        const lineHeight = 24;
+    const getItemSize = (index) => {
+        if (!docMessages || !docMessages[index]){
+            console.log(`docMessages${index} is undefined`, docMessages);
+            return 28; // デフォルトの高さを28pxに設定
+        }        
+        const lineHeight = 28; // 1行あたりの高さを28pxに設定
         const charCount = docMessages[index].msg.length;
-        const estimatedLines = Math.ceil(charCount / 40); // TODO: 幅による調整が必要なら実装検討
-        return estimatedLines * lineHeight + 16;
+        const estimatedLines = Math.ceil(charCount / charsPerLine); // 計算した文字数で行数を計算
+        return estimatedLines * lineHeight; // 必要な行数分の高さを返す
     };
 
     const onDragEnd = (result) => {
@@ -48,7 +54,6 @@ const DocComments = ({ myHeight, lines }) => {
                 mode="virtual"
                 renderClone={(provided, snapshot, rubric) => (
                     <div
-                        className='doc-comment'
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
@@ -60,6 +65,7 @@ const DocComments = ({ myHeight, lines }) => {
             >
                 {(provided) => (
                     <List
+                        className="docList"
                         ref={listRef}  // ← ここでListにrefを適用
                         height={myHeight}
                         itemCount={docMessages.length}
