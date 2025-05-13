@@ -10,7 +10,7 @@ function App() {
 
   const [isName, setIsName] = useState(undefined);
 
-  useEffect(() => { // useEffectはuseStateが変更時に実行
+  useEffect(() => {
 
     if (isName === undefined) return; // isNameがundefinedの場合は何もしない
     emitLoginName(isName); // サーバーにログイン名を送信
@@ -31,10 +31,17 @@ function App() {
   const [heightArray, setHeightArray] = useState([]);
 
   // server -> 2 サーバーから受信したら高さを配列に追加
-  socket.on('heightChange', (heightArray) => {
-    // heightArrayは受信したデータをそのまま配列に追加する
-    setHeightArray(heightArray); // 受信した高さを配列に追加
-  });
+  useEffect(() => {
+    const handleHeightChange = (heightArray) => {
+      setHeightArray(heightArray);
+    };
+
+    socket.on('heightChange', handleHeightChange);
+
+    return () => {
+      socket.off('heightChange', handleHeightChange); // クリーンアップ
+    };
+  }, []);
 
   ////////////////////////////////////////////////////////////
 

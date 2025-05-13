@@ -53,7 +53,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
         }
 
         if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
-        lineCount = Math.round(lineCount / 2.2);
+        lineCount = Math.round(lineCount / 2.2); // 推定行数を見た目に調整（経験的に2.2で割るとよい感じ）
 
         return lineCount;
     };

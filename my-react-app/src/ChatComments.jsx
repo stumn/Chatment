@@ -12,14 +12,10 @@ const ChatComments = ({ lines, bottomHeight }) => {
 
     const chatMessages = useMemo(() => {
         if (!messages || messages.length === 0) return;
-
-        const recentMessages =
-            lines.num < 1.5
-                ? [messages[messages.length - 1]] // ← 1つだけど配列にしておく
-                : messages.slice(-Math.ceil(lines.num)); // ← 少数を切り上げて取得
-
-        return (recentMessages);
-    }, [bottomHeight, lines, messages]);
+        return lines.num < 1.5
+            ? [messages[messages.length - 1]] // ← 1つだけど配列にしておく
+            : messages.slice(-Math.ceil(lines.num)); // ← 少数を切り上げて取得
+    }, [lines.num, messages]);
 
     // スクロールを最下部に
     useEffect(() => {
