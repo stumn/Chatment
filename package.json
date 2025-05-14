@@ -5,8 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "deploy": "gh-pages -d dist",
-    "postinstall": "cd my-react-app && npm install && npm run build && cd .."
+    "deploy": "gh-pages -d dist"
   },
   "author": "",
   "license": "ISC",
