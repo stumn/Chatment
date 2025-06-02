@@ -60,7 +60,7 @@ const DocRow = ({ data, index, style }) => {
                             backgroundColor: isEditing ? 'rgb(121 182 150 / 87%)' : 'transparent',
                         }}
                     >
-                        {message?.id + '. '+ message?.msg || ''}
+                        { message?.msg || ''}
                     </div>
                 </div>
             )}
