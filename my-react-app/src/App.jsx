@@ -95,8 +95,9 @@ function App() {
   }, []);
 
   ////////////////////////////////////////////////////////////
-
-  if (connected && isName) {
+   
+  // if (connected && isName) {
+  if (isName) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>

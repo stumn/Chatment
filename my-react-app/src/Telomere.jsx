@@ -10,7 +10,7 @@ export default function Telomere({ heightArray, CONTAINER_HEIGHT }) {
                         top: `${height}px`,
                         width: '10px',
                         height: '20px',
-                        backgroundColor: 'hsla(133,95%,30%,0.51)',
+                        backgroundColor: 'rgba(4, 149, 35, 0.51)',
                         mixBlendMode: 'multiply',
                     }}
                 />

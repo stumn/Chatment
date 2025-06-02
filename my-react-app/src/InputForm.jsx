@@ -42,6 +42,7 @@ const InputForm = ({ name }) => {
         onKeyDown={handleKeyDown} // Ctrl + Enter で送信
       />
       <Tooltip title="Ctrl + Enter" placement='top' arrow>
+        <span>
           <Button
             variant="contained"
             onClick={handleSubmit}
@@ -50,6 +51,7 @@ const InputForm = ({ name }) => {
           >
             Send
           </Button>
+        </span>
       </Tooltip>
     </Stack>
   );
