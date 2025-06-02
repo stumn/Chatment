@@ -1,14 +1,21 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
-import { socket, emitLoginName, emitHeightChange } from './SocketFunctions';
+
+import { io } from 'socket.io-client';
+const socket = io(); // サーバーに接続するためのSocket.IOクライアントを作成
+
+import useChatStore from './store/chatStore';
 
 const BeforeLogin = lazy(() => import('./BeforeLogin'));
 const AfterLogin = lazy(() => import('./AfterLogin'));
 
 function App() {
 
+  const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
+
   // login & name //////////////////////////////////////////
 
   const [isName, setIsName] = useState(undefined);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
 
@@ -16,6 +23,50 @@ function App() {
     emitLoginName(isName); // サーバーにログイン名を送信
 
   }, [isName]);
+
+  function emitLoginName(name) {
+    socket.emit('login', name); // サーバーにログイン名を送信
+  }
+
+  socket.on('connect OK', (userInfo) => {
+    console.log('Connected to server', userInfo); // デバッグ用
+    setConnected(true); // 接続成功時に状態を更新
+    socket.emit('fetch-history'); // サーバーに過去の投稿を要求
+  });
+
+  socket.on('history', (historyArray) => {
+    console.log('History received:', historyArray); // デバッグ用
+    historyArray.forEach((history) => {
+      addMessage(history.name, history.msg); // チャットストアにメッセージを追加
+    });
+  });
+
+  function emitHeightChange(heightArray) {
+    socket.emit('heightChange', heightArray); // サーバーに高さを送信
+  }
+
+  function emitChatMessage(msg) {
+    socket.emit('chat-message', msg); // サーバーにチャットメッセージを送信
+  }
+
+  socket.on('chat-message', (msg) => {
+    console.log('Chat message received:', msg); // デバッグ用
+    // ここで受信したメッセージを処理することができます
+    // 必要になれば、App.jsxのstateに保存する
+    // そのために、App.jsx に配置する
+  });
+
+  function emitFav(id) {
+    socket.emit('fav', id); // サーバーにお気に入りを送信
+    console.log('Favorite emitted:', id); // デバッグ用
+  }
+
+  socket.on('fav', (post) => {
+    console.log('Favorite received:', post); // デバッグ用
+    // ここで受信したお気に入りを処理することができます
+    // 必要になれば、App.jsxのstateに保存する
+    // そのために、App.jsx に配置する
+  });
 
   // height & telomere /////////////////////////////////////
 
@@ -45,23 +96,31 @@ function App() {
 
   ////////////////////////////////////////////////////////////
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
-      <Suspense fallback={<div>Loading...</div>}>
+  if (connected && isName) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AfterLogin
+            myHeight={myHeight}
+            setMyHeight={setMyHeight}
+            heightArray={heightArray}
+            isName={isName}
+            onLogout={setIsName}
+          />
 
-        <BeforeLogin onLogin={setIsName} />
+        </Suspense>
+      </div>
+    )
+  } else {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <BeforeLogin onLogin={setIsName} />
+        </Suspense>
+      </div>
+    );
+  }
 
-        <AfterLogin
-          myHeight={myHeight}
-          setMyHeight={setMyHeight}
-          heightArray={heightArray}
-          isName={isName}
-          onLogout={setIsName}
-        />
-
-      </Suspense>
-    </div>
-  )
 }
 
 export default App;

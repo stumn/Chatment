@@ -34,7 +34,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                     setMyHeight={setMyHeight}
                 />
 
-                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT} />
+                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT * 0.8} />
 
             </div>
 

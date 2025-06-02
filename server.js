@@ -18,7 +18,7 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-const { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, SaveSurveyMessage, findPost, fetchPosts, fetchPosts_everybody, saveStackRelation, SaveParentPost } = require('./dbOperation');
+const { saveUser, SaveChatMessage, getPastLogs} = require('./dbOperation');
 // const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -49,13 +49,16 @@ io.on('connection', (socket) => {
   socket.on('login', async (name) => {
     try {
       console.log('login name:', name, socket.id);
-      const newUser = saveUser(name, socket.id); // save user to database
+      const newUser = await saveUser(name, socket.id); // save user to database
+      console.log('newUser:', newUser);
       socket.emit('connect OK', newUser); // emit to client
     } catch (e) { console.error(e); }
 
     socket.on('fetch-history', async () => {
+      console.log('fetch-history:', name);
       try {
-        const messages = await fetchPosts(name); // fetch posts from database
+        const messages = await getPastLogs(name); // fetch posts from database
+        console.log('fetch-history messages:', messages);
         socket.emit('history', messages); // emit to client
       } catch (e) { console.error(e); }
     });

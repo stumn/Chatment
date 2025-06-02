@@ -27,14 +27,8 @@ async function getUserInfo(name) { // name 検索(何に使うか未定)
 async function getPastLogs(name) {
     try {
         let posts = await Post.find({});
-        // let stacks = posts.filter(e => e.parentPostId !== null);
-
-        posts = posts.filter(e => e.parentPostId === null);
-        myPastArray.sort((a, b) => a.createdAt - b.createdAt);
-
-        const pastLogs = await processXlogs(myPastArray);
-        // const stackLogs = await processXlogs(stacks);
-        return { pastLogs, stackLogs };
+        const pastLogs = await processXlogs(posts, name);
+        return pastLogs;
     } catch (error) {
         handleErrors(error, 'getPastLogs 過去ログ取得中にエラーが発生しました');
     }

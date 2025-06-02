@@ -18,6 +18,7 @@ function emitLoginName(name) {
 
 socket.on('connect OK', (userInfo) => {
     console.log('Connected to server', userInfo); // デバッグ用
+    setConnected(true); // 接続成功時に状態を更新
     socket.emit('fetch-history'); // サーバーに過去の投稿を要求
 });
 
@@ -26,8 +27,6 @@ socket.on('history', (historyArray) => {
     // historyArray.forEach((history) => {
     //     addMessage(history); // チャットストアにメッセージを追加
     // });
-    // 必要になれば、App.jsxのstateに保存する
-    // そのために、App.jsx に配置する
 });
 
 function emitHeightChange(heightArray) {
