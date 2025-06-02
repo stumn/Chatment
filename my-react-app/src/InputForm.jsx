@@ -6,6 +6,7 @@ import { Stack } from '@mui/material';
 import useChatStore from './store/chatStore';
 import { emitChatMessage } from './SocketFunctions';
 import useSizeStore from './store/sizeStore'; // サイズストアをインポート
+import Tooltip from '@mui/material/Tooltip';
 
 const InputForm = ({ name }) => {
   const [message, setMessage] = useState('');
@@ -40,24 +41,16 @@ const InputForm = ({ name }) => {
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown} // Ctrl + Enter で送信
       />
-      <Button
-        variant="contained"
-        onClick={handleSubmit}
-        endIcon={<SendIcon />}
-        disabled={message.trim() === ''} // 空または空白スペースのみの場合は無効化
-      >
-        Send
-      </Button>
-      <span
-        style={{
-          fontSize: '0.8em',
-          color: '#888',
-          marginLeft: '8px',
-          cursor: 'default',
-          whiteSpace: 'nowrap',
-        }}>
-        or Ctrl + Enter
-      </span>
+      <Tooltip title="Ctrl + Enter" placement='top' arrow>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            endIcon={<SendIcon />}
+            disabled={message.trim() === ''} // 空または空白スペースのみの場合は無効化
+          >
+            Send
+          </Button>
+      </Tooltip>
     </Stack>
   );
 };

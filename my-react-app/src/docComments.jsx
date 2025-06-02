@@ -68,7 +68,7 @@ const DocComments = ({ myHeight, lines }) => {
                         width="100%"
                         outerRef={provided.innerRef}
                         itemData={{ docMessages, updateMessage }}
-                        style={{ overflowX: 'hidden' }}
+                        style={{ overflowX: 'hidden', paddingTop: '8px'}}
                     >
                         {DocRow}
                     </List>

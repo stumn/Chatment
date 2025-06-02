@@ -112,7 +112,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
 
             <div
                 id='chat-container'
-                style={{ flexGrow: 1, paddingTop: "5px", backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
+                style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 <ChatComments lines={lines} bottomHeight={bottomHeight} />
             </div>
         </Paper>
