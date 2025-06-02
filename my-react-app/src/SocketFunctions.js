@@ -1,5 +1,8 @@
 import { io } from 'socket.io-client';
 const socket = io(); // サーバーに接続するためのSocket.IOクライアントを作成
+// import useChatStore from './store/chatStore';
+// const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
+
 
 // const socket = io.connect('https://chatment.onrender.com', {
 //     reconnect: true,                // 自動再接続を有効にする
@@ -18,9 +21,11 @@ socket.on('connect OK', (userInfo) => {
     socket.emit('fetch-history'); // サーバーに過去の投稿を要求
 });
 
-socket.on('history', (messages) => {
-    console.log('History received:', messages); // デバッグ用
-    // ここで受信したメッセージを処理することができます
+socket.on('history', (historyArray) => {
+    console.log('History received:', historyArray); // デバッグ用
+    // historyArray.forEach((history) => {
+    //     addMessage(history); // チャットストアにメッセージを追加
+    // });
     // 必要になれば、App.jsxのstateに保存する
     // そのために、App.jsx に配置する
 });
