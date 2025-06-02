@@ -69,11 +69,14 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
             setMyHeight(newTopHeight);
             // mouseMove をすると、docComments の方で、スクロールを最下にする
             console.log("Top Height (resizable):", newTopHeight); // デバッグ用
+            // className を変更して、見た目を調整
+            document.getElementById('slide-bar').style.backgroundColor = `#049523`;
         };
 
         const onMouseUp = () => {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
+            document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
         };
 
         document.addEventListener("mousemove", onMouseMove);
