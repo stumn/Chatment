@@ -35,7 +35,6 @@ function App() {
   });
 
   socket.on('history', (historyArray) => {
-    console.log('History received:', historyArray); // デバッグ用
     historyArray.forEach((history) => {
       addMessage(history.name, history.msg); // チャットストアにメッセージを追加
     });

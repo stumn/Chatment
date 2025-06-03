@@ -1,7 +1,8 @@
 const ChatRow = ({ data, index, style }) => {
-    const cMsg = data.chatMessages[index];
-    const FONT_SIZE = data.FONT_SIZE;
-    const MALTIPILER = data.MALTIPILER;
+    const cMsg = data[index];
+
+    const FONT_SIZE = 15;
+    const MALTIPILER = 1.1;
 
     const fontSize = FONT_SIZE + cMsg.fav * MALTIPILER;
 
@@ -12,7 +13,7 @@ const ChatRow = ({ data, index, style }) => {
                 className="name + time"
                 style={{ textAlign: 'left', fontSize, marginLeft: '20px' }}
             >
-                <strong>{cMsg.name}</strong> [{cMsg.time}]
+                <strong>{cMsg.name}</strong> <span>[{cMsg.time}]</span>
             </div>
 
             <div

@@ -55,10 +55,8 @@ io.on('connection', (socket) => {
     } catch (e) { console.error(e); }
 
     socket.on('fetch-history', async () => {
-      console.log('fetch-history:', name);
       try {
         const messages = await getPastLogs(name); // fetch posts from database
-        console.log('fetch-history messages:', messages);
         socket.emit('history', messages); // emit to client
       } catch (e) { console.error(e); }
     });

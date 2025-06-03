@@ -35,8 +35,6 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: hsl(225deg 6.06% 87.06%);
   color: #4a4a4a;
   user-select: none;

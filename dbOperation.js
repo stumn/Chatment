@@ -147,7 +147,7 @@ async function fetchPosts_everybody() {
         });
 
         posts.forEach(e => {
-            console.log('fetchPosts_everybody posts:', e.stars.length, e.childPostIds.length);
+            // console.log('fetchPosts_everybody posts:', e.stars.length, e.childPostIds.length);
             organizeAndPush(messages, e);
         });
 
