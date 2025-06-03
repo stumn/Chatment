@@ -1,0 +1,37 @@
+#docList {
+    overflow-x: hidden;
+    padding-top: 8px;
+}
+
+.doc-comment-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    box-sizing: border-box;
+}
+
+.doc-comment-content {
+    flex: 1;
+    outline: none;
+    word-break: break-word;
+    cursor: text;
+    text-align: left;
+    padding-left: 8px;
+    font-size: 15px;
+    line-height: 1.5;
+    border: none;
+}
+
+.maru {
+    margin-right: 8px;
+    user-select: none;
+    visibility: inherit;
+}
+
+.maru:hover {
+    cursor: grab;
+}
+
+.maru:active {
+    cursor: grabbing;
+}

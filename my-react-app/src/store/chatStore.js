@@ -28,6 +28,47 @@ const useChatStore = create((set) => ({
       };
     }),
 
+  customAddMessage: ({ name, msg, order }) =>
+    set((state) => {
+      const newId = state.messages.length + 1;
+      const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const initialFav = 0;
+
+      // 新しいメッセージを作成
+      const newMessage = {
+        id: newId,
+        order: order,
+        name: name || 'Unknown',
+        msg: msg || '',
+        time: newTime,
+        fav: initialFav,
+      };
+
+      // order が既に存在するかチェック
+      const orderExists = state.messages.some(m => m.order === order);
+
+      let updatedMessages;
+      if (orderExists) {
+        // order で昇順ソート
+        updatedMessages = state.messages
+          .map(m => {
+            // 既存 order が新規 order 以上なら order を1つ増やす
+            if (m.order >= order) {
+              return { ...m, order: m.order + 1 };
+            }
+            return m;
+          })
+          .concat(newMessage)
+          .sort((a, b) => a.order - b.order);
+      } else {
+        updatedMessages = [...state.messages, newMessage].sort((a, b) => a.order - b.order);
+      }
+
+      return {
+        messages: updatedMessages,
+      };
+    }),
+
   // 指定したindex のメッセージを編集
   updateMessage: (index, newMsg) =>
     set((state) => {
