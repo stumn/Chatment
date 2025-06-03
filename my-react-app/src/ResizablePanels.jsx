@@ -106,7 +106,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
 
             <div
                 id='slide-bar'
-                style={{ height: `${DIVIDER_HEIGHT}px`, width: `${CONTAINER_resizable_WIDTH + 10}px`,backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
+                style={{ height: `${DIVIDER_HEIGHT}px`, width: `${CONTAINER_resizable_WIDTH}px`,backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
                 onMouseDown={handleMouseDown}
             />
 
