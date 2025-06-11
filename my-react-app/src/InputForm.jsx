@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
+
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { Stack } from '@mui/material';
-import useChatStore from './store/chatStore';
-import { emitChatMessage } from './SocketFunctions';
-import useSizeStore from './store/sizeStore'; // サイズストアをインポート
 import Tooltip from '@mui/material/Tooltip';
+
+import useChatStore from './store/chatStore';
+import useSocket from './store/useSocket';
+import useSizeStore from './store/sizeStore';
 
 const InputForm = ({ name }) => {
   const [message, setMessage] = useState('');
   const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
+  const emitChatMessage = useSocket((state) => state.emitChatMessage); // useSocketからemitChatMessageを取得
 
   const handleSubmit = (e) => {
     e.preventDefault();
