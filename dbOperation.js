@@ -27,23 +27,18 @@ async function getUserInfo(name) { // name 検索(何に使うか未定)
 async function getPastLogs(name) {
     try {
         let posts = await Post.find({});
-        const pastLogs = await processXlogs(posts, name);
+        const pastLogs = await processXlogs(posts);
         return pastLogs;
     } catch (error) {
         handleErrors(error, 'getPastLogs 過去ログ取得中にエラーが発生しました');
     }
 }
 
-async function processXlogs(xLogs, name) {
+async function processXlogs(xLogs) {
     // const xLogs = await Promise.all(xLogs.map(organizeLogs));
     const result = [];
     xLogs.forEach(e => {
         e.createdAt = e.createdAt;
-        if (e.stars > 0) {
-            e.stars.forEach(e => {
-                e.isBookmarked = e.name === name ? true : false;
-            });
-        }
         e = organizeLogs(e);
         result.push(e);
     });

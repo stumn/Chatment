@@ -5,8 +5,11 @@ const useChatStore = create((set) => ({
   messages: [],
 
   // メッセージの追加　id 自動生成
-  addMessage: (name, message) =>
+  addMessage: (post) =>
     set((state) => {
+      const name = post.name || 'Unknown';
+      const message = post.msg || '';
+
       const newId = state.messages.length + 1;
       const newOrder = state.messages[state.messages.length - 1]?.order + 1 || 1;
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // 現在の時刻を取得

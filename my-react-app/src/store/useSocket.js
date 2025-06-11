@@ -1,11 +1,16 @@
 // store/useSocket.js
 import { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
 
+import { io } from 'socket.io-client';
 const socket = io();
 
+import chatStore from './chatStore';
+
 export default function useSocket() {
+  
   const [heightArray, setHeightArray] = useState([]);
+
+  const addMessage = chatStore((state) => state.addMessage);
 
   useEffect(() => {
     const handleHeightChange = (data) => setHeightArray(data);
@@ -15,9 +20,13 @@ export default function useSocket() {
     };
     const handleHistory = (historyArray) => {
       console.log('History received:', historyArray);
+      historyArray.forEach((msg) => {
+        addMessage(msg);
+      });
     };
     const handleChatMessage = (msg) => {
       console.log('Chat message received:', msg);
+      addMessage(msg);
     };
     const handleFav = (post) => {
       console.log('Favorite received:', post);
