@@ -5,7 +5,7 @@ import Paper from "@mui/material/Paper";
 import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
 
-export default function ResizablePanels({ myHeight, setMyHeight }) {
+export default function ResizablePanels({ myHeight, setMyHeight, isName }) {
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
     const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
@@ -68,7 +68,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
             // mouseMove をすると、docComments の方で、スクロールを最下にする
-            console.log("Top Height (resizable):", newTopHeight); // デバッグ用
+            // console.log("Top Height (resizable):", newTopHeight); // デバッグ用
             // className を変更して、見た目を調整
             document.getElementById('slide-bar').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
@@ -101,7 +101,7 @@ export default function ResizablePanels({ myHeight, setMyHeight }) {
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments myHeight={myHeight} lines={lines} />
+                <DocComments myHeight={myHeight} lines={lines} isName={isName}/>
             </div>
 
             <div

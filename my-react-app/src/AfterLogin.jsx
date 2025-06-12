@@ -32,6 +32,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                 <ResizablePanels
                     myHeight={myHeight}
                     setMyHeight={setMyHeight}
+                    isName={isName}
                 />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT * 0.8} />
