@@ -2,11 +2,19 @@ import { useState, useRef, use } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import useChatStore from './store/chatStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
+import useSocket from './store/useSocket'; // emitChatMessage関数をインポート
+import { set } from 'mongoose';
 
 const DocRow = ({ data, index, style }) => {
+    // useSocketからemitChatMessage関数を取得
+    const emitChatMessage = useSocket((state) => state.emitChatMessage);
 
     // data からメッセージを取得
-    const message = data[index];
+    const docMessages = data.docMessages || [];
+    const message = data.docMessages[index];
+
+    // data からログインユーザー名を取得
+    const isName = data.isName;
 
     // useChatStoreから必要な関数を取得
     const customAddMessage = useChatStore((state) => state.customAddMessage);
@@ -30,15 +38,15 @@ const DocRow = ({ data, index, style }) => {
 
             // 編集中の行が現在の行と異なる場合、メッセージを更新
             if (currentEditingIndex !== index) {
-                data.updateMessage(currentEditingIndex, contentRef.current.textContent);
+                docMessages.updateMessage(currentEditingIndex, contentRef.current.textContent);
             }
             // 編集状態を終了
             setIsEditing(null);
         }
 
-        data.forEach((msg, i) => {
+        docMessages.forEach((msg, i) => {
             if (i !== index && msg.isEditing) {
-                data.updateMessage(i, msg.msg);
+                docMessages.updateMessage(i, msg.msg);
             }
         });
 
