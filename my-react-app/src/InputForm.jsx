@@ -13,12 +13,12 @@ import useSizeStore from './store/sizeStore';
 const InputForm = ({ name }) => {
   const [message, setMessage] = useState('');
   const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
-  const emitChatMessage = useSocket((state) => state.emitChatMessage); // useSocketからemitChatMessageを取得
+  const { emitChatMessage } = useSocket(); // useSocketからemitChatMessageを取得
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim()) {
-      addMessage(name, message); // chatStore.jsに追加
+      // addMessage(name, message); // chatStore.jsに追加
       emitChatMessage(message); // emitChatMessage関数を呼び出す
       setMessage(''); // 送信後、入力フィールドをクリア
     }

@@ -50,10 +50,12 @@ export default function useSocket() {
 
   const emitLoginName = (name) => socket.emit('login', name);
   const emitHeightChange = (height) => socket.emit('heightChange', height);
+  
   const emitChatMessage = (msg) => {
     console.log('Emitting chat message:', msg);
     socket.emit('chat-message', msg);
   };
+  
   const emitFav = (id) => socket.emit('fav', id);
 
   return {

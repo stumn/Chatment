@@ -7,7 +7,7 @@ import { set } from 'mongoose';
 
 const DocRow = ({ data, index, style }) => {
     // useSocketからemitChatMessage関数を取得
-    const emitChatMessage = useSocket((state) => state.emitChatMessage);
+    const { emitChatMessage } = useSocket();
 
     // data からメッセージを取得
     const docMessages = data.docMessages || [];
