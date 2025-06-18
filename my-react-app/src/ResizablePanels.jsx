@@ -5,7 +5,7 @@ import Paper from "@mui/material/Paper";
 import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
 
-export default function ResizablePanels({ myHeight, setMyHeight, isName }) {
+export default function ResizablePanels({ myHeight, setMyHeight, isName, emitChatMessage }) {
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
     const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
@@ -101,7 +101,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, isName }) {
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments myHeight={myHeight} lines={lines} isName={isName}/>
+                <DocComments myHeight={myHeight} lines={lines} isName={isName} emitChatMessage={emitChatMessage}/>
             </div>
 
             <div
@@ -113,7 +113,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, isName }) {
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage}/>
             </div>
         </Paper>
     );

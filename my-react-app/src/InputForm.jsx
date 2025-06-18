@@ -7,13 +7,11 @@ import { Stack } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 
 import useChatStore from './store/chatStore';
-import useSocket from './store/useSocket';
 import useSizeStore from './store/sizeStore';
 
-const InputForm = ({ name }) => {
+const InputForm = ({ name, emitChatMessage }) => {
   const [message, setMessage] = useState('');
   const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
-  const { emitChatMessage } = useSocket(); // useSocketからemitChatMessageを取得
 
   const handleSubmit = (e) => {
     e.preventDefault();

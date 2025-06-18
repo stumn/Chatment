@@ -24,10 +24,12 @@ export default function useSocket() {
         addMessage(msg);
       });
     };
+    
     const handleChatMessage = (msg) => {
       console.log('Chat message received:', msg);
       addMessage(msg);
     };
+
     const handleFav = (post) => {
       console.log('Favorite received:', post);
     };

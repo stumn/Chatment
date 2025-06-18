@@ -7,7 +7,7 @@ import './Doc.css'; // Assuming you have a CSS file for styling
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
 
-const DocComments = ({ myHeight, lines, isName }) => {
+const DocComments = ({ myHeight, lines, isName, emitChatMessage }) => {
 
     const listRef = useRef(null);  // ← Listコンポーネントに使うref
 
@@ -75,7 +75,7 @@ const DocComments = ({ myHeight, lines, isName }) => {
                         itemSize={getItemSize}
                         width="100%"
                         outerRef={provided.innerRef}
-                        itemData={{docMessages, isName}}
+                        itemData={{docMessages, isName, emitChatMessage}}
                     >
                         {DocRow}
                     </List>

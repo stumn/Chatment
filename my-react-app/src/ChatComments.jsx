@@ -3,7 +3,7 @@ import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight }) => {
+const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
 
     const listRef = React.createRef(); // Listコンポーネントに使うref
     const messages = useChatStore((state) => state.messages);
@@ -49,7 +49,7 @@ const ChatComments = ({ lines, bottomHeight }) => {
                 itemCount={chatCount}
                 itemSize={getItemSize}
                 width="100%"
-                itemData={chatMessages}
+                itemData={{chatMessages, emitChatMessage}}
                 itemKey={index => chatMessages[index]?.id ?? index} // ここを追加
                 style={{
                     overflow: 'hidden',

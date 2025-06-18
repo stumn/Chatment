@@ -3,12 +3,12 @@ import InputForm from './InputForm'
 import Telomere from './Telomere';
 import sizeStore from './store/sizeStore';
 
-export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName, onLogout }) {
+export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName, onLogout, emitChatMessage }) {
 
     // sizeStore から取得
     const CONTAINER_WIDTH = sizeStore((state) => state.width);
     const CONTAINER_HEIGHT = sizeStore((state) => state.height);
-    
+
     return (
         <div
             id="after-login-container"
@@ -33,13 +33,14 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                     myHeight={myHeight}
                     setMyHeight={setMyHeight}
                     isName={isName}
+                    emitChatMessage={emitChatMessage}
                 />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT * 0.8} />
 
             </div>
 
-            <InputForm name={isName} />
+            <InputForm name={isName} emitChatMessage={emitChatMessage} />
         </div>
     );
 }

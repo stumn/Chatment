@@ -2,12 +2,9 @@ import { useState, useRef, use } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import useChatStore from './store/chatStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
-import useSocket from './store/useSocket'; // emitChatMessage関数をインポート
 import { set } from 'mongoose';
 
 const DocRow = ({ data, index, style }) => {
-    // useSocketからemitChatMessage関数を取得
-    const { emitChatMessage } = useSocket();
 
     // data からメッセージを取得
     const docMessages = data.docMessages || [];

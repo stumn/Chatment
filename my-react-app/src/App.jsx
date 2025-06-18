@@ -11,11 +11,12 @@ const AfterLogin = lazy(() => import('./AfterLogin'));
 
 function App() {
   useResponsiveSize(); // レスポンシブサイズのフックを呼び出す
-  const {width, height } = useSizeStore(); // サイズストアからwidthとheightを取得
-  
+  const { width, height } = useSizeStore(); // サイズストアからwidthとheightを取得
+
   const {
     emitLoginName,
     emitHeightChange,
+    emitChatMessage,
     emitFav,
     heightArray, // ← socket を意識せず取得
   } = useSocket();
@@ -57,6 +58,7 @@ function App() {
             heightArray={heightArray}
             isName={isName}
             onLogout={setIsName}
+            emitChatMessage={emitChatMessage}
           />
 
         </Suspense>

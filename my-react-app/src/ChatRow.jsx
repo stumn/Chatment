@@ -1,5 +1,5 @@
 const ChatRow = ({ data, index, style }) => {
-    const cMsg = data[index];
+    const cMsg = data.chatMessages[index];
 
     const FONT_SIZE = 15;
     const MALTIPILER = 1.1;
