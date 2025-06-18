@@ -111,10 +111,18 @@ const DocRow = ({ data, index, style }) => {
                 // 新しく追加した行にフォーカスを移動
                 const newIndexID = `dc-${index + 1}`;
                 console.log('🌟New index ID:', newIndexID);
+
                 const element = document.getElementById(newIndexID);
-                element.focus();
-                element.contentEditable = true; // 新しい行を編集可能にする
-                console.log('🌟Focus moved to new element:', element);
+                console.log('🌟Element to focus:', element);
+
+                setTimeout(() => {
+                    if (element) {
+                        element.focus();
+                        element.contentEditable = true; // 新しい行を編集可能にする
+                        console.log('🌟Focus moved to new element:', element);
+                    }
+                }, 0);
+
                 break;
 
             case ' ':
