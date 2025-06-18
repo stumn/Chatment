@@ -1,6 +1,9 @@
 // db.js
+require('dotenv').config(); // 環境変数の読み込み
 const mongoose = require('mongoose');
-const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017';
+console.log('process env MONGODB_URL', process.env.MONGODB_URL);
+const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/chatment';
+
 
 // mongoose 接続~
 mongoose.connect(MONGODB_URL, { })
