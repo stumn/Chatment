@@ -6,12 +6,12 @@ import { set } from 'mongoose';
 
 const DocRow = ({ data, index, style }) => {
 
-    // data からメッセージを取得
+    // data からメッセージを取得 data = {docMessages, isName, emitChatMessage}
     const docMessages = data.docMessages || [];
-    const message = data.docMessages[index];
-
-    // data からログインユーザー名を取得
     const isName = data.isName;
+    const emitChatMessage = data.emitChatMessage;
+
+    const message = docMessages[index];
 
     // useChatStoreから必要な関数を取得
     const customAddMessage = useChatStore((state) => state.customAddMessage);
@@ -55,9 +55,10 @@ const DocRow = ({ data, index, style }) => {
 
         // フォーカス時にカーソルを末尾に移動
         const range = document.createRange();
-        const selection = window.getSelection();
         range.selectNodeContents(contentRef.current);
         range.collapse(false);
+
+        const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(range);
 
@@ -156,6 +157,7 @@ const DocRow = ({ data, index, style }) => {
                     }
                 }
                 break;
+
             case 'ArrowUp':
                 // 上矢印キーで前の行に移動
                 e.preventDefault();
