@@ -2,7 +2,6 @@ import { useState, useRef, use } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import useChatStore from './store/chatStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
-import { set } from 'mongoose';
 
 const DocRow = ({ data, index, style }) => {
 
