@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -9,13 +9,18 @@ import DialogTitle from '@mui/material/DialogTitle';
 
 export default function BeforeLogin({ onLogin }) {
 
-    const [open, setOpen] = React.useState(true); // 初期状態を true に変更
-
+    // ダイアログの状態を管理するためのステート
+    const [open, setOpen] = useState(true); // 初期状態を true に変更
     const handleClose = () => { setOpen(false); };
+
+    // 名前を管理するためのステート
+    const [name, setName] = useState('');
+    const handleNameChange = (event) => {
+        setName(event.target.value);
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        const name = event.target[0].value;
         onLogin(name); // 親コンポーネントに名前を送信
         setOpen(false); // ダイアログを閉じる
     }
@@ -44,6 +49,8 @@ export default function BeforeLogin({ onLogin }) {
                         id="name"
                         fullWidth
                         variant="standard"
+                        value={name}
+                        onChange={handleNameChange}
                     />
                 </DialogContent>
                 <DialogActions>
