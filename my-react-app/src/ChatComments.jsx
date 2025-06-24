@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
 const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
 
-    const listRef = React.createRef(); // Listコンポーネントに使うref
+    const listRef = useRef(null);
     const messages = useChatStore((state) => state.messages);
 
     const chatMessages = useMemo(() => {

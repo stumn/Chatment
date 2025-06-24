@@ -40,7 +40,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                     emitChatMessage={emitChatMessage}
                 />
 
-                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_HEIGHT * 0.8} />
+                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 
             </div>
 
