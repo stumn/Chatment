@@ -26,6 +26,3 @@ dist-ssr
 # Environment variables
 .env*
 !.env.example
-
-# Vite build cache
-.vite/
