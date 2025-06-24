@@ -2,8 +2,12 @@ import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
 import sizeStore from './store/sizeStore';
+import useAppStore from './store/appStore';
 
-export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName, onLogout, emitChatMessage }) {
+export default function AfterLogin({ heightArray, emitChatMessage }) {
+
+    // useAppStoreからuserNameとsetUserNameを取得
+    const { userName } = useAppStore();
 
     // after-login-containerの幅・高さを設定(sizeStore から取得)
     const CONTAINER_1_WIDTH = sizeStore((state) => state.width);
@@ -19,7 +23,7 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
             style={{ width: `${CONTAINER_1_WIDTH}px`, height: `${CONTAINER_1_HEIGHT}px` }}>
 
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
-                {'Logged in as ' + isName}
+                {'Logged in as ' + userName}
             </h6>
 
             <div
@@ -33,18 +37,13 @@ export default function AfterLogin({ myHeight, setMyHeight, heightArray, isName,
                     gap: '4px', // Add spacing between elements
                 }}>
 
-                <ResizablePanels
-                    myHeight={myHeight}
-                    setMyHeight={setMyHeight}
-                    isName={isName}
-                    emitChatMessage={emitChatMessage}
-                />
+                <ResizablePanels emitChatMessage={emitChatMessage} />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 
             </div>
 
-            <InputForm name={isName} emitChatMessage={emitChatMessage} />
+            <InputForm name={userName} emitChatMessage={emitChatMessage} />
         </div>
     );
 }

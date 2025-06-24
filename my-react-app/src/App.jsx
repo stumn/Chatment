@@ -1,7 +1,8 @@
-import { useState, useEffect, Suspense, lazy, use } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 
 import useSocket from './store/useSocket';
 import useChatStore from './store/chatStore';
+import useAppStore from './store/appStore';
 
 import useResponsiveSize from './useResponsiveSize';
 import useSizeStore from './store/sizeStore';
@@ -25,20 +26,18 @@ function App() {
 
   // login & name //////////////////////////////////////////
 
-  const [isName, setIsName] = useState(undefined);
-  // const [connected, setConnected] = useState(false); 利用されていないので、削除予定
+  const {userName, setUserName, myHeight, setMyHeight} = useAppStore(); // useAppStoreからuserNameとsetUserNameを取得
 
   useEffect(() => {
 
-    if (isName === undefined) return; // isNameがundefinedの場合は何もしない
-    emitLoginName(isName); // サーバーにログイン名を送信
+    if (userName === undefined) return; // userNameがundefinedの場合は何もしない
+    emitLoginName(userName); // サーバーにログイン名を送信
 
-  }, [isName]);
+  }, [userName]);
 
   // height & telomere /////////////////////////////////////
 
   // 1. 各ユーザーの高さを記憶するuseState
-  const [myHeight, setMyHeight] = useState(300);
 
   // 1 -> server 各ユーザの高さが変更されたら、サーバーに送信
   useEffect(() => {
@@ -47,17 +46,13 @@ function App() {
 
   ////////////////////////////////////////////////////////////
 
-  // if (connected && isName) {
-  if (isName) {
+  // if (connected && userName) {
+  if (userName) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
           <AfterLogin
-            myHeight={myHeight}
-            setMyHeight={setMyHeight}
             heightArray={heightArray}
-            isName={isName}
-            onLogout={setIsName}
             emitChatMessage={emitChatMessage}
           />
 
@@ -68,7 +63,7 @@ function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
-          <BeforeLogin onLogin={setIsName} />
+          <BeforeLogin onLogin={setUserName} />
         </Suspense>
       </div>
     );

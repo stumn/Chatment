@@ -5,9 +5,9 @@ import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
 
-    // data からメッセージを取得 data = {docMessages, isName, emitChatMessage}
+    // data からメッセージを取得 data = {docMessages, userName, emitChatMessage}
     const docMessages = data.docMessages || [];
-    const isName = data.isName;
+    const userName = data.userName;
     const emitChatMessage = data.emitChatMessage;
 
     const message = docMessages[index];

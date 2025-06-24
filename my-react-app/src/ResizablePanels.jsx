@@ -4,11 +4,16 @@ import DocComments from "./docComments";
 import Paper from "@mui/material/Paper";
 import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
+import useAppStore from "./store/appStore";
 
-export default function ResizablePanels({ myHeight, setMyHeight, isName, emitChatMessage }) {
+export default function ResizablePanels({ emitChatMessage }) {
+    
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
     const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
+
+    // useAppStore から取得
+    const { myHeight, setMyHeight } = useAppStore();
 
     const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
@@ -101,7 +106,7 @@ export default function ResizablePanels({ myHeight, setMyHeight, isName, emitCha
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments myHeight={myHeight} lines={lines} isName={isName} emitChatMessage={emitChatMessage}/>
+                <DocComments lines={lines} emitChatMessage={emitChatMessage}/>
             </div>
 
             <div

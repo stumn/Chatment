@@ -2,18 +2,21 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
+import useAppStore from './store/appStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
 
-const DocComments = ({ myHeight, lines, isName, emitChatMessage }) => {
+const DocComments = ({ lines, emitChatMessage }) => {
 
     const listRef = useRef(null);  // ← Listコンポーネントに使うref
 
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
+
+    const {userName, myHeight} = useAppStore(); // useAppStoreからmyHeightとsetMyHeightを取得
 
     const docMessages = useMemo(() => {
         if (!messages || messages.length === 0) {
@@ -75,7 +78,7 @@ const DocComments = ({ myHeight, lines, isName, emitChatMessage }) => {
                         itemSize={getItemSize}
                         width="100%"
                         outerRef={provided.innerRef}
-                        itemData={{docMessages, isName, emitChatMessage}}
+                        itemData={{docMessages, userName, emitChatMessage}}
                     >
                         {DocRow}
                     </List>
