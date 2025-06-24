@@ -57,6 +57,7 @@ ul {
   margin: 0;
 }
 
+/* 新しいメッセージであることを可視化するテロメア案の名残 */
 /* li.doc-message.latest {
   border-left: 4px solid green;
 }

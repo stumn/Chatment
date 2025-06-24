@@ -9,20 +9,16 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
     const messages = useChatStore((state) => state.messages);
 
     const chatMessages = useMemo(() => {
-        // console.log('ChatComments: useMemo called', messages);
         if (!messages || messages.length === 0) {
-            // console.log('no message');
             return [];
         }
         const result = lines.num < 1.5
             ? [messages[messages.length - 1]] // 1つだけど配列にしておく
             : messages.slice(-Math.ceil(lines.num)); // 少数を切り上げて取得
-        // console.log('ChatComments: chatMessages', result);
         return result;
     }, [lines.num, messages]);
 
     const chatCount = chatMessages.length;
-    // console.log('ChatComments: chatCount', chatCount);
 
     // スクロールを最下部に
     useEffect(() => {

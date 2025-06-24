@@ -26,7 +26,7 @@ function App() {
   // login & name //////////////////////////////////////////
 
   const [isName, setIsName] = useState(undefined);
-  const [connected, setConnected] = useState(false);
+  // const [connected, setConnected] = useState(false); 利用されていないので、削除予定
 
   useEffect(() => {
 

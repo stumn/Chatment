@@ -2,9 +2,9 @@ const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
 
     const FONT_SIZE = 15;
-    const MALTIPILER = 1.1;
+    const MULTIPLIER = 1.1;
 
-    const fontSize = FONT_SIZE + cMsg.fav * MALTIPILER;
+    const fontSize = FONT_SIZE + cMsg.fav * MULTIPLIER; // お気に入りの数に応じてフォントサイズを調整
 
     return (
         <div style={style} key={cMsg.order} className="chat-cMsg">
