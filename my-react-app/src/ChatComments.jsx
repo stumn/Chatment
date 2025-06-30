@@ -30,17 +30,6 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
         }
     }, [chatMessages]);
 
-    // const getItemSize = (index) => {
-    //     const lineHeight = 24;
-    //     if (!chatMessages || !chatMessages[index] || !chatMessages[index].msg) {
-    //         return lineHeight + 16;
-    //     }
-    //     const charCount = chatMessages[index].msg.length;
-    //     const estimatedLines = Math.ceil(charCount / 30); // TODO: 幅による調整が必要なら実装検討
-    //     return estimatedLines * lineHeight + 16;
-    // };
-    // ChatComments.jsx
-
     const getItemSize = (index) => {
         const cMsg = chatMessages[index];
 
