@@ -27,14 +27,53 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
         }
     }, [chatMessages]);
 
+    // const getItemSize = (index) => {
+    //     const lineHeight = 24;
+    //     if (!chatMessages || !chatMessages[index] || !chatMessages[index].msg) {
+    //         return lineHeight + 16;
+    //     }
+    //     const charCount = chatMessages[index].msg.length;
+    //     const estimatedLines = Math.ceil(charCount / 30); // TODO: 幅による調整が必要なら実装検討
+    //     return estimatedLines * lineHeight + 16;
+    // };
+    // ChatComments.jsx
+
     const getItemSize = (index) => {
-        const lineHeight = 24;
-        if (!chatMessages || !chatMessages[index] || !chatMessages[index].msg) {
-            return lineHeight + 16;
+        const cMsg = chatMessages[index];
+
+        // メッセージデータが存在しない場合のデフォルトの高さ
+        if (!cMsg) {
+            return 62; // 例: デフォルトの高さを62pxとする
         }
-        const charCount = chatMessages[index].msg.length;
-        const estimatedLines = Math.ceil(charCount / 30); // TODO: 幅による調整が必要なら実装検討
-        return estimatedLines * lineHeight + 16;
+
+        // --- ChatRow.jsxのロジックを反映 ---
+        // ChatRow.jsxで定義されている値と合わせる
+        const FONT_SIZE = 15;
+        const MULTIPLIER = 1.1;
+        const favCount = cMsg.fav || 0; // favプロパティが存在しない場合に備える
+        const fontSize = FONT_SIZE + favCount * MULTIPLIER;
+
+        // --- 各パーツの高さを計算 ---
+
+        // 1. 「名前+タイムスタンプ」行の高さ
+        // この行は常に1行。フォントサイズに行間の余白を加味する（例: 8px）
+        const nameLineHeight = fontSize + 8;
+
+        // 2. 「メッセージ」本文の高さ
+        const msg = cMsg.msg || '';
+        // 1行あたりの平均文字数。本来はコンテナの幅に依存するが、ここでは30文字と仮定。
+        const charsPerLine = 30;
+        // メッセージが行を折り返す数を推定（最低1行）
+        const estimatedMsgLines = Math.ceil(msg.length / charsPerLine) || 1;
+        // メッセージ部分の合計の高さ
+        const messageHeight = estimatedMsgLines * (fontSize + 8);
+
+        // 3. 全体の垂直方向のパディング
+        // 元のコードで使われていた `+ 16` を全体のパディングとして適用
+        const totalPadding = 16;
+
+        // 合計の高さを返す
+        return nameLineHeight + messageHeight + totalPadding;
     };
 
     return (
@@ -45,7 +84,7 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
                 itemCount={chatCount}
                 itemSize={getItemSize}
                 width="100%"
-                itemData={{chatMessages, emitChatMessage}}
+                itemData={{ chatMessages, emitChatMessage }}
                 itemKey={index => chatMessages[index]?.id ?? index} // ここを追加
                 style={{
                     overflow: 'hidden',
