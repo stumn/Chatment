@@ -1,12 +1,16 @@
+// // File: my-react-app/src/docComments.jsx
+
 import React, { useEffect, useState, useRef, useMemo } from 'react';
+
 import { VariableSizeList as List } from 'react-window';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+
+import './Doc.css'; // Assuming you have a CSS file for styling
+const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
+
 import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
-import './Doc.css'; // Assuming you have a CSS file for styling
-
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
-const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
 
 const DocComments = ({ lines, emitChatMessage }) => {
 

@@ -1,7 +1,11 @@
+// ResizablePanels.jsx
+
 import { useState, useEffect, use } from "react";
+import Paper from "@mui/material/Paper";
+
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
-import Paper from "@mui/material/Paper";
+
 import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";

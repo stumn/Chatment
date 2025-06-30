@@ -1,11 +1,12 @@
+// File: my-react-app/src/App.jsx
+
 import { useEffect, Suspense, lazy } from 'react';
 
 import useSocket from './store/useSocket';
 import useChatStore from './store/chatStore';
 import useAppStore from './store/appStore';
-
-import useResponsiveSize from './useResponsiveSize';
 import useSizeStore from './store/sizeStore';
+import useResponsiveSize from './useResponsiveSize';
 
 const BeforeLogin = lazy(() => import('./BeforeLogin'));
 const AfterLogin = lazy(() => import('./AfterLogin'));

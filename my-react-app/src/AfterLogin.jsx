@@ -1,6 +1,9 @@
+// File: my-react-app/src/AfterLogin.jsx
+
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
+
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 

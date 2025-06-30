@@ -1,5 +1,8 @@
+// ChatComments.jsx
+
 import React, { useEffect, useMemo, useRef } from 'react';
 import { VariableSizeList as List } from 'react-window';
+
 import useChatStore from './store/chatStore';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
