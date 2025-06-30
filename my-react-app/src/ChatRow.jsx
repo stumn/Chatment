@@ -13,7 +13,7 @@ const ChatRow = ({ data, index, style }) => {
                 className="name + time"
                 style={{ textAlign: 'left', fontSize, marginLeft: '20px' }}
             >
-                <strong>{cMsg.name}</strong> <span>[{cMsg.time}]</span>
+                <strong>{cMsg.nickname}</strong> <span>[{cMsg.time}]</span>
             </div>
 
             <div
