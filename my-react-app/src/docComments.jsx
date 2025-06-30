@@ -5,22 +5,36 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 
-import './Doc.css'; // Assuming you have a CSS file for styling
+import './Doc.css'; // スタイルシート
 const DocRow = React.lazy(() => import('./DocRow')); // DocRowを遅延読み込み
 
 import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 
+// ★追加: ドラッグ中のスタイルをY軸方向に固定するためのヘルパー関数
+// transform スタイルから Y軸の値だけを抽出し、X軸の値を0に固定します。
+const getVerticalDragStyle = (style) => {
+    if (style?.transform) {
+        const transform = style.transform;
+        const y = transform.substring(transform.indexOf(',') + 1, transform.indexOf(')'));
+        return {
+            ...style,
+            transform: `translate(0, ${y})`,
+        };
+    }
+    return style;
+};
+
 const DocComments = ({ lines, emitChatMessage }) => {
 
-    const listRef = useRef(null);  // ← Listコンポーネントに使うref
+    const listRef = useRef(null);  // Listコンポーネントに使うref
 
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
 
-    const {userInfo, myHeight} = useAppStore(); // useAppStoreからmyHeightとsetMyHeightを取得
+    const { userInfo, myHeight } = useAppStore();
 
     const docMessages = useMemo(() => {
         if (!messages || messages.length === 0) {
@@ -31,15 +45,12 @@ const DocComments = ({ lines, emitChatMessage }) => {
 
     useEffect(() => {
         if (listRef.current) {
-            listRef.current.scrollToItem(docMessages.length - 1, "end"); // ← 最下部にスクロール
+            listRef.current.scrollToItem(docMessages.length - 1, "end"); // 最下部にスクロール
         }
     }, [myHeight, lines.num, docMessages.length]);
 
-    // Listの幅を取得 幅 * 0.8 を切り捨て
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8); // 80%の幅を使用
-
-    // 幅に基づいて1行あたりの文字数を計算（800に対して60文字になるよう、仮に1文字あたり13pxと仮定）
-    const charsPerLine = Math.floor(listWidth / 13);
+    const charsPerLine = Math.floor(listWidth / 13); // 1行あたりの文字数を計算(幅px / 13px)
 
     const getItemSize = (index) => {
         const lineHeight = 28; // 1行あたりの高さを28pxに設定
@@ -57,38 +68,59 @@ const DocComments = ({ lines, emitChatMessage }) => {
         reorderMessages(source.index, destination.index);
     };
 
+    // ★変更: itemDataをuseMemoでメモ化し、不要な再レンダリングを防ぎます
+    const itemData = useMemo(() => ({
+        docMessages,
+        userInfo,
+        emitChatMessage,
+    }), [docMessages, userInfo, emitChatMessage]);
+
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <Droppable
                 droppableId="droppable"
                 mode="virtual"
-                renderClone={(provided, snapshot, rubric) => (
-                    <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        style={provided.draggableProps.style}
-                    >
-                        {docMessages[rubric.source.index] ? docMessages[rubric.source.index].msg : ''}
-                    </div>
-                )}
+                direction="vertical"
+
+                renderClone={(provided, snapshot, rubric) => {
+                    // ★変更: ヘルパー関数を使い、ドラッグ中のスタイルをY軸方向に固定します
+                    const style = getVerticalDragStyle(provided.draggableProps.style);
+
+                    // ★変更: DocRowをクローンとして使用し、ドラッグ中も見た目を維持します。
+                    // DocRowには、元のリストアイテムと同じ情報をpropsとして渡します。
+                    return (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                        >
+                            <DocRow
+                                data={itemData}
+                                index={rubric.source.index}
+                                style={style} // Y軸固定したスタイルを適用
+                                isDragging={snapshot.isDragging} // isDraggingの状態を渡す (DocRow側で活用可能)
+                            />
+
+                        </div>
+                    );
+                }}
             >
                 {(provided) => (
                     <List
                         id="docList"
-                        ref={listRef}  // ← ここでListにrefを適用
+                        ref={listRef}  // ここでListにrefを適用
                         height={myHeight}
                         itemCount={docMessages.length}
                         itemSize={getItemSize}
                         width="100%"
                         outerRef={provided.innerRef}
-                        itemData={{docMessages, userInfo, emitChatMessage}}
+                        itemData={itemData} // useMemoで作成したitemDataを渡す
                     >
                         {DocRow}
                     </List>
                 )}
             </Droppable>
-        </DragDropContext>
+        </DragDropContext >
     );
 };
 
