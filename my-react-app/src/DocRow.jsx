@@ -8,9 +8,10 @@ import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
 
-    // data からメッセージを取得 data = {docMessages, userName, emitChatMessage}
+    // data からメッセージを取得 data = {docMessages, userInfo, emitChatMessage}
     const docMessages = data.docMessages || [];
-    const userName = data.userName;
+    const userInfo = data.userInfo;
+    const name = userInfo?.nickname || 'Unknown'; // ユーザー名を取得
     const emitChatMessage = data.emitChatMessage;
 
     const message = docMessages[index];
@@ -106,7 +107,7 @@ const DocRow = ({ data, index, style }) => {
 
                 // 下に1行追加
                 customAddMessage({
-                    name: message?.name || 'Unknown',
+                    name: message?.nickname || 'Unknown',
                     msg: '',
                     order: message?.order + 1 || 1,
                 });

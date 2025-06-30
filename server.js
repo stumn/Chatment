@@ -18,7 +18,7 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-const { saveUser, SaveChatMessage, getPastLogs} = require('./dbOperation');
+const { saveUser, SaveChatMessage, getPastLogs } = require('./dbOperation');
 // const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -46,17 +46,27 @@ function addHeightMemory(id, height) {
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
-  socket.on('login', async (name) => {
+  socket.on('login', async (userInfo) => {
+    const { nickname, status, ageGroup } = userInfo; // userInfoから必要な情報を取得
+    console.log('login:', nickname, status, ageGroup, socket.id);
+
     try {
-      console.log('login name:', name, socket.id);
-      const newUser = await saveUser(name, socket.id); // save user to database
+
+      if (!nickname || !status || !ageGroup) {
+        console.error('Invalid user info:', userInfo);
+        return;
+      }
+
+      const newUser = await saveUser(nickname, status, ageGroup, socket.id); // save user to database
       console.log('newUser:', newUser);
+
       socket.emit('connect OK', newUser); // emit to client
+
     } catch (e) { console.error(e); }
 
     socket.on('fetch-history', async () => {
       try {
-        const messages = await getPastLogs(name); // fetch posts from database
+        const messages = await getPastLogs(nickname); // fetch posts from database
         socket.emit('history', messages); // emit to client
       } catch (e) { console.error(e); }
     });
@@ -66,10 +76,10 @@ io.on('connection', (socket) => {
       io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
     });
 
-    socket.on('chat-message', async (msg) => {
+    socket.on('chat-message', async ({ nickname, message }) => {
       try {
-        console.log('chat-message:', msg);
-        const p = await SaveChatMessage(name, msg); // save message to database
+        console.log('chat-message:', nickname, message);
+        const p = await SaveChatMessage(nickname, message); // save message to database
         io.emit('chat-message', p);
       } catch (e) { console.error(e); }
     });

@@ -9,8 +9,9 @@ import useAppStore from './store/appStore';
 
 export default function AfterLogin({ heightArray, emitChatMessage }) {
 
-    // useAppStoreからuserNameとsetUserNameを取得
-    const { userName } = useAppStore();
+    // useAppStoreからuserInfoとsetUserNameを取得
+    const { userInfo } = useAppStore();
+    const { nickname, status, ageGroup } = userInfo; // userInfoから必要な情報を取得
 
     // after-login-containerの幅・高さを設定(sizeStore から取得)
     const CONTAINER_1_WIDTH = sizeStore((state) => state.width);
@@ -26,7 +27,7 @@ export default function AfterLogin({ heightArray, emitChatMessage }) {
             style={{ width: `${CONTAINER_1_WIDTH}px`, height: `${CONTAINER_1_HEIGHT}px` }}>
 
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
-                {'Logged in as ' + userName}
+                {'Logged in as ' + nickname + ' (' + status + ', ' + ageGroup + ')'}
             </h6>
 
             <div
@@ -46,7 +47,7 @@ export default function AfterLogin({ heightArray, emitChatMessage }) {
 
             </div>
 
-            <InputForm name={userName} emitChatMessage={emitChatMessage} />
+            <InputForm nickname={nickname} emitChatMessage={emitChatMessage} />
         </div>
     );
 }

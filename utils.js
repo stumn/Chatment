@@ -13,7 +13,7 @@ function organizeLogs(post) {
         id: post._id,
         createdAt: post.createdAt,
         
-        name: post.name,
+        nickname: post.nickname,
         msg: post.msg,
         stars: post.stars.length,
 

@@ -11,15 +11,13 @@ import Tooltip from '@mui/material/Tooltip';
 import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 
-const InputForm = ({ name, emitChatMessage }) => {
+const InputForm = ({ nickname, emitChatMessage }) => {
   const [message, setMessage] = useState('');
-  const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim()) {
-      // addMessage(name, message); // chatStore.jsに追加
-      emitChatMessage(message); // emitChatMessage関数を呼び出す
+      emitChatMessage(nickname, message); // emitChatMessage関数を呼び出す
       setMessage(''); // 送信後、入力フィールドをクリア
     }
   };

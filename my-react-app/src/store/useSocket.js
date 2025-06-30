@@ -7,7 +7,7 @@ const socket = io();
 import chatStore from './chatStore';
 
 export default function useSocket() {
-  
+
   const [heightArray, setHeightArray] = useState([]);
 
   const addMessage = chatStore((state) => state.addMessage);
@@ -15,23 +15,20 @@ export default function useSocket() {
   useEffect(() => {
     const handleHeightChange = (data) => setHeightArray(data);
     const handleConnectOK = (userInfo) => {
-      console.log('Connected to server', userInfo);
       socket.emit('fetch-history');
     };
+
     const handleHistory = (historyArray) => {
-      console.log('History received:', historyArray);
       historyArray.forEach((msg) => {
         addMessage(msg);
       });
     };
-    
-    const handleChatMessage = (msg) => {
-      console.log('Chat message received:', msg);
-      addMessage(msg);
+
+    const handleChatMessage = (data) => {
+      addMessage(data);
     };
 
     const handleFav = (post) => {
-      console.log('Favorite received:', post);
     };
 
     socket.on('heightChange', handleHeightChange);
@@ -50,14 +47,13 @@ export default function useSocket() {
     };
   }, []);
 
-  const emitLoginName = (name) => socket.emit('login', name);
+  const emitLoginName = (userInfo) => socket.emit('login', userInfo);
   const emitHeightChange = (height) => socket.emit('heightChange', height);
-  
-  const emitChatMessage = (msg) => {
-    console.log('Emitting chat message:', msg);
-    socket.emit('chat-message', msg);
+
+  const emitChatMessage = (nickname, message) => {
+    socket.emit('chat-message', { nickname, message });
   };
-  
+
   const emitFav = (id) => socket.emit('fav', id);
 
   return {

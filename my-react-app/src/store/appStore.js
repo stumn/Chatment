@@ -2,15 +2,29 @@ import { create } from 'zustand';
 
 // アプリケーションのUIやユーザー状態を管理するストア
 const useAppStore = create((set) => ({
-  // ログインしているユーザー名 (isNameから改名)
-  userName: undefined,
+
+  // ログインしたユーザーの情報
+  userInfo: {
+    nickname: undefined,
+    status: undefined,
+    ageGroup: undefined
+  },
+
   // ユーザー自身のパネルの高さ
   myHeight: 300,
 
-  // アクション: ユーザー名を設定する
-  setUserName: (name) => set({ userName: name }),
+  // アクション: ユーザー情報を設定する
+  setUserInfo: ({ nickname, status, ageGroup }) => set((state) => ({
+    userInfo: {
+      nickname,
+      status,
+      ageGroup
+    }
+  })),
+
   // アクション: 高さを設定する
   setMyHeight: (height) => set({ myHeight: height }),
+
 }));
 
 export default useAppStore;

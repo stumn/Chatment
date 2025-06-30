@@ -7,7 +7,7 @@ const useChatStore = create((set) => ({
   // メッセージの追加　id 自動生成
   addMessage: (post) =>
     set((state) => {
-      const name = post.name || 'Unknown';
+      const nickname = post.nickname || 'Unknown';
       const message = post.msg || '';
 
       const newId = state.messages.length + 1;
@@ -15,14 +15,13 @@ const useChatStore = create((set) => ({
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // 現在の時刻を取得
       const initialFav = 0; // 初期値は0
 
-      // console.log(newId, newOrder, name, message, newTime, initialFav);
       return {
         messages: [
           ...state.messages,
           {
             id: newId,
             order: newOrder,
-            name: name,
+            nickname: nickname,
             msg: message,
             time: newTime,
             fav: initialFav,
@@ -31,7 +30,7 @@ const useChatStore = create((set) => ({
       };
     }),
 
-  customAddMessage: ({ name, msg, order }) =>
+  customAddMessage: ({ nickname, msg, order }) =>
     set((state) => {
       const newId = state.messages.length + 1;
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -41,7 +40,7 @@ const useChatStore = create((set) => ({
       const newMessage = {
         id: newId,
         order: order,
-        name: name || 'Unknown',
+        nickname: nickname || 'Unknown',
         msg: msg || '',
         time: newTime,
         fav: initialFav,

@@ -20,7 +20,7 @@ const DocComments = ({ lines, emitChatMessage }) => {
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
 
-    const {userName, myHeight} = useAppStore(); // useAppStoreからmyHeightとsetMyHeightを取得
+    const {userInfo, myHeight} = useAppStore(); // useAppStoreからmyHeightとsetMyHeightを取得
 
     const docMessages = useMemo(() => {
         if (!messages || messages.length === 0) {
@@ -82,7 +82,7 @@ const DocComments = ({ lines, emitChatMessage }) => {
                         itemSize={getItemSize}
                         width="100%"
                         outerRef={provided.innerRef}
-                        itemData={{docMessages, userName, emitChatMessage}}
+                        itemData={{docMessages, userInfo, emitChatMessage}}
                     >
                         {DocRow}
                     </List>

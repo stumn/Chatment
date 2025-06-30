@@ -23,18 +23,16 @@ function App() {
     heightArray, // ← socket を意識せず取得
   } = useSocket();
 
-  const addMessage = useChatStore((state) => state.addMessage); // セレクタ関数を渡す
-
   // login & name //////////////////////////////////////////
 
-  const {userName, setUserName, myHeight, setMyHeight} = useAppStore(); // useAppStoreからuserNameとsetUserNameを取得
+  const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore(); // useAppStoreからuserInfoとsetUserInfoを取得
 
   useEffect(() => {
 
-    if (userName === undefined) return; // userNameがundefinedの場合は何もしない
-    emitLoginName(userName); // サーバーにログイン名を送信
+    if (userInfo.nickname === undefined) return; // userInfoがundefinedの場合は何もしない
+    emitLoginName(userInfo); // サーバーにログイン名を送信
 
-  }, [userName]);
+  }, [userInfo]);
 
   // height & telomere /////////////////////////////////////
 
@@ -47,8 +45,8 @@ function App() {
 
   ////////////////////////////////////////////////////////////
 
-  // if (connected && userName) {
-  if (userName) {
+  // if (connected && userInfo) {
+  if (userInfo.nickname !== undefined) { // userInfoがundefinedでない場合に表示
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
@@ -64,7 +62,7 @@ function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
-          <BeforeLogin onLogin={setUserName} />
+          <BeforeLogin open={open} onLogin={setUserInfo} />
         </Suspense>
       </div>
     );
