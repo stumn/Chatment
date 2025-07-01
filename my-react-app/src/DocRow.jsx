@@ -51,7 +51,7 @@ const DocRow = ({ data, index, style }) => {
 
                 // 下に1行追加
                 customAddMessage({
-                    name: message?.nickname || 'Unknown',
+                    nickname: message?.nickname || 'Unknown', // customAddMessageの引数名をnicknameに修正
                     msg: '',
                     order: message?.order + 1 || 1,
                 });
@@ -119,7 +119,8 @@ const DocRow = ({ data, index, style }) => {
     };
 
     return (
-        <Draggable draggableId={String(index)} index={index} key={index}>
+        // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
+        <Draggable draggableId={String(message?.id ?? index)} index={index} key={message?.id ?? index}>
             {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}

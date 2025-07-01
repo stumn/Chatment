@@ -42,7 +42,8 @@ function BeforeLogin({ open, onLogin }) {
         <ThemeProvider theme={defaultTheme}>
             <Dialog
                 open={open}
-                onClose={() => onClose(null)} // キャンセル時はnullを渡す
+                // onCloseはApp側でopen制御するため不要。undefinedにしてエラー防止。
+                onClose={undefined}
                 PaperProps={{
                     component: 'form',
                     onSubmit: handleSubmit,

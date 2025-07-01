@@ -1,6 +1,6 @@
 // File: my-react-app/src/App.jsx
 
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useState } from 'react';
 
 import useSocket from './store/useSocket';
 import useChatStore from './store/chatStore';
@@ -14,6 +14,9 @@ const AfterLogin = lazy(() => import('./AfterLogin'));
 function App() {
   useResponsiveSize(); // レスポンシブサイズのフックを呼び出す
   const { width, height } = useSizeStore(); // サイズストアからwidthとheightを取得
+
+  // --- open状態をuseStateで管理（BeforeLoginのopen propエラー防止） ---
+  const [open, setOpen] = useState(true); // ログインダイアログの表示状態
 
   const {
     emitLoginName,
@@ -31,6 +34,7 @@ function App() {
 
     if (userInfo.nickname === undefined) return; // userInfoがundefinedの場合は何もしない
     emitLoginName(userInfo); // サーバーにログイン名を送信
+    setOpen(false); // ログイン後にダイアログを閉じる
 
   }, [userInfo]);
 
@@ -62,6 +66,7 @@ function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
+          {/* open propを明示的に渡す。onLoginでsetUserInfoを渡す。*/}
           <BeforeLogin open={open} onLogin={setUserInfo} />
         </Suspense>
       </div>
