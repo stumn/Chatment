@@ -194,35 +194,16 @@ const DocRow = ({ data, index, style }) => {
     // ★追加: 親からドロップターゲット情報を受け取る
     const { targetIndex, sourceIndex } = dropTargetInfo || {};
 
-    let isDropTarget = false;
-
-    // ドロップ先が自分で、かつドラッグ元とドロップ先が異なる場合
-    if (targetIndex !== null && sourceIndex !== null && targetIndex === index && sourceIndex !== index) {
-        isDropTarget = true;
-    }
-
-    // アイテムを下に移動中、元の位置のすぐ下もターゲットにする
-    if (targetIndex !== null && sourceIndex !== null && targetIndex > sourceIndex && index === sourceIndex + 1 && targetIndex === index) {
-        isDropTarget = true;
-    }
-
-    // アイテムを上に移動中、元の位置のすぐ下もターゲットにする
-
-    // ★要望2: インジケータ（罫線）用のスタイルを定義
-    const indicatorStyle = isDropTarget ? {
-        borderTop: '2px solid #3498db', // 青いハイライト線
-        margin: '-1px 0', // 線の太さ分、レイアウトがずれないように調整
-    } : {};
-
+    // 罫線はドロップ先indexの要素の上にだけ出す
+    const isDropTarget = targetIndex === index && sourceIndex !== null && sourceIndex !== targetIndex;
 
     return (
         <Draggable draggableId={String(index)} index={index} key={index}>
             {(provided, snapshot) => {
-                // ★改善: ドラッグ中の元のアイテムのスタイルを定義
                 const draggingStyle = snapshot.isDragging
                     ? {
-                        opacity: 1, // ★完全に見えるようにする
-                        visibility: 'visible', // ★ライブラリによって隠されるのを防ぐ
+                        opacity: 1,
+                        visibility: 'visible',
                     }
                     : {};
 
@@ -234,22 +215,21 @@ const DocRow = ({ data, index, style }) => {
                         style={{
                             ...style,
                             ...provided.draggableProps.style,
-                            ...indicatorStyle, // ★最重要: インジケータスタイルを適用
-                            ...draggingStyle,   // ★ドラッグ元のアイテムを非表示にするスタイルを適用
+                            ...draggingStyle,
                         }}
                         onClick={() => handleClick()}
                     >
+                        {/* ドロップターゲットのときだけインジケータを表示（常に上/top） */}
+                        {isDropTarget && (
+                            <div className='drop-indicator top' />
+                        )}
                         <span {...provided.dragHandleProps} className='maru' />
-
                         <div
                             id={`dc-${index}`}
                             className='doc-comment-content'
-
                             contentEditable={isEditing === `dc-${index}`}
                             suppressContentEditableWarning
-
                             ref={contentRef}
-
                             onFocus={() => handleFocus()}
                             onKeyDown={(e) => handleKeyDown(e)}
                             onBlur={handleBlur}

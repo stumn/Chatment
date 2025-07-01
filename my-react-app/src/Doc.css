@@ -55,3 +55,18 @@
 .maru:active {
     cursor: grabbing;
 }
+
+.drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #3498db;
+    z-index: 10;
+}
+.drop-indicator.top {
+    top: 0;
+}
+.drop-indicator.bottom {
+    bottom: 0;
+}
