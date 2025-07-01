@@ -1,3 +1,12 @@
+/* Doc.css */
+
+/* --- 修正ポイント ---
+1. .is-dragging, .is-drag-placeholder, .doc-comment-item などのDnD用クラスを明確化
+2. .doc-comment-contentのoutline, border, background, focus時の見た目を改善
+3. .maruのドラッグハンドルの見た目を改善
+4. コメントを追加
+*/
+
 #docList {
     overflow-x: hidden;
     padding-top: 8px;
@@ -9,18 +18,36 @@
     padding: 4px 16px;
     box-sizing: border-box;
     background-color: white;
-    /* ★改善2: レイアウトのズレを防ぐため、予め透明なボーダーでスペースを確保 */
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.1s ease-in-out; /* 色が滑らかに変わるように */
+    /* ★改善: レイアウトのズレを防ぐため、予め透明なボーダーでスペースを確保 */
+    border: 1px solid transparent;
+    border-bottom: 1px solid #eee;
+    /* 通常時の区切り線を薄く表示 */
+    transition: all 0.2s ease;
 }
 
-/* ★要望1: ドラッグ中のアイテムのスタイル */
-.is-dragging .doc-comment-item {
-    background-color: #f0f8ff; /* 薄い青色 */
-    border: 1px solid #8ec3f1; /* 青い枠線 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 影を付けて浮き上がらせる */
+/* ★改善: ドラッグ中のアイテムが元あった場所のスタイル */
+.is-drag-placeholder {
+    background-color: #e6f7ff;
+    /* 薄い水色 */
+    border-color: #91d5ff;
+    /* 水色のボーダー */
 }
 
+.is-drag-placeholder * {
+    color: red !important;
+    /* 中の文字を透明にする */
+    cursor: grabbing;
+}
+
+.is-dragging {
+    background-color: #f0f8ff;
+    border: 1.5px solid #8ec3f1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* 既存のスタイル ... */
 .doc-comment-content {
     flex: 1;
     outline: none;
@@ -31,42 +58,35 @@
     font-size: 15px;
     line-height: 1.5;
     border: none;
+    background: transparent;
+    min-height: 28px;
+    transition: background 0.2s;
+}
+
+.doc-comment-content:focus {
+    outline: 2px solid #8ec3f1;
+    background: #f5fbff;
 }
 
 .maru {
     margin-right: 8px;
     user-select: none;
-    visibility: inherit;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 20px;
     color: #aaaaaa;
     cursor: grab;
+    font-size: 20px;
 }
 
 .maru::before {
-    content: '⋮⋮';
+    content: '\22ee\22ee';
     font-size: 20px;
     line-height: 1;
-    letter-spacing: -2x;
+    letter-spacing: -2px;
 }
 
 .maru:active {
     cursor: grabbing;
-}
-
-.drop-indicator {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #3498db;
-    z-index: 10;
-}
-.drop-indicator.top {
-    top: 0;
-}
-.drop-indicator.bottom {
-    bottom: 0;
 }
