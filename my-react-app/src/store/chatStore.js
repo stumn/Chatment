@@ -9,12 +9,11 @@ const useChatStore = create((set) => ({
     set((state) => {
       const nickname = post.nickname || 'Unknown';
       const message = post.msg || '';
-
-      const newId = state.messages.length + 1;
+      const fav = typeof post.fav === 'number' ? post.fav : (typeof post.count === 'number' ? post.count : 0);
+      const newId = post.id || (state.messages.length + 1);
       const newOrder = state.messages[state.messages.length - 1]?.order + 1 || 1;
-      const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // 現在の時刻を取得
-      const initialFav = 0; // 初期値は0
-
+      const newTime = post.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // --- positive/negative人数・自分が押したかも反映 ---
       return {
         messages: [
           ...state.messages,
@@ -24,7 +23,11 @@ const useChatStore = create((set) => ({
             nickname: nickname,
             msg: message,
             time: newTime,
-            fav: initialFav,
+            fav: fav,
+            positive: post.positive || 0,
+            negative: post.negative || 0,
+            isPositive: post.isPositive || false,
+            isNegative: post.isNegative || false,
           },
         ],
       };
@@ -92,6 +95,26 @@ const useChatStore = create((set) => ({
     updated.splice(toIndex, 0, moved);
     return { messages: updated };
   }),
+
+  // --- サーバfavイベントでidとfavのみが来る場合にも対応 ---
+  updateFav: (id, fav) => set((state) => ({
+    messages: state.messages.map((msg) =>
+      msg.id === id ? { ...msg, fav } : msg
+    ),
+  })),
+
+  // --- サーバpositiveイベントでid, positive, isPositiveを受けて更新 ---
+  updatePositive: (id, positive, isPositive) => set((state) => ({
+    messages: state.messages.map((msg) =>
+      msg.id === id ? { ...msg, positive, isPositive } : msg
+    ),
+  })),
+  // --- サーバnegativeイベントでid, negative, isNegativeを受けて更新 ---
+  updateNegative: (id, negative, isNegative) => set((state) => ({
+    messages: state.messages.map((msg) =>
+      msg.id === id ? { ...msg, negative, isNegative } : msg
+    ),
+  })),
 }));
 
 export default useChatStore;

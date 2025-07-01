@@ -54,11 +54,12 @@ function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
+          {/* emitFavをAfterLoginに渡す */}
           <AfterLogin
             heightArray={heightArray}
             emitChatMessage={emitChatMessage}
+            emitFav={emitFav}
           />
-
         </Suspense>
       </div>
     )

@@ -4,9 +4,10 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { VariableSizeList as List } from 'react-window';
 
 import useChatStore from './store/chatStore';
+import useSocket from './store/useSocket';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
+const ChatComments = ({ lines, bottomHeight, emitChatMessage, emitFav }) => { // emitFavを引数に追加
 
     const listRef = useRef(null);
     const messages = useChatStore((state) => state.messages);
@@ -68,6 +69,9 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
         return nameLineHeight + messageHeight + totalPadding;
     };
 
+    // --- useSocketからsocket.idを取得し、itemDataに含める ---
+    const { socketId, emitPositive, emitNegative } = useSocket();
+
     return (
         <React.Suspense fallback={<div>Loading...</div>}>
             <List
@@ -76,8 +80,8 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
                 itemCount={chatCount}
                 itemSize={getItemSize}
                 width="100%"
-                itemData={{ chatMessages, emitChatMessage }}
-                itemKey={index => chatMessages[index]?.id ?? index} // ここを追加
+                itemData={{ chatMessages, emitChatMessage, emitFav, userSocketId: socketId, emitPositive, emitNegative }}
+                itemKey={index => chatMessages[index]?.id ?? index}
                 style={{
                     overflow: 'hidden',
                     textAlign: 'left',

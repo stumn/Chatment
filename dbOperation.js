@@ -1,6 +1,6 @@
 // dbOperations.js
 const { mongoose, User, Post } = require('./db');
-const { handleErrors, organizeLogs } = require('./utils');
+const { handleErrors } = require('./utils');
 
 // ユーザーモデルに保存
 async function saveUser(nickname, status, ageGroup, socketId) { // socketId は配列で保存
@@ -159,6 +159,22 @@ function organizeAndPush(messages, e, isChat = true) {
     } else {
         messages.push({ nickname: '', msg: e.msg, createdAt: e.createdAt, id: e.id, wasRocketed: false });
     }
+}
+
+function organizeLogs(post, mySocketId = null) {
+    const data = {
+        id: post._id,
+        createdAt: post.createdAt,
+        nickname: post.nickname,
+        msg: post.msg,
+        // --- positive/negative人数を返す ---
+        positive: post.positive ? post.positive.length : 0,
+        negative: post.negative ? post.negative.length : 0,
+        // --- 自分がpositive/negativeしたかどうかも返す（UI制御用）---
+        isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
+        isNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
+    };
+    return data;
 }
 
 module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, findPost, fetchPosts, fetchPosts_everybody };

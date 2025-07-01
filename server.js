@@ -84,12 +84,61 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
-    socket.on('fav', async id => {
-      const update = { $inc: { count: 1 } };
-      const options = { new: true };
+    socket.on('fav', async ({ postId, userSocketId, nickname }) => {
+      // --- favトグル処理: stars配列にユーザーがいれば削除、いなければ追加 ---
       try {
-        const p = await Post.findByIdAndUpdate(id, update, options);
-        io.emit('fav', p);
+        const post = await Post.findById(postId);
+        if (!post) return;
+        const existingIndex = post.stars.findIndex(star => star.userSocketId === userSocketId);
+        if (existingIndex !== -1) {
+          // 既にfav済み→取り消し
+          post.stars.splice(existingIndex, 1);
+        } else {
+          // fav追加
+          post.stars.push({ userSocketId, nickname });
+        }
+        await post.save();
+        // 最新のfav数（stars.length）を含めてemit
+        io.emit('fav', { id: post.id, fav: post.stars.length });
+      } catch (e) { console.error(e); }
+    });
+
+    // --- positiveトグルイベント ---
+    socket.on('positive', async ({ postId, userSocketId, nickname }) => {
+      try {
+        const post = await Post.findById(postId);
+        if (!post) return;
+        const idx = post.positive.findIndex(p => p.userSocketId === userSocketId);
+        if (idx !== -1) {
+          post.positive.splice(idx, 1);
+        } else {
+          post.positive.push({ userSocketId, nickname });
+        }
+        await post.save();
+        io.emit('positive', {
+          id: post.id,
+          positive: post.positive.length,
+          isPositive: post.positive.some(p => p.userSocketId === userSocketId),
+        });
+      } catch (e) { console.error(e); }
+    });
+    // --- negativeトグルイベント ---
+    socket.on('negative', async ({ postId, userSocketId, nickname }) => {
+      try {
+        const post = await Post.findById(postId);
+        if (!post) return;
+        const idx = post.negative.findIndex(n => n.userSocketId === userSocketId);
+        if (idx !== -1) {
+          post.negative.splice(idx, 1);
+        } else {
+          post.negative.push({ userSocketId, nickname });
+        }
+        await post.save();
+        io.emit('negative', {
+          id: post.id,
+          negative: post.negative.length,
+          isNegative: post.negative.some(n => n.userSocketId === userSocketId),
+        });
       } catch (e) { console.error(e); }
     });
 

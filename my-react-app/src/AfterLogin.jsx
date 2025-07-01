@@ -7,7 +7,7 @@ import Telomere from './Telomere';
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 
-export default function AfterLogin({ heightArray, emitChatMessage }) {
+export default function AfterLogin({ heightArray, emitChatMessage, emitFav }) {
 
     // useAppStoreからuserInfoとsetUserNameを取得
     const { userInfo } = useAppStore();
@@ -41,7 +41,8 @@ export default function AfterLogin({ heightArray, emitChatMessage }) {
                     gap: '4px', // Add spacing between elements
                 }}>
 
-                <ResizablePanels emitChatMessage={emitChatMessage} />
+                {/* emitFavをResizablePanelsに渡す */}
+                <ResizablePanels emitChatMessage={emitChatMessage} emitFav={emitFav} />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 

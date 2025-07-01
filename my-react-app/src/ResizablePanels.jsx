@@ -10,7 +10,7 @@ import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
 
-export default function ResizablePanels({ emitChatMessage }) {
+export default function ResizablePanels({ emitChatMessage, emitFav }) {
     
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -122,7 +122,8 @@ export default function ResizablePanels({ emitChatMessage }) {
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage}/>
+                {/* emitFavをChatCommentsに渡す */}
+                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage} emitFav={emitFav}/>
             </div>
         </Paper>
     );

@@ -36,11 +36,24 @@ const starSchema = new mongoose.Schema({
     nickname: String
 });
 
+// 🌟positive/negative スキーマ（Post 内部）
+const positiveSchema = new mongoose.Schema({
+    userSocketId: String,
+    nickname: String
+});
+const negativeSchema = new mongoose.Schema({
+    userSocketId: String,
+    nickname: String
+});
+
 // 🗨️Post スキーマ / モデル
 const postSchema = new mongoose.Schema({
     nickname: String,
     msg: String,
     stars: [{ type: starSchema, default: () => ({}) }],
+    // --- positive/negative配列を追加 ---
+    positive: [{ type: positiveSchema, default: () => ({}) }],
+    negative: [{ type: negativeSchema, default: () => ({}) }],
 }, options);
 
 const Post = mongoose.model("Post", postSchema);

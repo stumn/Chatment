@@ -7,22 +7,6 @@ function handleErrors(error, customMsg = '') {
     throw error;
 }
 
-// --dbOperations.js で使う post を整える 関数--
-function organizeLogs(post) {
-    const data = {
-        id: post._id,
-        createdAt: post.createdAt,
-        
-        nickname: post.nickname,
-        msg: post.msg,
-        stars: post.stars.length,
-
-        // 重ねる機能
-        // parentPostId: post.parentPostId,
-        // childPostIds: post.childPostIds,
-    };
-    return data;
-}
 
 //　--以下、index.js で使う関数--
 
@@ -36,4 +20,4 @@ async function checkEventStatus(events, userSocketId) {
     return isAlert;
 }
 
-module.exports = { handleErrors, organizeLogs, checkEventStatus };
+module.exports = { handleErrors, checkEventStatus };
