@@ -52,6 +52,10 @@ const DocComments = ({ lines, emitChatMessage }) => {
         const { source, destination } = result;
         if (!destination || source.index === destination.index) return;
         reorderMessages(source.index, destination.index);
+        // 並び替え後に高さキャッシュをリセット（全アイテム再計算）
+        if (listRef.current) {
+            listRef.current.resetAfterIndex(0, true); // trueで全て再計算
+        }
     };
 
     // Listに渡すitemData
