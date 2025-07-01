@@ -8,6 +8,17 @@
     align-items: center;
     padding: 4px 16px;
     box-sizing: border-box;
+    background-color: white;
+    /* ★改善2: レイアウトのズレを防ぐため、予め透明なボーダーでスペースを確保 */
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.1s ease-in-out; /* 色が滑らかに変わるように */
+}
+
+/* ★要望1: ドラッグ中のアイテムのスタイル */
+.is-dragging .doc-comment-item {
+    background-color: #f0f8ff; /* 薄い青色 */
+    border: 1px solid #8ec3f1; /* 青い枠線 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 影を付けて浮き上がらせる */
 }
 
 .doc-comment-content {
@@ -26,10 +37,19 @@
     margin-right: 8px;
     user-select: none;
     visibility: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    color: #aaaaaa;
+    cursor: grab;
 }
 
-.maru:hover {
-    cursor: grab;
+.maru::before {
+    content: '⋮⋮';
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: -2x;
 }
 
 .maru:active {

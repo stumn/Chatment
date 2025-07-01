@@ -62,43 +62,75 @@ const DocComments = ({ lines, emitChatMessage }) => {
         return estimatedLines * lineHeight; // 必要な行数分の高さを返す
     };
 
+    // ★追加: ドロップ先のインデックスとドラッグ元のインデックスを管理するstate
+    const [dropTargetInfo, setDropTargetInfo] = useState({
+        targetIndex: null,
+        sourceIndex: null,
+    });
+
+    const onDragStart = (start) => {
+        // ドラッグ開始時に元の位置をセット
+        setDropTargetInfo({
+            targetIndex: start.source.index,
+            sourceIndex: start.source.index,
+        });
+    };
+
+    const onDragUpdate = (update) => {
+        // ドラッグ中にドロップ先の位置を更新
+        if (!update.destination) {
+            setDropTargetInfo(prev => ({ ...prev, targetIndex: null }));
+            return;
+        }
+        setDropTargetInfo(prev => ({ ...prev, targetIndex: update.destination.index }));
+    };
+
     const onDragEnd = (result) => {
         const { source, destination } = result;
+
+        setDropTargetInfo({ targetIndex: null, sourceIndex: null });
         if (!destination || source.index === destination.index) return;
         reorderMessages(source.index, destination.index);
     };
 
-    // ★変更: itemDataをuseMemoでメモ化し、不要な再レンダリングを防ぎます
+    // ★変更: itemDataにdropTargetInfoを追加
     const itemData = useMemo(() => ({
         docMessages,
         userInfo,
         emitChatMessage,
-    }), [docMessages, userInfo, emitChatMessage]);
+        dropTargetInfo, // 渡す
+    }), [docMessages, userInfo, emitChatMessage, dropTargetInfo]);
 
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
+        <DragDropContext
+            onDragStart={onDragStart}
+            onDragUpdate={onDragUpdate}
+            onDragEnd={onDragEnd}
+        >
             <Droppable
                 droppableId="droppable"
                 mode="virtual"
                 direction="vertical"
-
                 renderClone={(provided, snapshot, rubric) => {
-                    // ★変更: ヘルパー関数を使い、ドラッグ中のスタイルをY軸方向に固定します
                     const style = getVerticalDragStyle(provided.draggableProps.style);
 
-                    // ★変更: DocRowをクローンとして使用し、ドラッグ中も見た目を維持します。
-                    // DocRowには、元のリストアイテムと同じ情報をpropsとして渡します。
+                    // ★変更: 画像のようにドラッグ中のスタイルを調整
+                    if (snapshot.isDragging) {
+                        style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                        style.background = 'white'; // 背景色を強制
+                    }
+
                     return (
                         <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            className='is-dragging'
                         >
                             <DocRow
                                 data={itemData}
                                 index={rubric.source.index}
-                                style={style} // Y軸固定したスタイルを適用
-                                isDragging={snapshot.isDragging} // isDraggingの状態を渡す (DocRow側で活用可能)
+                                style={style}
                             />
 
                         </div>
