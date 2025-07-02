@@ -14,11 +14,12 @@ const useAppStore = create((set) => ({
   myHeight: 300,
 
   // アクション: ユーザー情報を設定する
-  setUserInfo: ({ nickname, status, ageGroup }) => set((state) => ({
+  setUserInfo: ({ nickname, status, ageGroup, userId }) => set((state) => ({
     userInfo: {
       nickname,
       status,
-      ageGroup
+      ageGroup,
+      userId, // userIdも保持
     }
   })),
 

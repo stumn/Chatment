@@ -63,8 +63,8 @@ export default function useSocket() {
   const emitLoginName = (userInfo) => socket.emit('login', userInfo);
   const emitHeightChange = (height) => socket.emit('heightChange', height);
 
-  const emitChatMessage = (nickname, message) => {
-    socket.emit('chat-message', { nickname, message });
+  const emitChatMessage = (nickname, message, userId) => {
+    socket.emit('chat-message', { nickname, message, userId });
   };
 
   // --- emitPositive/emitNegativeを実装 ---

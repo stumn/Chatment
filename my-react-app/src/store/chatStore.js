@@ -35,14 +35,12 @@ const useChatStore = create((set) => ({
       };
     }),
 
-  customAddMessage: ({ nickname, msg, order }) =>
+  customAddMessage: ({ nickname, msg, index }) =>
     set((state) => {
       const newId = state.messages.length + 1;
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      // --- fav関連のプロパティは削除 ---
       const newMessage = {
         id: newId,
-        order: order,
         nickname: nickname || 'Unknown',
         msg: msg || '',
         time: newTime,
@@ -51,29 +49,13 @@ const useChatStore = create((set) => ({
         isPositive: false,
         isNegative: false,
       };
-
-      // order が既に存在するかチェック
-      const orderExists = state.messages.some(m => m.order === order);
-
-      let updatedMessages;
-      if (orderExists) {
-        // order で昇順ソート
-        updatedMessages = state.messages
-          .map(m => {
-            // 既存 order が新規 order 以上なら order を1つ増やす
-            if (m.order >= order) {
-              return { ...m, order: m.order + 1 };
-            }
-            return m;
-          })
-          .concat(newMessage)
-          .sort((a, b) => a.order - b.order);
-      } else {
-        updatedMessages = [...state.messages, newMessage].sort((a, b) => a.order - b.order);
-      }
-
+      // indexの直後に新規行を挿入
+      const updatedMessages = [...state.messages];
+      updatedMessages.splice(index + 1, 0, newMessage);
+      // orderをindex順に再採番
+      const messagesWithOrder = updatedMessages.map((m, i) => ({ ...m, order: i + 1 }));
       return {
-        messages: updatedMessages,
+        messages: messagesWithOrder,
       };
     }),
 
