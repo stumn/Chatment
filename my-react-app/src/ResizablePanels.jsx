@@ -10,8 +10,8 @@ import useChatStore from "./store/chatStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
 
-export default function ResizablePanels({ emitChatMessage, emitFav }) {
-    
+export default function ResizablePanels({ emitChatMessage }) {
+
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
     const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
@@ -110,12 +110,12 @@ export default function ResizablePanels({ emitChatMessage, emitFav }) {
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments lines={lines} emitChatMessage={emitChatMessage}/>
+                <DocComments lines={lines} emitChatMessage={emitChatMessage} />
             </div>
 
             <div
                 id='slide-bar'
-                style={{ height: `${DIVIDER_HEIGHT}px`, width: `${CONTAINER_resizable_WIDTH}px`,backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
+                style={{ height: `${DIVIDER_HEIGHT}px`, width: `${CONTAINER_resizable_WIDTH}px`, backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
                 onMouseDown={handleMouseDown}
             />
 
@@ -123,7 +123,7 @@ export default function ResizablePanels({ emitChatMessage, emitFav }) {
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 {/* emitFavをChatCommentsに渡す */}
-                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage} emitFav={emitFav}/>
+                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage} />
             </div>
         </Paper>
     );

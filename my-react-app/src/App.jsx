@@ -22,12 +22,10 @@ function App() {
     emitLoginName,
     emitHeightChange,
     emitChatMessage,
-    emitFav,
     heightArray, // ← socket を意識せず取得
   } = useSocket(); // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
 
   // login & name //////////////////////////////////////////
-
   const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore(); // useAppStoreからuserInfoとsetUserInfoを取得
 
   useEffect(() => {
@@ -54,11 +52,11 @@ function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
-          {/* emitFavをAfterLoginに渡す */}
+          {/* userInfoをAfterLoginに渡す */}
           <AfterLogin
             heightArray={heightArray}
             emitChatMessage={emitChatMessage}
-            emitFav={emitFav}
+            userInfo={userInfo}
           />
         </Suspense>
       </div>

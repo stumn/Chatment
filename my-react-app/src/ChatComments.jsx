@@ -7,7 +7,7 @@ import useChatStore from './store/chatStore';
 import useSocket from './store/useSocket';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight, emitChatMessage, emitFav }) => { // emitFavを引数に追加
+const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => { // emitFavを引数に追加
 
     const listRef = useRef(null);
     const messages = useChatStore((state) => state.messages);
@@ -80,7 +80,7 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage, emitFav }) => { //
                 itemCount={chatCount}
                 itemSize={getItemSize}
                 width="100%"
-                itemData={{ chatMessages, emitChatMessage, emitFav, userSocketId: socketId, emitPositive, emitNegative }}
+                itemData={{ chatMessages, emitChatMessage, userSocketId: socketId, emitPositive, emitNegative }}
                 itemKey={index => chatMessages[index]?.id ?? index}
                 style={{
                     overflow: 'hidden',
