@@ -3,16 +3,16 @@ import './Doc.css'; // 右端ボタン配置用のスタイルを流用
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
-    // --- positive/negative人数・自分が押したかを取得 ---
+    // --- positive/negative人数 ---
     const positive = cMsg.positive || 0;
     const negative = cMsg.negative || 0;
-    const isPositive = cMsg.isPositive;
-    const isNegative = cMsg.isNegative;
-    // --- 文字色をpositive/negative人数で調整 ---
-    // positiveが多いほど濃い黄色、negativeが多いほど薄いグレー
-    const baseColor = isNegative ? `rgba(120,120,120,${Math.max(0.3, 1 - negative * 0.15)})` : isPositive ? `rgba(255,200,0,${Math.min(1, 0.5 + positive * 0.2)})` : '#333';
-    const fontWeight = isPositive ? 'bold' : isNegative ? 'normal' : 'normal';
-    const fontStyle = isNegative ? 'italic' : 'normal';
+    
+    // --- 文字サイズを⬆⬇の差で決定（差が大きいほど変化） ---
+    const diff = positive - negative;
+    let fontSize = 15 + diff * 2; // 差が1で17px、2で19px、-1で13pxなど
+    if (fontSize > 30) fontSize = 30;
+    if (fontSize < 10) fontSize = 10;
+
     // --- emitPositive/emitNegativeを取得 ---
     const emitPositive = data.emitPositive;
     const emitNegative = data.emitNegative;
@@ -29,17 +29,14 @@ const ChatRow = ({ data, index, style }) => {
             </div>
             <div
                 className="message doc-comment-content"
-                style={{ textAlign: 'left', fontSize: 15, marginLeft: '40px', color: baseColor, fontWeight, fontStyle, position: 'relative' }}
+                style={{ textAlign: 'left', fontSize, marginLeft: '40px', position: 'relative' }}
             >
                 <span
                     contentEditable
                     suppressContentEditableWarning
                     style={{
-                        fontSize: 15,
+                        fontSize,
                         display: 'inline-block',
-                        color: baseColor,
-                        fontWeight,
-                        fontStyle,
                     }}
                 >
                     {cMsg.msg}
@@ -54,8 +51,7 @@ const ChatRow = ({ data, index, style }) => {
                             cursor: 'pointer',
                             border: 'none',
                             background: 'none',
-                            color: isPositive ? '#FFD600' : '#888',
-                            fontWeight: isPositive ? 'bold' : 'normal',
+                            color: '#888',
                         }}
                         onClick={handlePositive}
                         title={`ポジティブ: ${positive}`}
@@ -70,8 +66,7 @@ const ChatRow = ({ data, index, style }) => {
                             cursor: 'pointer',
                             border: 'none',
                             background: 'none',
-                            color: isNegative ? '#888' : '#bbb',
-                            fontStyle: isNegative ? 'italic' : 'normal',
+                            color: '#bbb',
                         }}
                         onClick={handleNegative}
                         title={`ネガティブ: ${negative}`}
