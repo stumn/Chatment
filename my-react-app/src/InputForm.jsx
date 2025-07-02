@@ -9,7 +9,6 @@ import { Stack } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem'; // MenuItemをインポート
 
-import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', emitChatMessage }) => {

@@ -3,36 +3,36 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { VariableSizeList as List } from 'react-window';
 
-import useChatStore from './store/chatStore';
+import usePostStore from './store/postStore';
 import useSocket from './store/useSocket';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => { // emitFavを引数に追加
-
+const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
     const listRef = useRef(null);
-    const messages = useChatStore((state) => state.messages);
-
+    // const chatMessages = usePostStore((state) => state.getChatMessages(Math.ceil(lines.num)));
+    const posts = usePostStore((state) => state.posts);
     const chatMessages = useMemo(() => {
-        if (!messages || messages.length === 0) {
-            return [];
-        }
-        const result = lines.num < 1.5
-            ? [messages[messages.length - 1]] // 1つだけど配列にしておく
-            : messages.slice(-Math.ceil(lines.num)); // 少数を切り上げて取得
-        return result;
-    }, [lines.num, messages]);
-
-    const chatCount = chatMessages.length;
+        // getChatMessagesのロジックをここに移植
+        const sorted = [...posts].sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return aTime - bTime;
+        });
+        return sorted.slice(-Math.ceil(lines.num));
+    }, [posts, lines.num]);
+    // idがundefinedなものを除外し、重複idも除外
+    const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
+    const chatCount = filteredChatMessages.length;
 
     // スクロールを最下部に
     useEffect(() => {
         if (listRef.current) {
-            listRef.current.scrollToItem(chatMessages.length - 1, 'end');
+            listRef.current.scrollToItem(filteredChatMessages.length - 1, 'end');
         }
-    }, [chatMessages]);
+    }, [filteredChatMessages]);
 
     const getItemSize = (index) => {
-        const cMsg = chatMessages[index];
+        const cMsg = filteredChatMessages[index];
 
         // メッセージデータが存在しない場合のデフォルトの高さ
         if (!cMsg) {
@@ -72,6 +72,7 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => { // emitFav�
     // --- useSocketからsocket.idを取得し、itemDataに含める ---
     const { socketId, emitPositive, emitNegative } = useSocket();
 
+    // ListのitemDataにfilteredChatMessagesを渡す
     return (
         <React.Suspense fallback={<div>Loading...</div>}>
             <List
@@ -80,8 +81,8 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => { // emitFav�
                 itemCount={chatCount}
                 itemSize={getItemSize}
                 width="100%"
-                itemData={{ chatMessages, emitChatMessage, userSocketId: socketId, emitPositive, emitNegative }}
-                itemKey={index => chatMessages[index]?.id ?? index}
+                itemData={{ chatMessages: filteredChatMessages, emitChatMessage, userSocketId: socketId, emitPositive, emitNegative }}
+                itemKey={index => index}
                 style={{
                     overflow: 'hidden',
                     textAlign: 'left',

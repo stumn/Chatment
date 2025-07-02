@@ -1,12 +1,12 @@
 // ResizablePanels.jsx
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Paper from "@mui/material/Paper";
 
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 
-import useChatStore from "./store/chatStore";
+import usePostStore from "./store/postStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
 
@@ -24,7 +24,22 @@ export default function ResizablePanels({ emitChatMessage }) {
     const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
 
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
-    const messages = useChatStore((state) => state.messages);
+
+    // --- 無限ループ・update depth exceeded 問題の修正 ---
+    // 課題: usePostStore((state) => state.getChatMessages()) のように、zustandのセレクタで毎回新しい配列を返すと、
+    // Reactの再レンダリングが無限ループになることがある。
+    // 理由: getChatMessages()は新しい配列を返すため、useEffectやuseMemoの依存配列が毎回変化し、
+    //       Reactが再レンダリング→zustandが新配列→再レンダリング...となる。
+    // 解決: posts配列を直接取得し、useMemoでgetChatMessagesのロジックを再現し、postsが変化したときだけ再計算する。
+    const posts = usePostStore((state) => state.posts);
+    const messages = useMemo(() => {
+        const sorted = [...posts].sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return aTime - bTime;
+        });
+        return sorted;
+    }, [posts]);
 
     const [lines, setLines] = useState({ num: 9, timestamp: 0 }); // 初期値は1行分の高さ
     useEffect(() => {

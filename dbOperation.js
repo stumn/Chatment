@@ -131,9 +131,6 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
     }
 }
 
-// TODO: organizeLogsの返却値がフロントのstore構造と一致しているか要確認
-// TODO: addDocRow, updateDisplayOrderなどDoc系APIの返却値・引数がフロントとズレていないか要確認
-
 module.exports = { 
     saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage, 
     getPostsByDisplayOrder, addDocRow, updateDisplayOrder 

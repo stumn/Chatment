@@ -8,9 +8,8 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 const socket = io();
 
-import chatStore from './chatStore';
 import useAppStore from './appStore';
-import docStore from './docStore';
+import usePostStore from './postStore';
 
 // --- socketインスタンスを外部参照用にexport ---
 export const socketId = () => socket.id;
@@ -20,8 +19,9 @@ export default function useSocket() {
   const [heightArray, setHeightArray] = useState([]);
   const { userInfo } = useAppStore();
 
-  const addMessage = chatStore((state) => state.addMessage);
-  const addDocMessage = docStore((state) => state.addDocMessage);
+  const addMessage = usePostStore((state) => state.addPost);
+  const updatePost = usePostStore((state) => state.updatePost);
+  const reorderPost = usePostStore((state) => state.reorderPost);
 
   useEffect(() => {
     const handleHeightChange = (data) => setHeightArray(data);
@@ -37,41 +37,32 @@ export default function useSocket() {
     };
 
     const handleDocsHistory = (docs) => {
-      docStore.getState().setDocMessages(docs);
+      docs.forEach((doc) => {
+        addMessage(doc);
+      });
     };
 
     const handleChatMessage = (data) => {
       addMessage(data);
-      // すでに同じidのdocがなければ追加
-      const exists = docStore.getState().docMessages.some(doc => doc.id === data.id);
-      if (!exists) {
-        docStore.getState().addDocMessage(data);
-      }
     };
 
     // --- positive/negativeイベントを受信しstoreを更新 ---
     const handlePositive = (data) => {
-      chatStore.getState().updatePositive(data.id, data.positive, data.isPositive);
+      usePostStore.getState().updatePositive(data.id, data.positive, data.isPositive);
     };
     const handleNegative = (data) => {
-      chatStore.getState().updateNegative(data.id, data.negative, data.isNegative);
+      usePostStore.getState().updateNegative(data.id, data.negative, data.isNegative);
     };
 
     // --- Doc系イベント受信 ---
     const handleDocAdd = (payload) => {
-      // すでに同じidのdocがなければ追加
-      const exists = docStore.getState().docMessages.some(doc => doc.id === payload.id);
-      if (!exists) {
-        docStore.getState().addDocMessage(payload);
-      }
+      addMessage(payload);
     };
     const handleDocEdit = (payload) => {
-      // payload: { id, newMsg }
-      docStore.getState().updateDocMessage(payload.id, payload.newMsg);
+      updatePost(payload.id, payload.newMsg);
     };
     const handleDocReorder = (payload) => {
-      // payload: { id, newDisplayOrder }
-      docStore.getState().reorderDocMessages(payload.id, payload.newDisplayOrder);
+      reorderPost(payload.id, payload.newDisplayOrder);
     };
 
     socket.on('heightChange', handleHeightChange);
@@ -152,6 +143,3 @@ export default function useSocket() {
     emitDocReorder,
   };
 }
-
-// TODO: emitDocAdd, emitDocEdit, emitDocReorderのpayload構造がサーバと一致しているか要確認
-// TODO: chatStore, docStoreとのデータ整合性（id, displayOrder, userId等）に注意

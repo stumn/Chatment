@@ -1,15 +1,10 @@
 // File: my-react-app/src/DocRow.jsx
 
-// TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
-// TODO: emitDocAdd, emitDocEdit, emitDocReorderのpayload構造がサーバと一致しているか要確認
-// TODO: DB保存や他クライアント反映の責務分離に注意
-
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-import useChatStore from './store/chatStore';
 import useSocket from './store/useSocket';
-import useDocStore from './store/docStore';
+import usePostStore from './store/postStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
@@ -18,8 +13,12 @@ const DocRow = ({ data, index, style }) => {
     const message = docMessages[index];
 
     // useChatStoreから必要な関数を取得
-    const customAddMessage = useChatStore((state) => state.customAddMessage);
-    const updateMessage = useChatStore((state) => state.updateMessage);
+    // const customAddMessage = useChatStore((state) => state.customAddMessage);
+    // const updateMessage = useChatStore((state) => state.updateMessage);
+    // useDocStoreからdocMessages, addDocMessage, updateDocMessageを取得
+    // const { docMessages: docMessagesStore, addDocMessage, updateDocMessage } = useDocStore.getState();
+    const addDocMessage = usePostStore((state) => state.addPost);
+    const updateDocMessage = usePostStore((state) => state.updatePost);
 
     // useSocketからemitDocAdd, emitDocEditを取得
     const { emitDocAdd, emitDocEdit } = useSocket();
@@ -29,9 +28,6 @@ const DocRow = ({ data, index, style }) => {
 
     // contentEditableの要素を参照するためのref
     const contentRef = useRef(null);
-
-    // useDocStoreからdocMessages, addDocMessage, updateDocMessageを取得
-    const { docMessages: docMessagesStore, addDocMessage, updateDocMessage } = useDocStore.getState();
 
     // 新規行追加
     const handleAddBelow = () => {

@@ -1,9 +1,5 @@
 // // File: my-react-app/src/docComments.jsx
 
-// TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
-// TODO: emitDocAdd, emitDocEdit, emitDocReorderのpayload構造がサーバと一致しているか要確認
-// TODO: DB保存や他クライアント反映の責務分離に注意
-
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
@@ -11,11 +7,10 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import './Doc.css';
 import DocRow from './DocRow'; // ←遅延読み込みをやめて通常import
 
-import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 import useSocket from './store/useSocket';
-import useDocStore from './store/docStore';
+import usePostStore from './store/postStore';
 
 const DocComments = ({ lines, emitChatMessage }) => {
 
@@ -24,25 +19,35 @@ const DocComments = ({ lines, emitChatMessage }) => {
     // --- 新規行追加時の自動スクロール抑制用 ---
     const [shouldScroll, setShouldScroll] = useState(true);
 
-    const messages = useChatStore((state) => state.messages);
-    const updateMessage = useChatStore((state) => state.updateMessage);
-    const reorderMessages = useChatStore((state) => state.reorderMessages);
-    
+    // const messages = useChatStore((state) => state.messages);
+    // const updateMessage = useChatStore((state) => state.updateMessage);
+    // const reorderMessages = useChatStore((state) => state.reorderMessages);
+    // const docMessages = useDocStore((state) => state.docMessages);
+    // const setDocMessages = useDocStore((state) => state.setDocMessages);
+    // const updateDocMessage = useDocStore((state) => state.updateDocMessage);
+    // const reorderDocMessages = useDocStore((state) => state.reorderDocMessages);
+    // const addDocMessage = useDocStore((state) => state.addDocMessage);
+    // --- 無限ループ・update depth exceeded 問題の修正 ---
+    // 課題: usePostStore((state) => state.getDocMessages()) のように、zustandのセレクタで毎回新しい配列を返すと、
+    // Reactの再レンダリングが無限ループになることがある。
+    // 理由: getDocMessages()は新しい配列を返すため、useEffectやuseMemoの依存配列が毎回変化し、
+    //       Reactが再レンダリング→zustandが新配列→再レンダリング...となる。
+    // 解決: getDocMessages()の呼び出しをuseMemoでラップし、posts配列が変化したときだけ再計算する。
+    const posts = usePostStore((state) => state.posts);
+    const docMessages = useMemo(() => {
+        // getDocMessages()のロジックをここに移植
+        return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
+    }, [posts]);
+    const updateDocMessage = usePostStore((state) => state.updatePost);
+    const reorderDocMessages = usePostStore((state) => state.reorderPost);
+    const addDocMessage = usePostStore((state) => state.addPost);
+
     const { emitDocReorder } = useSocket();
 
     const { userInfo, myHeight } = useAppStore();
 
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8);
     const charsPerLine = Math.floor(listWidth / 13);
-
-    // 表示するdocMessagesを決定
-    const docMessages = useDocStore((state) => state.docMessages);
-    const setDocMessages = useDocStore((state) => state.setDocMessages);
-    const updateDocMessage = useDocStore((state) => state.updateDocMessage);
-    const reorderDocMessages = useDocStore((state) => state.reorderDocMessages);
-    const addDocMessage = useDocStore((state) => state.addDocMessage);
-
-    // サーバから取得したらsetDocMessagesでセットする（useEffect等で）
 
     // スクロールを最下部に（shouldScrollがtrueのときのみ）
     useEffect(() => {
@@ -92,16 +97,20 @@ const DocComments = ({ lines, emitChatMessage }) => {
         }
     };
 
+    // idがundefinedなものを除外し、重複idも除外
+    const filteredDocMessages = useMemo(() => docMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx), [docMessages]);
+    const docCount = filteredDocMessages.length;
+
     // Listに渡すitemData
     const itemData = useMemo(() => ({
-        docMessages,
+        docMessages: filteredDocMessages,
         userInfo,
         emitChatMessage,
         setShouldScroll,
         listRef,
         addDocMessage,
         updateDocMessage,
-    }), [docMessages, userInfo, emitChatMessage]);
+    }), [filteredDocMessages, userInfo, emitChatMessage]);
 
     // ListのitemRenderer
     const renderRow = ({ index, style, data }) => (
@@ -140,10 +149,11 @@ const DocComments = ({ lines, emitChatMessage }) => {
                             id="docList"
                             ref={listRef}
                             height={myHeight}
-                            itemCount={docMessages.length}
+                            itemCount={docCount}
                             itemSize={getItemSize}
                             outerRef={provided.innerRef}
                             itemData={itemData}
+                            itemKey={index => index}
                         >
                             {renderRow}
                         </List>

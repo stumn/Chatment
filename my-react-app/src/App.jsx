@@ -3,7 +3,6 @@
 import { useEffect, Suspense, lazy, useState } from 'react';
 
 import useSocket from './store/useSocket';
-import useChatStore from './store/chatStore';
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
 import useResponsiveSize from './useResponsiveSize';
