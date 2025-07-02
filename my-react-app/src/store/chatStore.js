@@ -1,9 +1,7 @@
 import { create } from 'zustand';
 
-// TODO: Doc系（customAddMessage, updateMessage, reorderMessages）はローカルのみ。
-// socket/DB連携はコンポーネント側でuseSocketの関数と併用して実装してください。
-// 例: コンポーネントで useChatStore の関数と 
-// useSocket の emitDocAdd, emitDocEdit, emitDocReorder などを同時に呼び出す
+// TODO: messages配列のid, order, userId等の構造がサーバ返却値と一致しているか要確認
+// TODO: customAddMessage, updateMessage, reorderMessagesのsocket通信責務分離に注意
 const useChatStore = create((set, get) => {
   return {
     // チャットメッセージの一覧
@@ -41,6 +39,7 @@ const useChatStore = create((set, get) => {
       }),
 
     customAddMessage: ({ nickname, msg, index }) => {
+      console.log('customAddMessage called with:', { nickname, msg, index });
       // --- socket通信はコンポーネント側で行う ---
       set((state) => {
         const newId = state.messages.length + 1;
@@ -55,9 +54,11 @@ const useChatStore = create((set, get) => {
           isPositive: false,
           isNegative: false,
         };
+        
         // indexの直後に新規行を挿入
         const updatedMessages = [...state.messages];
         updatedMessages.splice(index + 1, 0, newMessage);
+
         // orderをindex順に再採番
         const messagesWithOrder = updatedMessages.map((m, i) => ({ ...m, order: i + 1 }));
         return {
@@ -69,6 +70,7 @@ const useChatStore = create((set, get) => {
     // 指定したindex のメッセージを編集
     updateMessage: (index, newMsg) => {
       // --- socket通信はコンポーネント側で行う ---
+
       set((state) => {
         const updatedMessages = [...state.messages];
         if (index >= 0 && index < updatedMessages.length) {
@@ -85,6 +87,7 @@ const useChatStore = create((set, get) => {
 
     reorderMessages: (fromIndex, toIndex) => {
       // --- socket通信はコンポーネント側で行う ---
+
       set((state) => {
         const updated = [...state.messages];
         const [moved] = updated.splice(fromIndex, 1);
@@ -99,6 +102,7 @@ const useChatStore = create((set, get) => {
         (msg.id === id || msg.id === String(id)) ? { ...msg, positive, isPositive } : msg
       ),
     })),
+    
     updateNegative: (id, negative, isNegative) => set((state) => ({
       messages: state.messages.map((msg) =>
         (msg.id === id || msg.id === String(id)) ? { ...msg, negative, isNegative } : msg

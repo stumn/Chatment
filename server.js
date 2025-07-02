@@ -18,8 +18,10 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
-const { saveUser, SaveChatMessage, getPastLogs } = require('./dbOperation');
-// const { handleErrors, checkVoteStatus, calculate_VoteSum, checkEventStatus } = require('./utils');
+const {
+  saveUser, SaveChatMessage, getPastLogs,
+  addDocRow, getPostsByDisplayOrder, updateDisplayOrder
+} = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
@@ -68,6 +70,13 @@ io.on('connection', (socket) => {
       try {
         const messages = await getPastLogs(nickname); // fetch posts from database
         socket.emit('history', messages); // emit to client
+      } catch (e) { console.error(e); }
+    });
+
+    socket.on('fetch-docs', async () => {
+      try {
+        const docs = await getPostsByDisplayOrder(); // fetch posts by display order
+        socket.emit('docs', docs); // emit to client
       } catch (e) { console.error(e); }
     });
 
@@ -127,20 +136,44 @@ io.on('connection', (socket) => {
 
     // --- Doc系: 行追加 ---
     socket.on('doc-add', async (payload) => {
-      // payload: { nickname, msg, index }
+      // payload: { nickname, msg, index, displayOrder }
       try {
-        // DB保存: Post.create など（必要に応じて）
-        // ここでは簡易的にPostを新規作成
-        const newPost = await Post.create({
+        console.log('doc-add:', payload);
+        let displayOrder = payload.displayOrder;
+        const posts = await getPostsByDisplayOrder();
+        if (displayOrder === undefined) {
+          if (posts.length === 0) {
+            displayOrder = 1;
+          } else if (payload.index === undefined || payload.index < 0) {
+            displayOrder = posts[0].displayOrder / 2;
+          } else if (payload.index >= posts.length - 1) {
+            displayOrder = posts[posts.length - 1].displayOrder + 1;
+          } else {
+            const prev = posts[payload.index];
+            const next = posts[payload.index + 1];
+            if (prev && next && Number.isFinite(prev.displayOrder) && Number.isFinite(next.displayOrder)) {
+              displayOrder = (prev.displayOrder + next.displayOrder) / 2;
+            } else {
+              displayOrder = posts[posts.length - 1].displayOrder + 1;
+            }
+          }
+        }
+        // 最終チェック: NaNや不正値なら最大+1または1
+        if (!Number.isFinite(displayOrder)) {
+          displayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
+        }
+        // DB保存
+        const newPost = await addDocRow({
           nickname: payload.nickname,
-          msg: payload.msg,
+          msg: payload.msg || '',
+          displayOrder
         });
         // 全クライアントに新規行追加をブロードキャスト
         io.emit('doc-add', {
-          id: newPost._id,
+          id: newPost.id,
           nickname: newPost.nickname,
           msg: newPost.msg,
-          order: payload.index + 1, // クライアント側でorder再採番する前提
+          displayOrder: newPost.displayOrder,
         });
       } catch (e) { console.error(e); }
     });
@@ -185,3 +218,6 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log('listening on PORT:' + PORT);
 });
+
+// TODO: socketイベント（doc-add, doc-edit, doc-reorder等）のpayload構造がフロントと一致しているか要確認
+// TODO: login時のuserIdの扱いがフロントとサーバでズレていないか要確認

@@ -13,16 +13,6 @@ async function saveUser(nickname, status, ageGroup, socketId) { // socketId は�
     }
 }
 
-// ユーザー情報を取得
-async function getUserInfo(nickname) { // nickname 検索(何に使うか未定)
-    try {
-        const userInfo = await User.findOne().where('nickname').equals(nickname);
-        return userInfo;
-    } catch {
-        handleErrors(error, 'ユーザー情報取得時にエラーが発生しました');
-    }
-}
-
 // ログイン時・過去ログをDBから取得
 async function getPastLogs(nickname) {
     try {
@@ -82,101 +72,69 @@ async function SaveChatMessage(nickname, msg, userId) {
     }
 }
 
-const retries = 3;
-const delay = 3000;
-
-async function findPost(msgId) {
-
-    // リトライ機能を追加 -> 3回リトライしても見つからない場合はエラーを投げる
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            if (!msgId) { throw new Error('msgId がありません'); }
-            const post = await Post.findById(msgId);
-            if (!post) { throw new Error(`投稿が見つかりません: ${msgId}`); }
-            return post; // 見つかった場合
-        } catch (error) {
-            console.error(`エラー (attempt ${attempt}):`, error.message);
-            if (attempt === retries) {
-                handleErrors(error, `投稿見つからない: ${msgId}`);
-                throw error; // 最後のリトライで失敗した場合はエラーを投げる
-            }
-            console.log(`リトライします (${delay / 1000}秒後)...`);
-            await new Promise(resolve => setTimeout(resolve, delay)); // 指定された時間待機
-        }
-    }
-}
-
-// ドキュメントページ用 DBからの過去ログ取得の関数
-async function fetchPosts(nickname) {
-
-    // まずユーザー情報のDBから、nameTomatchを取得
-    const nameToMatch = await getUserInfo(nickname);
-
-    if (!nameToMatch) {
-        console.error('ユーザー情報が見つかりませんでした:', nickname);
-        return null; // ユーザー情報が見つからない場合は null を返す
-    }
-
-    try {
-        const messages = [];
-
-        const posts = await Post.find({ 'stars': { '$elemMatch': { 'nickname': nameToMatch } } });
-        posts.forEach(e => organizeAndPush(messages, e));
-
-        messages.sort((a, b) => a.createdAt - b.createdAt);
-
-        return messages;
-    } catch (error) {
-        handleErrors(error, 'api 過去ログ取得中にエラーが発生しました');
-    }
-
-}
-
-async function fetchPosts_everybody() {
-    try {
-        const messages = [];
-
-        const posts = await Post.find({
-            $or: [
-                { "stars.1": { $exists: true } }, // stars配列の長さが2以上
-                { "childPostIds.0": { $exists: true } } // childPostIds配列の長さが1以上
-            ]
-        });
-
-        posts.forEach(e => {
-            organizeAndPush(messages, e);
-        });
-
-        return messages;
-    }
-    catch (error) {
-        handleErrors(error, 'api 過去ログ取得中にエラーが発生しました');
-    }
-}
-
-function organizeAndPush(messages, e, isChat = true) {
-    if (isChat) {
-        messages.push({ nickname: e.nickname, msg: e.msg, createdAt: e.createdAt, id: e.id, wasRocketed: wasRocketed });
-
-    } else {
-        messages.push({ nickname: '', msg: e.msg, createdAt: e.createdAt, id: e.id, wasRocketed: false });
-    }
-}
-
 function organizeLogs(post, mySocketId = null) {
     const data = {
         id: post._id || post.id, // _idがなければidを使う
         createdAt: post.createdAt,
         nickname: post.nickname,
         msg: post.msg,
-        // --- 投稿者のuserIdも返す ---
         userId: post.userId,
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
         isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
         isNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
+        displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder)
     };
     return data;
 }
 
-module.exports = { saveUser, getUserInfo, getPastLogs, organizeCreatedAt, SaveChatMessage, findPost, fetchPosts, fetchPosts_everybody };
+// --- displayOrder順で全Postを取得 ---
+async function getPostsByDisplayOrder() {
+    try {
+        const posts = await Post.find().sort({ displayOrder: 1 });
+        return processXlogs(posts);
+    } catch (error) {
+        handleErrors(error, 'displayOrder順でのPost取得中にエラーが発生しました');
+    }
+}
+
+// --- displayOrderを指定して空白行を追加 ---
+async function addDocRow({ nickname, msg = '', displayOrder }) {
+    try {
+        // displayOrderが未指定または0なら最大値+1
+        let order = displayOrder;
+        if (!Number.isFinite(order) || order === 0) {
+            const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
+            order = maxOrderPost && Number.isFinite(maxOrderPost.displayOrder) ? maxOrderPost.displayOrder + 1 : 1;
+        }
+        const newPost = await Post.create({
+            nickname,
+            msg,
+            displayOrder: order
+        });
+        return organizeLogs(newPost);
+    } catch (error) {
+        handleErrors(error, 'addDocRow 新規行追加時にエラーが発生しました');
+    }
+}
+
+// --- 並び替え(doc-reorder)に合わせて、displayOrderを更新 ---
+async function updateDisplayOrder(postId, newDisplayOrder) {
+    try {
+        const post = await Post.findById(postId);
+        if (!post) throw new Error(`Post not found: ${postId}`);
+        post.displayOrder = newDisplayOrder;
+        await post.save();
+        return organizeLogs(post);
+    } catch (error) {
+        handleErrors(error, 'displayOrder更新中にエラーが発生しました');
+    }
+}
+
+// TODO: organizeLogsの返却値がフロントのstore構造と一致しているか要確認
+// TODO: addDocRow, updateDisplayOrderなどDoc系APIの返却値・引数がフロントとズレていないか要確認
+
+module.exports = { 
+    saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage, 
+    getPostsByDisplayOrder, addDocRow, updateDisplayOrder 
+};

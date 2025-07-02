@@ -1,12 +1,15 @@
 // File: my-react-app/src/DocRow.jsx
 
 // TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
+// TODO: emitDocAdd, emitDocEdit, emitDocReorderのpayload構造がサーバと一致しているか要確認
+// TODO: DB保存や他クライアント反映の責務分離に注意
 
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
 import useChatStore from './store/chatStore';
 import useSocket from './store/useSocket';
+import useDocStore from './store/docStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
@@ -27,27 +30,60 @@ const DocRow = ({ data, index, style }) => {
     // contentEditableの要素を参照するためのref
     const contentRef = useRef(null);
 
-    // 編集開始
-    const handleFocus = () => {
+    // useDocStoreからdocMessages, addDocMessage, updateDocMessageを取得
+    const { docMessages: docMessagesStore, addDocMessage, updateDocMessage } = useDocStore.getState();
+
+    // 新規行追加
+    const handleAddBelow = () => {
+        if (setShouldScroll) setShouldScroll(false);
+
+        // 直後のdisplayOrderを計算
+        const before = docMessages[index]?.displayOrder;
+        const after = docMessages[index + 1]?.displayOrder;
+        console.log('Adding new row', 'before:', before, 'after:', after);
+
+        let newDisplayOrder;
+        if (before !== undefined && after !== undefined) {
+            newDisplayOrder = (before + after) / 2;
+        } else if (before !== undefined) {
+            newDisplayOrder = before + 1;
+        } else if (after !== undefined) {
+            newDisplayOrder = after / 2;
+        } else {
+            newDisplayOrder = 1;
+        }
+
+        // 新規行をstoreに追加
+        addDocMessage({
+            id: Date.now(), // 仮ID（サーバから本IDが返るまで）
+            nickname: message?.nickname || 'Unknown',
+            msg: '',
+            displayOrder: newDisplayOrder,
+        });
+
+        // サーバに送信
+        emitDocAdd && emitDocAdd({
+            nickname: message?.nickname || 'Unknown',
+            msg: '',
+            displayOrder: newDisplayOrder,
+        });
+
+        // 編集モードにする
         setIsEditing(true);
-
-        // キャレットを末尾に
-        const range = document.createRange();
-        range.selectNodeContents(contentRef.current);
-        range.collapse(false);
-
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+        setTimeout(() => {
+            const element = document.getElementById(`dc-${index + 1}`);
+            if (element) {
+                element.focus();
+                element.contentEditable = true;
+            }
+        }, 0);
     };
 
     // 編集終了
     const handleBlur = (e) => {
-        updateMessage(index, e.target.textContent.replace(/\r/g, ''));
-        // --- socket通信 ---
-        emitDocEdit && emitDocEdit({ index, newMsg: e.target.textContent.replace(/\r/g, ''), id: message?.id });
+        updateDocMessage(message.id, e.target.textContent.replace(/\r/g, ''));
+        emitDocEdit && emitDocEdit({ id: message.id, newMsg: e.target.textContent.replace(/\r/g, '') });
         setIsEditing(false);
-        // 高さ再計算（react-window用）
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);
         }
@@ -66,25 +102,6 @@ const DocRow = ({ data, index, style }) => {
                 const selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
-            }
-        }, 0);
-    };
-
-    // ＋ボタン押下で下に新規行を追加
-    const handleAddBelow = () => {
-        if (setShouldScroll) setShouldScroll(false); // 新規行追加時はスクロール抑制
-        customAddMessage({
-            nickname: message?.nickname || 'Unknown',
-            msg: '',
-            index: index, // orderではなくindexを渡す
-        });
-        // --- socket通信 ---
-        emitDocAdd && emitDocAdd({ nickname: message?.nickname || 'Unknown', msg: '', index });
-        setTimeout(() => {
-            const element = document.getElementById(`dc-${index + 1}`);
-            if (element) {
-                element.focus();
-                element.contentEditable = true;
             }
         }, 0);
     };

@@ -1,6 +1,8 @@
 // // File: my-react-app/src/docComments.jsx
 
 // TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
+// TODO: emitDocAdd, emitDocEdit, emitDocReorderのpayload構造がサーバと一致しているか要確認
+// TODO: DB保存や他クライアント反映の責務分離に注意
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
@@ -13,15 +15,19 @@ import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 import useSocket from './store/useSocket';
+import useDocStore from './store/docStore';
 
 const DocComments = ({ lines, emitChatMessage }) => {
+
     const listRef = useRef(null);
+
     // --- 新規行追加時の自動スクロール抑制用 ---
     const [shouldScroll, setShouldScroll] = useState(true);
 
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
+    
     const { emitDocReorder } = useSocket();
 
     const { userInfo, myHeight } = useAppStore();
@@ -30,12 +36,13 @@ const DocComments = ({ lines, emitChatMessage }) => {
     const charsPerLine = Math.floor(listWidth / 13);
 
     // 表示するdocMessagesを決定
-    const docMessages = useMemo(() => {
-        if (!messages || messages.length === 0) {
-            return [];
-        }
-        return messages.slice(0, Math.max(0, messages.length - lines.num));
-    }, [messages, lines.num]);
+    const docMessages = useDocStore((state) => state.docMessages);
+    const setDocMessages = useDocStore((state) => state.setDocMessages);
+    const updateDocMessage = useDocStore((state) => state.updateDocMessage);
+    const reorderDocMessages = useDocStore((state) => state.reorderDocMessages);
+    const addDocMessage = useDocStore((state) => state.addDocMessage);
+
+    // サーバから取得したらsetDocMessagesでセットする（useEffect等で）
 
     // スクロールを最下部に（shouldScrollがtrueのときのみ）
     useEffect(() => {
@@ -65,12 +72,23 @@ const DocComments = ({ lines, emitChatMessage }) => {
     const onDragEnd = (result) => {
         const { source, destination } = result;
         if (!destination || source.index === destination.index) return;
-        reorderMessages(source.index, destination.index);
-        // --- socket通信 ---
-        emitDocReorder && emitDocReorder({ fromIndex: source.index, toIndex: destination.index });
-        // 並び替え後に高さキャッシュをリセット（全アイテム再計算）
+        // 並び替え先の前後displayOrderを取得し新しいdisplayOrderを計算
+        const before = docMessages[destination.index - 1]?.displayOrder;
+        const after = docMessages[destination.index]?.displayOrder;
+        let newDisplayOrder;
+        if (before !== undefined && after !== undefined) {
+            newDisplayOrder = (before + after) / 2;
+        } else if (before !== undefined) {
+            newDisplayOrder = before + 1;
+        } else if (after !== undefined) {
+            newDisplayOrder = after / 2;
+        } else {
+            newDisplayOrder = 1;
+        }
+        reorderDocMessages(docMessages[source.index].id, newDisplayOrder);
+        emitDocReorder && emitDocReorder({ id: docMessages[source.index].id, newDisplayOrder });
         if (listRef.current) {
-            listRef.current.resetAfterIndex(0, true); // trueで全て再計算
+            listRef.current.resetAfterIndex(0, true);
         }
     };
 
@@ -79,8 +97,10 @@ const DocComments = ({ lines, emitChatMessage }) => {
         docMessages,
         userInfo,
         emitChatMessage,
-        setShouldScroll, // 追加: DocRowから呼べるように
-        listRef, // 追加: DocRowから高さ再計算用に参照
+        setShouldScroll,
+        listRef,
+        addDocMessage,
+        updateDocMessage,
     }), [docMessages, userInfo, emitChatMessage]);
 
     // ListのitemRenderer
