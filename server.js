@@ -125,6 +125,50 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
+    // --- Doc系: 行追加 ---
+    socket.on('doc-add', async (payload) => {
+      // payload: { nickname, msg, index }
+      try {
+        // DB保存: Post.create など（必要に応じて）
+        // ここでは簡易的にPostを新規作成
+        const newPost = await Post.create({
+          nickname: payload.nickname,
+          msg: payload.msg,
+        });
+        // 全クライアントに新規行追加をブロードキャスト
+        io.emit('doc-add', {
+          id: newPost._id,
+          nickname: newPost.nickname,
+          msg: newPost.msg,
+          order: payload.index + 1, // クライアント側でorder再採番する前提
+        });
+      } catch (e) { console.error(e); }
+    });
+
+    // --- Doc系: 行編集 ---
+    socket.on('doc-edit', async (payload) => {
+      // payload: { index, newMsg, id }
+      try {
+        // DB更新: Post.findByIdAndUpdate など（必要に応じて）
+        // ここではidがあれば更新、なければindexで特定（簡易実装）
+        if (payload.id) {
+          await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
+        }
+        // 全クライアントに編集内容をブロードキャスト
+        io.emit('doc-edit', payload);
+      } catch (e) { console.error(e); }
+    });
+
+    // --- Doc系: 並び替え ---
+    socket.on('doc-reorder', async (payload) => {
+      // payload: { fromIndex, toIndex }
+      try {
+        // DB側でorderを更新する場合はここで実装
+        // 今回はクライアント側でorder再採番する前提で、全クライアントに通知のみ
+        io.emit('doc-reorder', payload);
+      } catch (e) { console.error(e); }
+    });
+
   })
 
   socket.on('disconnect', () => {
