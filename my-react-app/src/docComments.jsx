@@ -78,17 +78,26 @@ const DocComments = ({ lines, emitChatMessage }) => {
         const { source, destination } = result;
         if (!destination || source.index === destination.index) return;
 
+        console.log('onDragEnd:', source, destination);
+
         // 並び替え先の前後displayOrderを取得し新しいdisplayOrderを計算
         // **この計算はサーバーサイドで行うべきなので、ここでは送信する情報に留める**
-        const movedPostId = docMessages[source.index].id;
-        const beforePostId = docMessages[destination.index - 1]?.id;
-        const afterPostId = docMessages[destination.index]?.id;
+        const movedPostDisplayOrder = docMessages[source.index].displayOrder;
+        const beforePostDisplayOrder = docMessages[destination.index - 1]?.displayOrder;
+        const afterPostDisplayOrder = docMessages[destination.index]?.displayOrder;
 
-        emitDocReorder && emitDocReorder({ 
-            id: docMessages[source.index].id, 
-            beforeId: beforePostId,
-            afterId: afterPostId
-        });
+        const data = {
+            nickname: userInfo.nickname + `(${userInfo.status}+${userInfo.ageGroup})` || 'Unknown',
+            movedPostId: docMessages[source.index].id,
+            movedPostDisplayOrder: movedPostDisplayOrder,
+            beforePostDisplayOrder: beforePostDisplayOrder,
+            afterPostDisplayOrder: afterPostDisplayOrder
+        }
+        console.log('onDragEnd data:', data)
+
+        // サーバーに並び替えを通知
+        emitDocReorder && emitDocReorder(data);
+        
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true);
         }

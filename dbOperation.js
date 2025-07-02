@@ -141,11 +141,17 @@ async function addDocRow({ nickname, msg = '', displayOrder }) {
 // --- 並び替え(doc-reorder)に合わせて、displayOrderを更新 ---
 async function updateDisplayOrder(postId, newDisplayOrder) {
     try {
+        console.log('updateDisplayOrder:', { postId, newDisplayOrder });
+
         const post = await Post.findById(postId);
         if (!post) throw new Error(`Post not found: ${postId}`);
+        console.log('Found post:', post);
+
         post.displayOrder = newDisplayOrder;
-        await post.save();
-        return organizeLogs(post);
+        const newPost = await post.save();
+        
+        console.log('Updated post:', newPost);
+        return organizeLogs(newPost);
     } catch (error) {
         handleErrors(error, 'displayOrder更新中にエラーが発生しました');
     }

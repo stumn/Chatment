@@ -26,13 +26,10 @@ const usePostStore = create((set, get) => ({
         })),
 
     // 並び替え（DnDやチャット用order再採番）
-    reorderPost: (id, newDisplayOrder) =>
-        set((state) => ({
-            posts: state.posts.map((m) =>
-                m.id === id ? { ...m, displayOrder: newDisplayOrder } : m
-            )
-            // .sort((a, b) => a.displayOrder - b.displayOrder),
-        })),
+    reorderPost: (posts) =>
+        set({
+            posts: [...posts],
+        }),
 
     // チャット用: 最新N件をcreatedAt順で取得
     getChatMessages: (count = 10) => {

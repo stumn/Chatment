@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
 
         // チャットメッセージをDBに保存
         const p = await SaveChatMessage(nickname, message, userId, displayOrder); // userIdも保存
-        
+
         // 全クライアントに新しいメッセージをブロードキャスト
         io.emit('chat-message', p);
 
@@ -136,6 +136,7 @@ io.on('connection', (socket) => {
         });
       } catch (e) { console.error(e); }
     });
+
     // --- negativeトグルイベント ---
     socket.on('negative', async ({ postId, userSocketId, nickname }) => {
       try {
@@ -233,7 +234,7 @@ io.on('connection', (socket) => {
     // 関数: displayOrderの計算
     function calculateDisplayOrder(displayOrder, posts) {
       // 前後の投稿の浮動小数点数を求める
-      
+
       // displayOrderが今回挿入したい新規行の1つ上
       const prev = displayOrder;
 
@@ -265,65 +266,82 @@ io.on('connection', (socket) => {
     socket.on('doc-edit', async (payload) => {
       // payload: { index, newMsg, id }
       try {
-          console.log('doc-edit:', payload);
-          // DB更新: Post.findByIdAndUpdate など（必要に応じて）
-          // ここではidがあれば更新、なければindexで特定（簡易実装）
-          if (payload.id) {
-            await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
-          }
-          // 全クライアントに編集内容をブロードキャスト
-          io.emit('doc-edit', payload);
-        } catch (e) { console.error(e); }
-      });
+        console.log('doc-edit:', payload);
+        // DB更新: Post.findByIdAndUpdate など（必要に応じて）
+        // ここではidがあれば更新、なければindexで特定（簡易実装）
+        if (payload.id) {
+          await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
+        }
+        // 全クライアントに編集内容をブロードキャスト
+        io.emit('doc-edit', payload);
+      } catch (e) { console.error(e); }
+    });
 
-      // --- Doc系: 並び替え ---
-      // socket.on('doc-reorder', async (payload) => {
-      //   // payload: { fromIndex, toIndex }
-      //   try {
-      //     console.log('doc-reorder:', payload);
-      //     // DB側でorderを更新する場合はここで実装
-      //     // 今回はクライアント側でorder再採番する前提で、全クライアントに通知のみ
-      //     io.emit('doc-reorder', payload);
-      //   } catch (e) { console.error(e); }
-      // });
-      socket.on('doc-reorder', async (payload) => {
-        // payload: { id: movedPostId, beforeId: string, afterId: string }
-        try {
-          console.log('doc-reorder:', payload);
-          const { id: movedPostId, beforeId, afterId } = payload;
+    // --- Doc系: 並び替え ---
+    socket.on('doc-reorder', async (payload) => {
 
-          const posts = await getPostsByDisplayOrder(); // displayOrderでソート済みのpostsを取得
+      try {
+        console.log('doc-reorder:', payload);
+        const {
+          nickname,
+          movedPostId,
+          movedPostDisplayOrder,
+          beforePostDisplayOrder,
+          afterPostDisplayOrder
+        } = payload;
 
-          let newDisplayOrder;
+        console.log('doc-reorder payload:', {
+          nickname,
+          movedPostId,
+          movedPostDisplayOrder,
+          beforePostDisplayOrder,
+          afterPostDisplayOrder
+        });
 
-          // beforeIdとafterIdに基づいて新しいdisplayOrderを計算
-          const beforePost = posts.find(p => p.id === beforeId);
-          const afterPost = posts.find(p => p.id === afterId);
+        // beforeとafter から新しいdisplayOrderを計算
+        const newDisplayOrder = calculateNewDisplayOrder(
+          movedPostDisplayOrder,
+          beforePostDisplayOrder,
+          afterPostDisplayOrder
+        );
 
-          if (beforePost && afterPost) {
-            newDisplayOrder = (beforePost.displayOrder + afterPost.displayOrder) / 2;
-          } else if (beforePost) {
-            newDisplayOrder = beforePost.displayOrder + 1;
-          } else if (afterPost) {
-            newDisplayOrder = afterPost.displayOrder / 2;
-          } else {
-            // beforeIdもafterIdも存在しない場合（リストの最初や最後の移動、またはリストが空の場合）
-            // このケースは通常発生しないはずだが、堅牢性のため
-            newDisplayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
-          }
+        // DB更新
+        await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-          // DB更新
-          await updateDisplayOrder(movedPostId, newDisplayOrder);
+        const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
+        io.emit('doc-reorder', posts);
 
-          // 全クライアントに更新されたdisplayOrderをブロードキャスト
-          io.emit('doc-reorder', {
-            id: movedPostId,
-            newDisplayOrder: newDisplayOrder
-          });
-        } catch (e) { console.error(e); }
-      });
+      } catch (e) { console.error(e); }
+    });
+  });
 
-    })
+  function calculateNewDisplayOrder(movedDisplayOrder, beforePostDisplayOrder, afterPostDisplayOrder) {
+    // displayOrderの計算ロジックをここに実装
+    console.log('calculateDisplayOrder:', {
+      movedDisplayOrder,
+      beforePostDisplayOrder,
+      afterPostDisplayOrder
+    });
+
+    if (beforePostDisplayOrder && afterPostDisplayOrder) {
+      console.log('前後の投稿が存在する場合、平均値を取る');
+      // 前後の投稿が存在する場合、平均値を取る
+      return (beforePostDisplayOrder + afterPostDisplayOrder) / 2;
+    }
+
+    // 前の投稿が存在する場合、次の投稿の前に挿入
+    if (beforePostDisplayOrder) {
+      return beforePostDisplayOrder + 1;
+    }
+
+    // 次の投稿が存在する場合、次の投稿の前に挿入
+    if (afterPostDisplayOrder) {
+      return afterPostDisplayOrder - 1;
+    }
+
+    // どちらも存在しない場合は1を返す
+    return 1;
+  }
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
@@ -339,6 +357,3 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log('listening on PORT:' + PORT);
 });
-
-// TODO: socketイベント（doc-add, doc-edit, doc-reorder等）のpayload構造がフロントと一致しているか要確認
-// TODO: login時のuserIdの扱いがフロントとサーバでズレていないか要確認

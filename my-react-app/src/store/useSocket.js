@@ -63,9 +63,9 @@ export default function useSocket() {
       updatePost(payload.id, payload.newMsg);
     };
 
-    const handleDocReorder = (payload) => {
+    const handleDocReorder = (posts) => {
       // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
-      reorderPost(payload.id, payload.newDisplayOrder);
+      reorderPost(posts);
     };
 
     // ソケットイベントのリスナーを登録

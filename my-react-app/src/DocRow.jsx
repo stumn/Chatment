@@ -12,11 +12,6 @@ const DocRow = ({ data, index, style }) => {
     const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef } = data;
     const message = docMessages[index];
 
-    // useChatStoreから必要な関数を取得
-    // const customAddMessage = useChatStore((state) => state.customAddMessage);
-    // const updateMessage = useChatStore((state) => state.updateMessage);
-    // useDocStoreからdocMessages, addDocMessage, updateDocMessageを取得
-    // const { docMessages: docMessagesStore, addDocMessage, updateDocMessage } = useDocStore.getState();
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
 
