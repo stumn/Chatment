@@ -50,8 +50,9 @@ const negativeSchema = new mongoose.Schema({
 const postSchema = new mongoose.Schema({
     nickname: String,
     msg: String,
+    // --- 投稿者のUser._idを保存するuserIdフィールドを追加 ---
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     stars: [{ type: starSchema, default: () => ({}) }],
-    // --- positive/negative配列を追加 ---
     positive: [{ type: positiveSchema, default: () => ({}) }],
     negative: [{ type: negativeSchema, default: () => ({}) }],
 }, options);

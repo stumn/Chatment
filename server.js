@@ -76,11 +76,10 @@ io.on('connection', (socket) => {
       io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
     });
 
-    socket.on('chat-message', async ({ nickname, message }) => {
+    socket.on('chat-message', async ({ nickname, message, userId }) => {
       try {
-        console.log('chat-message:', nickname, message);
-        const p = await SaveChatMessage(nickname, message); // save message to database
-        // --- emitは1回だけ ---
+        console.log('chat-message:', nickname, message, userId);
+        const p = await SaveChatMessage(nickname, message, userId); // userIdも保存
         io.emit('chat-message', p);
       } catch (e) { console.error(e); }
     });

@@ -55,14 +55,16 @@ function organizeCreatedAt(createdAt) {
 }
 
 // データベースにレコードを保存
-async function saveRecord(nickname, msg) {
+async function saveRecord(nickname, msg, userId) {
     try {
-        const stars = [];
-
-        const npData = { nickname, msg, stars };
-
+        // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
+        let validUserId = userId;
+        if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.match(/^[a-fA-F0-9]{24}$/)) {
+            validUserId = undefined;
+        }
+        const npData = { nickname, msg };
+        if (validUserId) npData.userId = validUserId;
         const newPost = await Post.create(npData);
-
         return newPost;
     } catch (error) {
         handleErrors(error, 'データ保存時にエラーが発生しました');
@@ -70,9 +72,9 @@ async function saveRecord(nickname, msg) {
 }
 
 // チャットメッセージ受送信
-async function SaveChatMessage(nickname, msg) {
+async function SaveChatMessage(nickname, msg, userId) {
     try {
-        const record = await saveRecord(nickname, msg);
+        const record = await saveRecord(nickname, msg, userId);
         return organizeLogs(record);
     }
     catch (error) {
@@ -167,6 +169,8 @@ function organizeLogs(post, mySocketId = null) {
         createdAt: post.createdAt,
         nickname: post.nickname,
         msg: post.msg,
+        // --- 投稿者のuserIdも返す ---
+        userId: post.userId,
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
         isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
