@@ -7,8 +7,8 @@ import useChatStore from './store/chatStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
-    // data = { docMessages, userInfo, emitChatMessage }
-    const { docMessages, userInfo, emitChatMessage } = data;
+    // data = { docMessages, userInfo, emitChatMessage, setShouldScroll }
+    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef } = data;
     const message = docMessages[index];
 
     // useChatStoreから必要な関数を取得
@@ -37,84 +37,52 @@ const DocRow = ({ data, index, style }) => {
 
     // 編集終了
     const handleBlur = (e) => {
-        updateMessage(index, e.target.textContent);
+        updateMessage(index, e.target.textContent.replace(/\r/g, ''));
         setIsEditing(false);
+        // 高さ再計算（react-window用）
+        if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+            listRef.current.resetAfterIndex(index, true);
+        }
     };
 
-    // キーハンドリング
-    const handleKeyDown = (e) => {
-        if (!isEditing) return;
-
-        switch (e.key) {
-            case 'Enter':
-                e.preventDefault(); // Enterキーで改行を防ぐ
-
-                // 下に1行追加
-                customAddMessage({
-                    nickname: message?.nickname || 'Unknown', // customAddMessageの引数名をnicknameに修正
-                    msg: '',
-                    order: message?.order + 1 || 1,
-                });
-
-                // 新しく追加した行にフォーカスを移動
-                setTimeout(() => {
-                    const element = document.getElementById(`dc-${index + 1}`);
-                    if (element) {
-                        element.focus();
-                        element.contentEditable = true; // 新しい行を編集可能にする
-                    }
-                }, 0);
-
-                break;
-
-            case 'Tab':
-            case ' ':
-            case 'Spacebar':
-            case 'NumpadSpace':
-            case 'Process':
-            case '　': // 全角スペースキー（日本語入力時など）
-                if (contentRef.current.textContent === '') {
-                    e.preventDefault(); // スペースキーでのデフォルト動作を防ぐ
-                    contentRef.current.textContent += '●';
-                }
-
+    // 編集ボタン押下で編集モードに
+    const handleEdit = () => {
+        setIsEditing(true);
+        setTimeout(() => {
+            if (contentRef.current) {
+                contentRef.current.focus();
                 // キャレットを末尾に
                 const range = document.createRange();
                 range.selectNodeContents(contentRef.current);
                 range.collapse(false);
-
                 const selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
-                break;
+            }
+        }, 0);
+    };
 
-            case 'ArrowDown':
-                e.preventDefault();
-                if (index + 1 < docMessages.length) {
-                    const nextElement = document.getElementById(`dc-${index + 1}`);
-                    if (nextElement) {
-                        nextElement.focus();
-                        nextElement.contentEditable = true; // 次の行を編集可能にする
-                    }
-                }
-                break;
+    // ＋ボタン押下で下に新規行を追加
+    const handleAddBelow = () => {
+        if (setShouldScroll) setShouldScroll(false); // 新規行追加時はスクロール抑制
+        customAddMessage({
+            nickname: message?.nickname || 'Unknown',
+            msg: '',
+            index: index, // orderではなくindexを渡す
+        });
+        setTimeout(() => {
+            const element = document.getElementById(`dc-${index + 1}`);
+            if (element) {
+                element.focus();
+                element.contentEditable = true;
+            }
+        }, 0);
+    };
 
-            case 'ArrowUp':
-                e.preventDefault();
-                if (index - 1 >= 0) {
-                    const prevElement = document.getElementById(`dc-${index - 1}`);
-                    if (prevElement) {
-                        prevElement.focus();
-                        prevElement.contentEditable = true; // 前の行を編集可能にする
-                    }
-                }
-                break;
-
-            case 'Escape':
-                handleBlur(e);
-                break;
-            default:
-                break;
+    // 編集中に内容が変わったときも高さ再計算
+    const handleInput = () => {
+        if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+            listRef.current.resetAfterIndex(index, true);
         }
     };
 
@@ -126,7 +94,7 @@ const DocRow = ({ data, index, style }) => {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}`}
+                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}`}
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                 >
                     <span {...provided.dragHandleProps} className='maru' />
@@ -136,13 +104,38 @@ const DocRow = ({ data, index, style }) => {
                         contentEditable={isEditing}
                         suppressContentEditableWarning={true}
                         ref={contentRef}
-                        onFocus={handleFocus}
                         onBlur={handleBlur}
-                        onKeyDown={handleKeyDown}
+                        onInput={handleInput}
                         tabIndex={0}
+                        spellCheck={true}
                     >
-                        {message?.msg || ''}
+                        {(message?.msg || '').split('\n').map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                                {line}
+                                {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                        ))}
                     </div>
+                    {/* ホバー時のみ表示される編集ボタン（右端） */}
+                    <button
+                        className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                        title="編集"
+                        onClick={handleEdit}
+                        tabIndex={-1}
+                        type="button"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    </button>
+                    {/* ホバー時のみ表示される＋ボタン（右端） */}
+                    <button
+                        className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
+                        title="下に行を挿入"
+                        onClick={handleAddBelow}
+                        tabIndex={-1}
+                        type="button"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+                    </button>
                 </div>
             )}
         </Draggable>

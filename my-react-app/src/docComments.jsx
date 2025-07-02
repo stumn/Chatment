@@ -1,6 +1,6 @@
 // // File: my-react-app/src/docComments.jsx
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 
@@ -13,6 +13,8 @@ import useAppStore from './store/appStore';
 
 const DocComments = ({ lines, emitChatMessage }) => {
     const listRef = useRef(null);
+    // --- 新規行追加時の自動スクロール抑制用 ---
+    const [shouldScroll, setShouldScroll] = useState(true);
 
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
@@ -31,20 +33,28 @@ const DocComments = ({ lines, emitChatMessage }) => {
         return messages.slice(0, Math.max(0, messages.length - lines.num));
     }, [messages, lines.num]);
 
-    // スクロールを最下部に
+    // スクロールを最下部に（shouldScrollがtrueのときのみ）
     useEffect(() => {
-        if (listRef.current) {
+        if (shouldScroll && listRef.current) {
             listRef.current.scrollToItem(docMessages.length - 1, 'end');
         }
-    }, [myHeight, lines.num, docMessages.length]);
+    }, [myHeight, lines.num, docMessages.length, shouldScroll]);
 
-    // 各行の高さを計算
+    // 各行の高さを計算（改行や長文も考慮）
     const getItemSize = (index) => {
         const lineHeight = 28;
         if (!docMessages[index] || !docMessages[index].msg) return lineHeight + 16;
-        const charCount = docMessages[index].msg.length;
-        const estimatedLines = Math.ceil(charCount / charsPerLine) || 1;
-        return estimatedLines * lineHeight;
+        // 改行数をカウント
+        const msg = docMessages[index].msg;
+        const lines = msg.split('\n').length;
+        // 1行ごとの文字数で折り返し行数を推定
+        const charCount = msg.length;
+        const charsPerLine = Math.floor(listWidth / 13);
+        const estimatedLines = Math.max(
+            lines,
+            ...msg.split('\n').map(line => Math.ceil(line.length / charsPerLine) || 1)
+        );
+        return estimatedLines * lineHeight + 8;
     };
 
     // DnDのonDragEnd
@@ -63,6 +73,8 @@ const DocComments = ({ lines, emitChatMessage }) => {
         docMessages,
         userInfo,
         emitChatMessage,
+        setShouldScroll, // 追加: DocRowから呼べるように
+        listRef, // 追加: DocRowから高さ再計算用に参照
     }), [docMessages, userInfo, emitChatMessage]);
 
     // ListのitemRenderer

@@ -23,6 +23,8 @@
     border-bottom: 1px solid #eee;
     /* 通常時の区切り線を薄く表示 */
     transition: all 0.2s ease;
+    /* 高さは子要素に合わせて伸びる */
+    align-items: stretch;
 }
 
 /* ★改善: ドラッグ中のアイテムが元あった場所のスタイル */
@@ -55,11 +57,16 @@
     cursor: text;
     text-align: left;
     padding-left: 8px;
+    padding-right: 72px;
     font-size: 15px;
     border: none;
     background: transparent;
     min-height: 28px;
+    height: auto;
+    /* 高さは内容に合わせて伸びる */
+    white-space: pre-wrap;
     transition: background 0.2s;
+    position: relative;
 }
 
 .doc-comment-content:focus {
@@ -88,4 +95,44 @@
 
 .maru:active {
     cursor: grabbing;
+}
+
+/* ホバー時に表示される追加ボタン（右側に表示） */
+.add-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.list-item-container:hover .add-button,
+.doc-comment-content:focus + .add-button {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.edit-button {
+    position: absolute;
+    right: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.list-item-container:hover .edit-button {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.list-item-container {
+    position: relative;
+    /* 高さは子要素に合わせて伸びる */
+    align-items: stretch;
 }
