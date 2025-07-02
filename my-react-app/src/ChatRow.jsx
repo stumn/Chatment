@@ -60,7 +60,7 @@ const ChatRow = ({ data, index, style }) => {
                         onClick={handlePositive}
                         title={`ポジティブ: ${positive}`}
                     >
-                        !
+                        ⬆
                     </button>
                     <button
                         contentEditable={false}
@@ -76,7 +76,7 @@ const ChatRow = ({ data, index, style }) => {
                         onClick={handleNegative}
                         title={`ネガティブ: ${negative}`}
                     >
-                        …
+                        ⬇
                     </button>
                 </span>
             </div>

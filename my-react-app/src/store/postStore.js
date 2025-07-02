@@ -30,7 +30,8 @@ const usePostStore = create((set, get) => ({
         set((state) => ({
             posts: state.posts.map((m) =>
                 m.id === id ? { ...m, displayOrder: newDisplayOrder } : m
-            ).sort((a, b) => a.displayOrder - b.displayOrder),
+            )
+            // .sort((a, b) => a.displayOrder - b.displayOrder),
         })),
 
     // チャット用: 最新N件をcreatedAt順で取得

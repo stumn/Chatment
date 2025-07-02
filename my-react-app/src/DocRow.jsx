@@ -33,46 +33,21 @@ const DocRow = ({ data, index, style }) => {
     const handleAddBelow = () => {
         if (setShouldScroll) setShouldScroll(false);
 
-        // 直後のdisplayOrderを計算
-        const before = docMessages[index]?.displayOrder;
-        const after = docMessages[index + 1]?.displayOrder;
-        console.log('Adding new row', 'before:', before, 'after:', after);
+        console.log('handleAddBelow displayOrder:', message.displayOrder);
 
-        let newDisplayOrder;
-        if (before !== undefined && after !== undefined) {
-            newDisplayOrder = (before + after) / 2;
-        } else if (before !== undefined) {
-            newDisplayOrder = before + 1;
-        } else if (after !== undefined) {
-            newDisplayOrder = after / 2;
-        } else {
-            newDisplayOrder = 1;
+        const data = {
+            nickname: userInfo.nickname + `(${userInfo.status}+${userInfo.ageGroup})` || 'Unknown', // userInfo.nicknameも考慮
+            msg: '',
+            insertAfterId: message.id, // このメッセージの後に挿入したいという意図を伝える
+            displayOrder: message.displayOrder // ここでdisplayOrderを指定
         }
 
-        // 新規行をstoreに追加
-        addDocMessage({
-            id: Date.now(), // 仮ID（サーバから本IDが返るまで）
-            nickname: message?.nickname || 'Unknown',
-            msg: '',
-            displayOrder: newDisplayOrder,
-        });
+        console.log('handleAddBelow called for message:', data);
 
-        // サーバに送信
-        emitDocAdd && emitDocAdd({
-            nickname: message?.nickname || 'Unknown',
-            msg: '',
-            displayOrder: newDisplayOrder,
-        });
+        // 新しい行を挿入したいメッセージのIDをサーバーに送信
+        emitDocAdd && emitDocAdd(data);
 
-        // 編集モードにする
-        setIsEditing(true);
-        setTimeout(() => {
-            const element = document.getElementById(`dc-${index + 1}`);
-            if (element) {
-                element.focus();
-                element.contentEditable = true;
-            }
-        }, 0);
+        setIsEditing(false); // 新規行はサーバからのdoc-addで追加されるため、setTimeoutでのfocusは不要
     };
 
     // 編集終了
@@ -122,7 +97,7 @@ const DocRow = ({ data, index, style }) => {
                 >
                     <span {...provided.dragHandleProps} className='maru' />
                     <div
-                        id={`dc-${index}`}
+                        id={`dc-${index}-${message?.id}`}
                         className='doc-comment-content'
                         contentEditable={isEditing}
                         suppressContentEditableWarning={true}
@@ -147,7 +122,7 @@ const DocRow = ({ data, index, style }) => {
                         tabIndex={-1}
                         type="button"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                     </button>
                     {/* ホバー時のみ表示される＋ボタン（右端） */}
                     <button
@@ -157,7 +132,7 @@ const DocRow = ({ data, index, style }) => {
                         tabIndex={-1}
                         type="button"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
                     </button>
                 </div>
             )}

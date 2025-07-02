@@ -18,7 +18,11 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
             const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return aTime - bTime;
         });
-        return sorted.slice(-Math.ceil(lines.num));
+        // timeプロパティを生成して付与
+        return sorted.slice(-Math.ceil(lines.num)).map(msg => ({
+            ...msg,
+            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+        }));
     }, [posts, lines.num]);
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);

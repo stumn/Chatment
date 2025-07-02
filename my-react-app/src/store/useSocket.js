@@ -58,13 +58,17 @@ export default function useSocket() {
     const handleDocAdd = (payload) => {
       addMessage(payload);
     };
+
     const handleDocEdit = (payload) => {
       updatePost(payload.id, payload.newMsg);
     };
+
     const handleDocReorder = (payload) => {
+      // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
       reorderPost(payload.id, payload.newDisplayOrder);
     };
 
+    // ソケットイベントのリスナーを登録
     socket.on('heightChange', handleHeightChange);
     socket.on('connect OK', handleConnectOK);
     socket.on('history', handleHistory);

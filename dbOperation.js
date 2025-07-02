@@ -5,7 +5,7 @@ const { handleErrors } = require('./utils');
 // ユーザーモデルに保存
 async function saveUser(nickname, status, ageGroup, socketId) { // socketId は配列で保存
     try {
-        const userData = { nickname, status, ageGroup, socketId};
+        const userData = { nickname, status, ageGroup, socketId };
         const newUser = await User.create(userData);
         return newUser;
     } catch (error) {
@@ -99,14 +99,34 @@ async function getPostsByDisplayOrder() {
 }
 
 // --- displayOrderを指定して空白行を追加 ---
+// async function addDocRow({ nickname, msg = '', displayOrder }) {
+//     try {
+//         // displayOrderが未指定または0なら最大値+1
+//         let order = displayOrder;
+//         if (!Number.isFinite(order) || order === 0) {
+//             const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
+//             order = maxOrderPost && Number.isFinite(maxOrderPost.displayOrder) ? maxOrderPost.displayOrder + 1 : 1;
+//         }
+//         const newPost = await Post.create({
+//             nickname,
+//             msg,
+//             displayOrder: order
+//         });
+//         return organizeLogs(newPost);
+//     } catch (error) {
+//         handleErrors(error, 'addDocRow 新規行追加時にエラーが発生しました');
+//     }
+// }
 async function addDocRow({ nickname, msg = '', displayOrder }) {
     try {
-        // displayOrderが未指定または0なら最大値+1
+        // displayOrderが引数として明確に渡されていればそれをそのまま使用
+        // そうでなければ、フォールバックロジック（ただし、本来は呼び出し元で適切に計算されるべき）
         let order = displayOrder;
-        if (!Number.isFinite(order) || order === 0) {
+        if (!Number.isFinite(order)) { // displayOrderが有効な数値でない場合
             const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
             order = maxOrderPost && Number.isFinite(maxOrderPost.displayOrder) ? maxOrderPost.displayOrder + 1 : 1;
         }
+
         const newPost = await Post.create({
             nickname,
             msg,
@@ -131,7 +151,7 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
     }
 }
 
-module.exports = { 
-    saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage, 
-    getPostsByDisplayOrder, addDocRow, updateDisplayOrder 
+module.exports = {
+    saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage,
+    getPostsByDisplayOrder, addDocRow, updateDisplayOrder
 };
