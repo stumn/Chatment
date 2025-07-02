@@ -97,7 +97,7 @@ const DocRow = ({ data, index, style }) => {
                 >
                     <span {...provided.dragHandleProps} className='maru' />
                     <div
-                        id={`dc-${index}-${message?.id}`}
+                        id={`dc-${index}-${message?.displayOrder}`}
                         className='doc-comment-content'
                         contentEditable={isEditing}
                         suppressContentEditableWarning={true}

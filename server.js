@@ -88,10 +88,32 @@ io.on('connection', (socket) => {
     socket.on('chat-message', async ({ nickname, message, userId }) => {
       try {
         console.log('chat-message:', nickname, message, userId);
-        const p = await SaveChatMessage(nickname, message, userId); // userIdも保存
+
+        // displayOrderを計算
+        const displayOrder = await getNextDisplayOrder();
+        console.log('Calculated displayOrder:', displayOrder);
+
+        // チャットメッセージをDBに保存
+        const p = await SaveChatMessage(nickname, message, userId, displayOrder); // userIdも保存
+        
+        // 全クライアントに新しいメッセージをブロードキャスト
         io.emit('chat-message', p);
+
       } catch (e) { console.error(e); }
     });
+
+    function getNextDisplayOrder() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const posts = await getPostsByDisplayOrder();
+          const lastPost = posts[posts.length - 1];
+          const nextOrder = lastPost ? lastPost.displayOrder + 1 : 1;
+          resolve(nextOrder);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
 
     // --- fav関連のsocketイベント・ロジックは削除 ---
 
@@ -137,119 +159,171 @@ io.on('connection', (socket) => {
     // --- Doc系: 行追加 ---
     socket.on('doc-add', async (payload) => {
       try {
-        console.log('🐟doc-add:', payload);
+        console.log('🐟doc-add(これは1つ上のメッセージ情報):', payload);
+
         let displayOrder = payload.displayOrder;
         const posts = await getPostsByDisplayOrder(); // displayOrderでソート済みのpostsを取得
 
         // payload.displayOrderが指定されている場合はそれを優先
         if (displayOrder === undefined || !Number.isFinite(displayOrder)) {
+          console.log('displayOrderが未指定または不正な値:', displayOrder);
+
           // displayOrderが未指定の場合、挿入位置に基づいて計算
           if (posts.length === 0) {
             displayOrder = 1; // 投稿が一つもない場合は1
-          } else if (payload.insertAfterId) { // 特定のIDの後に挿入する場合
+            console.log('postsが空なのでdisplayOrderを1に設定');
+          }
+          else if (payload.insertAfterId) { // 特定のIDの後に挿入する場合
             const targetPostIndex = posts.findIndex(p => p.id === payload.insertAfterId);
+            console.log('insertAfterIdが指定されている:', payload.insertAfterId, 'targetPostIndex:', targetPostIndex);
+
             if (targetPostIndex !== -1) {
               const prev = posts[targetPostIndex];
               const next = posts[targetPostIndex + 1];
+              console.log('prev:', prev, 'next:', next);
+
               if (next) {
                 displayOrder = (prev.displayOrder + next.displayOrder) / 2;
-              } else {
+                console.log('次の投稿があるので、displayOrderを平均値に設定:', displayOrder);
+              }
+              else {
                 displayOrder = prev.displayOrder + 1;
+                console.log('次の投稿がないので、displayOrderを前の投稿の次に設定:', displayOrder);
               }
             } else {
               // 対象IDが見つからない場合は末尾に追加
               displayOrder = posts[posts.length - 1].displayOrder + 1;
+              console.log('insertAfterIdが見つからないので、末尾に追加:', displayOrder);
             }
           } else { // insertAfterIdが指定されていない場合は末尾に追加
             displayOrder = posts[posts.length - 1].displayOrder + 1;
+            console.log('insertAfterIdが指定されていないので、末尾に追加:', displayOrder);
           }
         }
 
         // 最終チェック: NaNや不正値なら最大+1または1
         if (!Number.isFinite(displayOrder)) {
           displayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
+          console.log('displayOrderが不正な値だったので、最大+1または1に設定:', displayOrder);
         }
 
         // DB保存
         const newPost = await addDocRow({
           nickname: payload.nickname,
           msg: payload.msg || '',
-          displayOrder
+          displayOrder: calculateDisplayOrder(displayOrder, posts),
         });
-        
+
+        console.log('新規行追加:', newPost);
+
         // 全クライアントに新規行追加をブロードキャスト
-        io.emit('doc-add', {
+        const data = {
           id: newPost.id,
           nickname: newPost.nickname,
           msg: newPost.msg,
-          displayOrder: newPost.displayOrder,
-        });
+          displayOrder: newPost.displayOrder
+        };
+
+        console.log('doc-add emit data:', data);
+        io.emit('doc-add', data);
+
       } catch (e) { console.error(e); }
     });
+
+    // 関数: displayOrderの計算
+    function calculateDisplayOrder(displayOrder, posts) {
+      // 前後の投稿の浮動小数点数を求める
+      
+      // displayOrderが今回挿入したい新規行の1つ上
+      const prev = displayOrder;
+
+      // displayOrderが今回挿入したい新規行の1つ下
+      const next = posts.find(p => p.displayOrder > displayOrder);
+
+      console.log('calculateDisplayOrder:', { displayOrder, prev, next });
+
+      if (prev && next) {
+        // 前後の投稿が存在する場合、平均値を取る
+        return (prev + next.displayOrder) / 2;
+      }
+
+      // 前の投稿が存在する場合、次の投稿の前に挿入
+      if (prev) {
+        return prev + 1;
+      }
+
+      // 次の投稿が存在する場合、次の投稿の前に挿入
+      if (next) {
+        return next.displayOrder - 1;
+      }
+
+      // どちらも存在しない場合は1を返す
+      return 1;
+    }
 
     // --- Doc系: 行編集 ---
     socket.on('doc-edit', async (payload) => {
       // payload: { index, newMsg, id }
       try {
-        console.log('doc-edit:', payload);
-        // DB更新: Post.findByIdAndUpdate など（必要に応じて）
-        // ここではidがあれば更新、なければindexで特定（簡易実装）
-        if (payload.id) {
-          await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
-        }
-        // 全クライアントに編集内容をブロードキャスト
-        io.emit('doc-edit', payload);
-      } catch (e) { console.error(e); }
-    });
+          console.log('doc-edit:', payload);
+          // DB更新: Post.findByIdAndUpdate など（必要に応じて）
+          // ここではidがあれば更新、なければindexで特定（簡易実装）
+          if (payload.id) {
+            await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
+          }
+          // 全クライアントに編集内容をブロードキャスト
+          io.emit('doc-edit', payload);
+        } catch (e) { console.error(e); }
+      });
 
-    // --- Doc系: 並び替え ---
-    // socket.on('doc-reorder', async (payload) => {
-    //   // payload: { fromIndex, toIndex }
-    //   try {
-    //     console.log('doc-reorder:', payload);
-    //     // DB側でorderを更新する場合はここで実装
-    //     // 今回はクライアント側でorder再採番する前提で、全クライアントに通知のみ
-    //     io.emit('doc-reorder', payload);
-    //   } catch (e) { console.error(e); }
-    // });
-    socket.on('doc-reorder', async (payload) => {
-      // payload: { id: movedPostId, beforeId: string, afterId: string }
-      try {
-        console.log('doc-reorder:', payload);
-        const { id: movedPostId, beforeId, afterId } = payload;
+      // --- Doc系: 並び替え ---
+      // socket.on('doc-reorder', async (payload) => {
+      //   // payload: { fromIndex, toIndex }
+      //   try {
+      //     console.log('doc-reorder:', payload);
+      //     // DB側でorderを更新する場合はここで実装
+      //     // 今回はクライアント側でorder再採番する前提で、全クライアントに通知のみ
+      //     io.emit('doc-reorder', payload);
+      //   } catch (e) { console.error(e); }
+      // });
+      socket.on('doc-reorder', async (payload) => {
+        // payload: { id: movedPostId, beforeId: string, afterId: string }
+        try {
+          console.log('doc-reorder:', payload);
+          const { id: movedPostId, beforeId, afterId } = payload;
 
-        const posts = await getPostsByDisplayOrder(); // displayOrderでソート済みのpostsを取得
+          const posts = await getPostsByDisplayOrder(); // displayOrderでソート済みのpostsを取得
 
-        let newDisplayOrder;
+          let newDisplayOrder;
 
-        // beforeIdとafterIdに基づいて新しいdisplayOrderを計算
-        const beforePost = posts.find(p => p.id === beforeId);
-        const afterPost = posts.find(p => p.id === afterId);
+          // beforeIdとafterIdに基づいて新しいdisplayOrderを計算
+          const beforePost = posts.find(p => p.id === beforeId);
+          const afterPost = posts.find(p => p.id === afterId);
 
-        if (beforePost && afterPost) {
-          newDisplayOrder = (beforePost.displayOrder + afterPost.displayOrder) / 2;
-        } else if (beforePost) {
-          newDisplayOrder = beforePost.displayOrder + 1;
-        } else if (afterPost) {
-          newDisplayOrder = afterPost.displayOrder / 2;
-        } else {
-          // beforeIdもafterIdも存在しない場合（リストの最初や最後の移動、またはリストが空の場合）
-          // このケースは通常発生しないはずだが、堅牢性のため
-          newDisplayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
-        }
+          if (beforePost && afterPost) {
+            newDisplayOrder = (beforePost.displayOrder + afterPost.displayOrder) / 2;
+          } else if (beforePost) {
+            newDisplayOrder = beforePost.displayOrder + 1;
+          } else if (afterPost) {
+            newDisplayOrder = afterPost.displayOrder / 2;
+          } else {
+            // beforeIdもafterIdも存在しない場合（リストの最初や最後の移動、またはリストが空の場合）
+            // このケースは通常発生しないはずだが、堅牢性のため
+            newDisplayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
+          }
 
-        // DB更新
-        await updateDisplayOrder(movedPostId, newDisplayOrder);
+          // DB更新
+          await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-        // 全クライアントに更新されたdisplayOrderをブロードキャスト
-        io.emit('doc-reorder', {
-          id: movedPostId,
-          newDisplayOrder: newDisplayOrder
-        });
-      } catch (e) { console.error(e); }
-    });
+          // 全クライアントに更新されたdisplayOrderをブロードキャスト
+          io.emit('doc-reorder', {
+            id: movedPostId,
+            newDisplayOrder: newDisplayOrder
+          });
+        } catch (e) { console.error(e); }
+      });
 
-  })
+    })
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
