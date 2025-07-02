@@ -33,11 +33,13 @@ const usePostStore = create((set, get) => ({
 
     // チャット用: 最新N件をcreatedAt順で取得
     getChatMessages: (count = 10) => {
-        const sorted = [...get().posts].sort((a, b) => {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return aTime - bTime;
-        });
+        const sorted = [...get().posts]
+            .filter(post => post.msg && post.msg.trim() !== "") // 空メッセージ除外
+            .sort((a, b) => {
+                const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return aTime - bTime;
+            });
         return sorted.slice(-count);
     },
 
