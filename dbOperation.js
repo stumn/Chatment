@@ -1,5 +1,5 @@
 // dbOperations.js
-const { mongoose, User, Post } = require('./db');
+const { mongoose, User, Post, Log } = require('./db');
 const { handleErrors } = require('./utils');
 
 // ユーザーモデルに保存
@@ -157,7 +157,18 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
     }
 }
 
+// ログを保存
+async function saveLog({ userId, action, detail }) {
+    try {
+        await Log.create({ userId, action, detail, timestamp: new Date() });
+    } catch (e) {
+        // ログ記録失敗時も他機能に影響しない
+        console.error('ログ記録失敗:', e);
+    }
+}
+
 module.exports = {
     saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage,
-    getPostsByDisplayOrder, addDocRow, updateDisplayOrder
+    getPostsByDisplayOrder, addDocRow, updateDisplayOrder,
+    saveLog // 追加
 };

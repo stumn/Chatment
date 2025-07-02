@@ -20,7 +20,8 @@ app.get('/plain', (req, res) => { // 変更
 
 const {
   saveUser, SaveChatMessage, getPastLogs,
-  addDocRow, getPostsByDisplayOrder, updateDisplayOrder
+  addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
+  saveLog // 追加
 } = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -99,6 +100,8 @@ io.on('connection', (socket) => {
         // 全クライアントに新しいメッセージをブロードキャスト
         io.emit('chat-message', p);
 
+        // --- ログ記録 ---
+        saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder } });
       } catch (e) { console.error(e); }
     });
 
@@ -134,6 +137,8 @@ io.on('connection', (socket) => {
           positive: post.positive.length,
           isPositive: post.positive.some(p => p.userSocketId === userSocketId),
         });
+        // --- ログ記録 ---
+        saveLog({ userId: post.userId, action: 'positive', detail: { postId, userSocketId, nickname } });
       } catch (e) { console.error(e); }
     });
 
@@ -154,6 +159,8 @@ io.on('connection', (socket) => {
           negative: post.negative.length,
           isNegative: post.negative.some(n => n.userSocketId === userSocketId),
         });
+        // --- ログ記録 ---
+        saveLog({ userId: post.userId, action: 'negative', detail: { postId, userSocketId, nickname } });
       } catch (e) { console.error(e); }
     });
 
@@ -227,7 +234,8 @@ io.on('connection', (socket) => {
 
         console.log('doc-add emit data:', data);
         io.emit('doc-add', data);
-
+        // --- ログ記録 ---
+        saveLog({ userId: newPost.userId, action: 'doc-add', detail: data });
       } catch (e) { console.error(e); }
     });
 
@@ -272,8 +280,9 @@ io.on('connection', (socket) => {
         if (payload.id) {
           await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
         }
-        // 全クライアントに編集内容をブロードキャスト
         io.emit('doc-edit', payload);
+        // --- ログ記録 ---
+        saveLog({ userId: null, action: 'doc-edit', detail: payload });
       } catch (e) { console.error(e); }
     });
 
@@ -310,7 +319,8 @@ io.on('connection', (socket) => {
 
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
         io.emit('doc-reorder', posts);
-
+        // --- ログ記録 ---
+        saveLog({ userId: null, action: 'doc-reorder', detail: payload });
       } catch (e) { console.error(e); }
     });
   });

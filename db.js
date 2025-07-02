@@ -60,8 +60,18 @@ const postSchema = new mongoose.Schema({
 
 const Post = mongoose.model("Post", postSchema);
 
+// 📝Log スキーマ / モデル
+const logSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    action: String, // 操作種別
+    detail: Object, // 操作内容
+    timestamp: { type: Date, default: Date.now }
+}, options);
+
+const Log = mongoose.model("Log", logSchema);
+
 // TODO: UserのsocketId（配列）がサーバ・フロントで正しく利用されているか要確認
 // TODO: PostのuserIdがフロントで利用されていない場合、今後のユーザー管理・紐付けに注意
 // TODO: positive/negativeの構造がフロントのstoreと一致しているか要確認
 
-module.exports = { mongoose, User, Post };
+module.exports = { mongoose, User, Post, Log };
