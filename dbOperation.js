@@ -163,14 +163,12 @@ function organizeAndPush(messages, e, isChat = true) {
 
 function organizeLogs(post, mySocketId = null) {
     const data = {
-        id: post._id,
+        id: post._id || post.id, // _idがなければidを使う
         createdAt: post.createdAt,
         nickname: post.nickname,
         msg: post.msg,
-        // --- positive/negative人数を返す ---
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
-        // --- 自分がpositive/negativeしたかどうかも返す（UI制御用）---
         isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
         isNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
     };

@@ -9,7 +9,7 @@ const ChatRow = ({ data, index, style }) => {
     const isNegative = cMsg.isNegative;
     // --- 文字色をpositive/negative人数で調整 ---
     // positiveが多いほど濃い黄色、negativeが多いほど薄いグレー
-    const baseColor = isNegative ? `rgba(120,120,120,${Math.max(0.3, 1 - negative*0.15)})` : isPositive ? `rgba(255,200,0,${Math.min(1, 0.5 + positive*0.2)})` : '#333';
+    const baseColor = isNegative ? `rgba(120,120,120,${Math.max(0.3, 1 - negative * 0.15)})` : isPositive ? `rgba(255,200,0,${Math.min(1, 0.5 + positive * 0.2)})` : '#333';
     const fontWeight = isPositive ? 'bold' : isNegative ? 'normal' : 'normal';
     const fontStyle = isNegative ? 'italic' : 'normal';
     // --- emitPositive/emitNegativeを取得 ---
@@ -17,18 +17,6 @@ const ChatRow = ({ data, index, style }) => {
     const emitNegative = data.emitNegative;
     const handlePositive = () => emitPositive && emitPositive(cMsg.id);
     const handleNegative = () => emitNegative && emitNegative(cMsg.id);
-    // --- お気に入り関連 ---
-    const fav = cMsg.fav || 0;
-    const FONT_SIZE = 15;
-    const MULTIPLIER = 1.1;
-    const fontSize = FONT_SIZE + fav * MULTIPLIER;
-    // --- emitFavにid, userSocketId, nicknameを渡す ---
-    const emitFav = data.emitFav;
-    const userSocketId = data.userSocketId;
-    const nickname = cMsg.nickname;
-    const handleFavClick = () => {
-        emitFav && emitFav(cMsg.id, userSocketId, nickname);
-    };
 
     return (
         <div style={style} key={cMsg.order} className="chat-cMsg">
@@ -88,20 +76,6 @@ const ChatRow = ({ data, index, style }) => {
                     title={`ネガティブ: ${negative}`}
                 >
                     …
-                </button>
-                <button
-                    contentEditable={false}
-                    style={{
-                        fontSize,
-                        marginLeft: '10px',
-                        cursor: 'pointer',
-                        border: 'none',
-                        background: 'none',
-                        color: fav === 1 ? '#F4B400' : fav === 2 ? '#7AA9F7' : 'gray',
-                    }}
-                    onClick={handleFavClick}
-                >
-                    {fav === 0 ? '☆' : '★'}
                 </button>
             </div>
         </div>

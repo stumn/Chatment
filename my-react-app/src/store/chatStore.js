@@ -4,16 +4,19 @@ const useChatStore = create((set) => ({
   // チャットメッセージの一覧
   messages: [],
 
-  // メッセージの追加　id 自動生成
+  // メッセージの追加
   addMessage: (post) =>
     set((state) => {
       const nickname = post.nickname || 'Unknown';
       const message = post.msg || '';
-      const fav = typeof post.fav === 'number' ? post.fav : (typeof post.count === 'number' ? post.count : 0);
       const newId = post.id || (state.messages.length + 1);
+      // --- 既に同じidのメッセージが存在する場合は追加しない ---
+      if (state.messages.some(m => m.id === newId)) {
+        return { messages: state.messages };
+      }
       const newOrder = state.messages[state.messages.length - 1]?.order + 1 || 1;
       const newTime = post.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      // --- positive/negative人数・自分が押したかも反映 ---
+      // --- fav関連のプロパティは削除 ---
       return {
         messages: [
           ...state.messages,
@@ -23,7 +26,6 @@ const useChatStore = create((set) => ({
             nickname: nickname,
             msg: message,
             time: newTime,
-            fav: fav,
             positive: post.positive || 0,
             negative: post.negative || 0,
             isPositive: post.isPositive || false,
@@ -37,16 +39,17 @@ const useChatStore = create((set) => ({
     set((state) => {
       const newId = state.messages.length + 1;
       const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const initialFav = 0;
-
-      // 新しいメッセージを作成
+      // --- fav関連のプロパティは削除 ---
       const newMessage = {
         id: newId,
         order: order,
         nickname: nickname || 'Unknown',
         msg: msg || '',
         time: newTime,
-        fav: initialFav,
+        positive: 0,
+        negative: 0,
+        isPositive: false,
+        isNegative: false,
       };
 
       // order が既に存在するかチェック
@@ -96,23 +99,15 @@ const useChatStore = create((set) => ({
     return { messages: updated };
   }),
 
-  // --- サーバfavイベントでidとfavのみが来る場合にも対応 ---
-  updateFav: (id, fav) => set((state) => ({
-    messages: state.messages.map((msg) =>
-      msg.id === id ? { ...msg, fav } : msg
-    ),
-  })),
-
-  // --- サーバpositiveイベントでid, positive, isPositiveを受けて更新 ---
+  // --- positive/negativeイベントのactionはそのまま ---
   updatePositive: (id, positive, isPositive) => set((state) => ({
     messages: state.messages.map((msg) =>
-      msg.id === id ? { ...msg, positive, isPositive } : msg
+      (msg.id === id || msg.id === String(id)) ? { ...msg, positive, isPositive } : msg
     ),
   })),
-  // --- サーバnegativeイベントでid, negative, isNegativeを受けて更新 ---
   updateNegative: (id, negative, isNegative) => set((state) => ({
     messages: state.messages.map((msg) =>
-      msg.id === id ? { ...msg, negative, isNegative } : msg
+      (msg.id === id || msg.id === String(id)) ? { ...msg, negative, isNegative } : msg
     ),
   })),
 }));

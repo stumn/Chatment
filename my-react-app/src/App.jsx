@@ -24,7 +24,7 @@ function App() {
     emitChatMessage,
     emitFav,
     heightArray, // ← socket を意識せず取得
-  } = useSocket();
+  } = useSocket(); // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
 
   // login & name //////////////////////////////////////////
 

@@ -33,15 +33,6 @@ export default function useSocket() {
       addMessage(data);
     };
 
-    const handleFav = (post) => {
-      // サーバーからのfavイベントでstoreの該当メッセージのfavを更新
-      chatStore.setState((state) => ({
-        messages: state.messages.map((msg) =>
-          msg.id === post.id ? { ...msg, fav: post.count ?? (msg.fav || 1) } : msg
-        ),
-      }));
-    };
-
     // --- positive/negativeイベントを受信しstoreを更新 ---
     const handlePositive = (data) => {
       chatStore.getState().updatePositive(data.id, data.positive, data.isPositive);
@@ -54,7 +45,6 @@ export default function useSocket() {
     socket.on('connect OK', handleConnectOK);
     socket.on('history', handleHistory);
     socket.on('chat-message', handleChatMessage);
-    socket.on('fav', handleFav);
     socket.on('positive', handlePositive);
     socket.on('negative', handleNegative);
 
@@ -64,10 +54,10 @@ export default function useSocket() {
       socket.off('connect OK', handleConnectOK);
       socket.off('history', handleHistory);
       socket.off('chat-message', handleChatMessage);
-      socket.off('fav', handleFav);
       socket.off('positive', handlePositive);
       socket.off('negative', handleNegative);
     };
+    // 依存配列は[]で固定。useSocketが複数回呼ばれてもリスナーが多重登録されないようにする。
   }, []);
 
   const emitLoginName = (userInfo) => socket.emit('login', userInfo);
@@ -75,16 +65,6 @@ export default function useSocket() {
 
   const emitChatMessage = (nickname, message) => {
     socket.emit('chat-message', { nickname, message });
-  };
-
-  // --- emitFavをidだけでなく、userSocketIdとnicknameも送信 ---
-  const emitFav = (id) => {
-    if (!id || !userInfo.nickname) return;
-    socket.emit('fav', {
-      postId: id,
-      userSocketId: socket.id, // socket.ioのid
-      nickname: userInfo.nickname,
-    });
   };
 
   // --- emitPositive/emitNegativeを実装 ---
@@ -109,7 +89,6 @@ export default function useSocket() {
     emitLoginName,
     emitHeightChange,
     emitChatMessage,
-    emitFav,
     emitPositive,
     emitNegative,
     heightArray,

@@ -80,28 +80,12 @@ io.on('connection', (socket) => {
       try {
         console.log('chat-message:', nickname, message);
         const p = await SaveChatMessage(nickname, message); // save message to database
+        // --- emitは1回だけ ---
         io.emit('chat-message', p);
       } catch (e) { console.error(e); }
     });
 
-    socket.on('fav', async ({ postId, userSocketId, nickname }) => {
-      // --- favトグル処理: stars配列にユーザーがいれば削除、いなければ追加 ---
-      try {
-        const post = await Post.findById(postId);
-        if (!post) return;
-        const existingIndex = post.stars.findIndex(star => star.userSocketId === userSocketId);
-        if (existingIndex !== -1) {
-          // 既にfav済み→取り消し
-          post.stars.splice(existingIndex, 1);
-        } else {
-          // fav追加
-          post.stars.push({ userSocketId, nickname });
-        }
-        await post.save();
-        // 最新のfav数（stars.length）を含めてemit
-        io.emit('fav', { id: post.id, fav: post.stars.length });
-      } catch (e) { console.error(e); }
-    });
+    // --- fav関連のsocketイベント・ロジックは削除 ---
 
     // --- positiveトグルイベント ---
     socket.on('positive', async ({ postId, userSocketId, nickname }) => {
