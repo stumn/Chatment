@@ -1,9 +1,12 @@
 // File: my-react-app/src/DocRow.jsx
 
+// TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
+
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
 import useChatStore from './store/chatStore';
+import useSocket from './store/useSocket';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
@@ -14,6 +17,9 @@ const DocRow = ({ data, index, style }) => {
     // useChatStoreから必要な関数を取得
     const customAddMessage = useChatStore((state) => state.customAddMessage);
     const updateMessage = useChatStore((state) => state.updateMessage);
+
+    // useSocketからemitDocAdd, emitDocEditを取得
+    const { emitDocAdd, emitDocEdit } = useSocket();
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +44,8 @@ const DocRow = ({ data, index, style }) => {
     // 編集終了
     const handleBlur = (e) => {
         updateMessage(index, e.target.textContent.replace(/\r/g, ''));
+        // --- socket通信 ---
+        emitDocEdit && emitDocEdit({ index, newMsg: e.target.textContent.replace(/\r/g, ''), id: message?.id });
         setIsEditing(false);
         // 高さ再計算（react-window用）
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
@@ -70,6 +78,8 @@ const DocRow = ({ data, index, style }) => {
             msg: '',
             index: index, // orderではなくindexを渡す
         });
+        // --- socket通信 ---
+        emitDocAdd && emitDocAdd({ nickname: message?.nickname || 'Unknown', msg: '', index });
         setTimeout(() => {
             const element = document.getElementById(`dc-${index + 1}`);
             if (element) {

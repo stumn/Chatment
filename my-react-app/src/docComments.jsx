@@ -1,5 +1,7 @@
 // // File: my-react-app/src/docComments.jsx
 
+// TODO: ドキュメント編集・追加・並び替えのsocket通信・DB保存・他クライアント反映は未実装
+
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
@@ -10,6 +12,7 @@ import DocRow from './DocRow'; // ←遅延読み込みをやめて通常import
 import useChatStore from './store/chatStore';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
+import useSocket from './store/useSocket';
 
 const DocComments = ({ lines, emitChatMessage }) => {
     const listRef = useRef(null);
@@ -19,6 +22,7 @@ const DocComments = ({ lines, emitChatMessage }) => {
     const messages = useChatStore((state) => state.messages);
     const updateMessage = useChatStore((state) => state.updateMessage);
     const reorderMessages = useChatStore((state) => state.reorderMessages);
+    const { emitDocReorder } = useSocket();
 
     const { userInfo, myHeight } = useAppStore();
 
@@ -62,6 +66,8 @@ const DocComments = ({ lines, emitChatMessage }) => {
         const { source, destination } = result;
         if (!destination || source.index === destination.index) return;
         reorderMessages(source.index, destination.index);
+        // --- socket通信 ---
+        emitDocReorder && emitDocReorder({ fromIndex: source.index, toIndex: destination.index });
         // 並び替え後に高さキャッシュをリセット（全アイテム再計算）
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true); // trueで全て再計算

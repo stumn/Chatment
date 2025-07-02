@@ -1,3 +1,7 @@
+// TODO: Doc系のsocket通信（emitDocAdd, emitDocEdit, emitDocReorder等）を実装し、chatStoreのcustomAddMessage, updateMessage, reorderMessagesから呼び出すこと
+// 例: emitDocAdd({ nickname, msg, index }) など
+// TODO: サーバー側にもdoc-add, doc-edit, doc-reorder等のsocketイベントを実装すること
+
 // store/useSocket.js
 import { useEffect, useState } from 'react';
 
@@ -85,6 +89,17 @@ export default function useSocket() {
     });
   };
 
+  // --- Doc系のemit（サーバー連携実装） ---
+  const emitDocAdd = (payload) => {
+    socket.emit('doc-add', payload);
+  };
+  const emitDocEdit = (payload) => {
+    socket.emit('doc-edit', payload);
+  };
+  const emitDocReorder = (payload) => {
+    socket.emit('doc-reorder', payload);
+  };
+
   return {
     emitLoginName,
     emitHeightChange,
@@ -93,5 +108,8 @@ export default function useSocket() {
     emitNegative,
     heightArray,
     socketId: socket.id,
+    emitDocAdd,
+    emitDocEdit,
+    emitDocReorder,
   };
 }
