@@ -56,6 +56,12 @@ const postSchema = new mongoose.Schema({
     // 新しい投稿の追加時や移動時に、前後の投稿のこの値の中間値を設定します。
     // 初期値は0や1など、アプリケーションの要件に合わせて設定します。
     displayOrder: { type: Number, default: 0 },
+
+    // --- 新規行追加者の情報を保持 ---
+    previousData: {
+        nickname: String,
+        createdAt: Date
+    }
 }, options);
 
 const Post = mongoose.model("Post", postSchema);

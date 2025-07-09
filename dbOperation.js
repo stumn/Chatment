@@ -83,7 +83,8 @@ function organizeLogs(post, mySocketId = null) {
         negative: post.negative ? post.negative.length : 0,
         isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
         isNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
-        displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder)
+        displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
+        previousData: post.previousData || null
     };
     return data;
 }
@@ -119,18 +120,20 @@ async function getPostsByDisplayOrder() {
 // }
 async function addDocRow({ nickname, msg = '', displayOrder }) {
     try {
-        // displayOrderが引数として明確に渡されていればそれをそのまま使用
-        // そうでなければ、フォールバックロジック（ただし、本来は呼び出し元で適切に計算されるべき）
         let order = displayOrder;
-        if (!Number.isFinite(order)) { // displayOrderが有効な数値でない場合
+        if (!Number.isFinite(order)) {
             const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
             order = maxOrderPost && Number.isFinite(maxOrderPost.displayOrder) ? maxOrderPost.displayOrder + 1 : 1;
         }
-
+        const now = new Date();
         const newPost = await Post.create({
             nickname,
             msg,
-            displayOrder: order
+            displayOrder: order,
+            previousData: {
+                nickname,
+                createdAt: now
+            }
         });
         return organizeLogs(newPost);
     } catch (error) {

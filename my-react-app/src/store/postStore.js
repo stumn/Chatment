@@ -18,10 +18,17 @@ const usePostStore = create((set, get) => ({
         }),
 
     // 編集
-    updatePost: (id, newMsg) =>
+    updatePost: (id, newMsg, nickname, updatedAt) =>
         set((state) => ({
             posts: state.posts.map((m) =>
-                m.id === id ? { ...m, msg: newMsg } : m
+                m.id === id
+                    ? {
+                        ...m,
+                        msg: newMsg !== undefined ? newMsg : m.msg,
+                        ...(nickname ? { nickname } : {}),
+                        ...(updatedAt ? { updatedAt } : {})
+                    }
+                    : m
             ),
         })),
 

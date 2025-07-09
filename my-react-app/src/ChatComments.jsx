@@ -12,6 +12,7 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
     const listRef = useRef(null);
     // const chatMessages = usePostStore((state) => state.getChatMessages(Math.ceil(lines.num)));
     const posts = usePostStore((state) => state.posts);
+
     const chatMessages = useMemo(() => {
         // getChatMessagesのロジックをここに移植
         const sorted = [...posts].sort((a, b) => {
@@ -31,6 +32,7 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
                     : ''
         }));
     }, [posts, lines.num]);
+
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
     const chatCount = filteredChatMessages.length;

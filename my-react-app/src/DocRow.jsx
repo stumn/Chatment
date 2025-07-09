@@ -50,7 +50,7 @@ const DocRow = ({ data, index, style }) => {
     // 編集終了
     const handleBlur = (e) => {
         updateDocMessage(message.id, e.target.textContent.replace(/\r/g, ''));
-        emitDocEdit && emitDocEdit({ id: message.id, newMsg: e.target.textContent.replace(/\r/g, '') });
+        emitDocEdit && emitDocEdit({ id: message.id, newMsg: e.target.textContent.replace(/\r/g, ''), nickname: userInfo.nickname });
         setIsEditing(false);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);
@@ -86,6 +86,7 @@ const DocRow = ({ data, index, style }) => {
 
     // 行削除
     const handleDelete = () => {
+        if (setShouldScroll) setShouldScroll(false); // 削除時はスクロール抑制
         emitDocDelete && emitDocDelete(message.id);
         removeDocMessage(message.id);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {

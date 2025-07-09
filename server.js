@@ -272,15 +272,19 @@ io.on('connection', (socket) => {
 
     // --- Doc系: 行編集 ---
     socket.on('doc-edit', async (payload) => {
-      // payload: { index, newMsg, id }
+      // payload: { index, newMsg, id, nickname }
       try {
         console.log('doc-edit:', payload);
-        // DB更新: Post.findByIdAndUpdate など（必要に応じて）
-        // ここではidがあれば更新、なければindexで特定（簡易実装）
         if (payload.id) {
-          await Post.findByIdAndUpdate(payload.id, { msg: payload.newMsg });
+          const updateObj = { msg: payload.newMsg };
+          if (payload.nickname) updateObj.nickname = payload.nickname;
+          updateObj.updatedAt = new Date();
+          const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
+          // updatedAtをpayloadに追加してemit
+          io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+        } else {
+          io.emit('doc-edit', payload);
         }
-        io.emit('doc-edit', payload);
         // --- ログ記録 ---
         saveLog({ userId: null, action: 'doc-edit', detail: payload });
       } catch (e) { console.error(e); }

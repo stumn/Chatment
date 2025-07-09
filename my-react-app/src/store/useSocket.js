@@ -60,7 +60,7 @@ export default function useSocket() {
     };
 
     const handleDocEdit = (payload) => {
-      updatePost(payload.id, payload.newMsg);
+      updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
     };
 
     const handleDocReorder = (posts) => {
