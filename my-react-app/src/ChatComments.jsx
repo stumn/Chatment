@@ -14,14 +14,18 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
     const chatMessages = useMemo(() => {
         // getChatMessagesのロジックをここに移植
         const sorted = [...posts].sort((a, b) => {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
+            const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
             return aTime - bTime;
         });
         // timeプロパティを生成して付与
         return sorted.slice(-Math.ceil(lines.num)).map(msg => ({
             ...msg,
-            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+            time: msg.updatedAt
+                ? new Date(msg.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : msg.createdAt
+                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : ''
         }));
     }, [posts, lines.num]);
     // idがundefinedなものを除外し、重複idも除外

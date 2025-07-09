@@ -9,6 +9,7 @@ import DocComments from "./docComments";
 import usePostStore from "./store/postStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
+import useSocket from "./store/useSocket";
 
 export default function ResizablePanels({ emitChatMessage }) {
 
@@ -18,6 +19,8 @@ export default function ResizablePanels({ emitChatMessage }) {
 
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
+    const { emitLog } = useSocket();
+    const { userInfo } = useAppStore();
 
     const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
@@ -31,6 +34,7 @@ export default function ResizablePanels({ emitChatMessage }) {
     // 理由: getChatMessages()は新しい配列を返すため、useEffectやuseMemoの依存配列が毎回変化し、
     //       Reactが再レンダリング→zustandが新配列→再レンダリング...となる。
     // 解決: posts配列を直接取得し、useMemoでgetChatMessagesのロジックを再現し、postsが変化したときだけ再計算する。
+
     const posts = usePostStore((state) => state.posts);
     const messages = useMemo(() => {
         const sorted = [...posts].sort((a, b) => {
@@ -41,10 +45,26 @@ export default function ResizablePanels({ emitChatMessage }) {
         return sorted;
     }, [posts]);
 
-    const [lines, setLines] = useState({ num: 9, timestamp: 0 }); // 初期値は1行分の高さ
+    const [lines, setLines] = useState({ num: 5, timestamp: 0 }); // 初期値は4行分の高さ
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
         setLines({ num: newLines, timestamp: Date.now() });
+        
+        if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
+        
+        // ログをemit
+        const data = {
+            userId: userInfo && userInfo._id,
+            action: 'calculate-lines',
+            detail: {
+                height: bottomHeight,
+                lines: newLines,
+                user: userInfo && userInfo.nickname
+            }
+        };
+        console.log("emitLog:", data);
+        emitLog(data);
+
     }, [bottomHeight, messages]);
 
     // サイズ変更
@@ -91,9 +111,6 @@ export default function ResizablePanels({ emitChatMessage }) {
             let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
-            // mouseMove をすると、docComments の方で、スクロールを最下にする
-            // console.log("Top Height (resizable):", newTopHeight); // デバッグ用
-            // className を変更して、見た目を調整
             document.getElementById('slide-bar').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
 
@@ -101,6 +118,19 @@ export default function ResizablePanels({ emitChatMessage }) {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
             document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
+
+            // ログをemit
+            const data = {
+                userId: userInfo && userInfo._id,
+                action: 'slide-bar-move',
+                detail: {
+                    from: startY,
+                    to: startHeight,
+                    user: userInfo && userInfo.nickname
+                }
+            };
+            console.log("emitLog:", data);
+            emitLog(data);
         };
 
         document.addEventListener("mousemove", onMouseMove);

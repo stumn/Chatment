@@ -95,11 +95,23 @@ export default function useSocket() {
     // 依存配列は[]で固定。useSocketが複数回呼ばれてもリスナーが多重登録されないようにする。
   }, []);
 
-  const emitLoginName = (userInfo) => socket.emit('login', userInfo);
+  const emitLoginName = (userInfo) => {
+    socket.emit('login', userInfo);
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'login',
+      detail: { user: userInfo && userInfo.nickname }
+    });
+  };
   const emitHeightChange = (height) => socket.emit('heightChange', height);
 
   const emitChatMessage = (nickname, message, userId) => {
     socket.emit('chat-message', { nickname, message, userId });
+    emitLog({
+      userId,
+      action: 'chat-message',
+      detail: { nickname, message }
+    });
   };
 
   // --- emitPositive/emitNegativeを実装 ---
@@ -110,6 +122,11 @@ export default function useSocket() {
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'positive',
+      detail: { postId: id, nickname: userInfo.nickname }
+    });
   };
   const emitNegative = (id) => {
     if (!id || !userInfo.nickname) return;
@@ -118,20 +135,45 @@ export default function useSocket() {
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'negative',
+      detail: { postId: id, nickname: userInfo.nickname }
+    });
   };
 
   // --- Doc系のemit（サーバー連携実装） ---
   const emitDocAdd = (payload) => {
     console.log('emitDocAdd', payload);
     socket.emit('doc-add', payload);
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'doc-add',
+      detail: payload
+    });
   };
   const emitDocEdit = (payload) => {
     console.log('emitDocEdit', payload);
     socket.emit('doc-edit', payload);
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'doc-edit',
+      detail: payload
+    });
   };
   const emitDocReorder = (payload) => {
     console.log('emitDocReorder', payload);
     socket.emit('doc-reorder', payload);
+    emitLog({
+      userId: userInfo && userInfo._id,
+      action: 'doc-reorder',
+      detail: payload
+    });
+  };
+
+  // --- 任意の操作ログをサーバに送信 ---
+  const emitLog = (log) => {
+    socket.emit('log', log);
   };
 
   return {
@@ -145,5 +187,6 @@ export default function useSocket() {
     emitDocAdd,
     emitDocEdit,
     emitDocReorder,
+    emitLog, // 追加
   };
 }

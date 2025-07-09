@@ -353,6 +353,12 @@ io.on('connection', (socket) => {
     return 1;
   }
 
+  // --- クライアントからの任意操作ログを受信して保存 ---
+  socket.on('log', (log) => {
+    // log: { userId, action, detail }
+    saveLog(log);
+  });
+
   socket.on('disconnect', () => {
     console.log('user disconnected');
 
