@@ -95,10 +95,16 @@ export default function useSocket() {
     // 依存配列は[]で固定。useSocketが複数回呼ばれてもリスナーが多重登録されないようにする。
   }, []);
 
+  // userIdが空文字列や不正な場合はundefinedにするユーティリティ
+  const validUserId = (id) => {
+    if (!id || typeof id !== 'string' || id.trim() === '' || !id.match(/^[a-fA-F0-9]{24}$/)) return undefined;
+    return id;
+  };
+
   const emitLoginName = (userInfo) => {
     socket.emit('login', userInfo);
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'login',
       detail: { user: userInfo && userInfo.nickname }
     });
@@ -108,7 +114,7 @@ export default function useSocket() {
   const emitChatMessage = (nickname, message, userId) => {
     socket.emit('chat-message', { nickname, message, userId });
     emitLog({
-      userId,
+      userId: validUserId(userId),
       action: 'chat-message',
       detail: { nickname, message }
     });
@@ -123,7 +129,7 @@ export default function useSocket() {
       nickname: userInfo.nickname,
     });
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'positive',
       detail: { postId: id, nickname: userInfo.nickname }
     });
@@ -136,7 +142,7 @@ export default function useSocket() {
       nickname: userInfo.nickname,
     });
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'negative',
       detail: { postId: id, nickname: userInfo.nickname }
     });
@@ -147,7 +153,7 @@ export default function useSocket() {
     console.log('emitDocAdd', payload);
     socket.emit('doc-add', payload);
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'doc-add',
       detail: payload
     });
@@ -156,7 +162,7 @@ export default function useSocket() {
     console.log('emitDocEdit', payload);
     socket.emit('doc-edit', payload);
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'doc-edit',
       detail: payload
     });
@@ -165,7 +171,7 @@ export default function useSocket() {
     console.log('emitDocReorder', payload);
     socket.emit('doc-reorder', payload);
     emitLog({
-      userId: userInfo && userInfo._id,
+      userId: validUserId(userInfo && userInfo._id),
       action: 'doc-reorder',
       detail: payload
     });
