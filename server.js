@@ -317,10 +317,12 @@ io.on('connection', (socket) => {
         // DB更新
         await updateDisplayOrder(movedPostId, newDisplayOrder);
 
+        // 全クライアントに並び替えをブロードキャスト
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
         io.emit('doc-reorder', posts);
+
         // --- ログ記録 ---
-        saveLog({ userId: null, action: 'doc-reorder', detail: payload });
+        saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
       } catch (e) { console.error(e); }
     });
   });

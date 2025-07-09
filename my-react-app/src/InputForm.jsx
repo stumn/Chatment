@@ -13,8 +13,10 @@ import useSizeStore from './store/sizeStore';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', emitChatMessage }) => {
   const [message, setMessage] = useState('');
+  
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
+  
   // --- 年代＋ステータスの組み合わせを生成 ---
   const ageLabel = ageGroup ? ageGroup.replace('s', '代') : '';
   const altHandle = ageLabel + (status || '');

@@ -25,7 +25,7 @@ export default function AfterLogin({ heightArray, emitChatMessage, userInfo }) {
             style={{ width: `${CONTAINER_1_WIDTH}px`, height: `${CONTAINER_1_HEIGHT}px` }}>
 
             <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
-                {'Logged in as ' + nickname + ' (' + status + ', ' + ageGroup + ')'}
+                {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
             </h6>
 
             <div

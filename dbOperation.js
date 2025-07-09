@@ -158,9 +158,9 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
 }
 
 // ログを保存
-async function saveLog({ userId, action, detail }) {
+async function saveLog({ userId, userNickname = '', action, detail }) {
     try {
-        await Log.create({ userId, action, detail, timestamp: new Date() });
+        await Log.create({ userId, userNickname, action, detail, timestamp: new Date() });
     } catch (e) {
         // ログ記録失敗時も他機能に影響しない
         console.error('ログ記録失敗:', e);

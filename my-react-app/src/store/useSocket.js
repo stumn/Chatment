@@ -152,26 +152,32 @@ export default function useSocket() {
   const emitDocAdd = (payload) => {
     console.log('emitDocAdd', payload);
     socket.emit('doc-add', payload);
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
       action: 'doc-add',
       detail: payload
     });
   };
+
   const emitDocEdit = (payload) => {
     console.log('emitDocEdit', payload);
     socket.emit('doc-edit', payload);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
       action: 'doc-edit',
       detail: payload
     });
   };
+
   const emitDocReorder = (payload) => {
     console.log('emitDocReorder', payload);
     socket.emit('doc-reorder', payload);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
       action: 'doc-reorder',
       detail: payload
     });
