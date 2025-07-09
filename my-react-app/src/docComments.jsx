@@ -62,12 +62,12 @@ const DocComments = ({ lines, emitChatMessage }) => {
         if (!docMessages[index] || !docMessages[index].msg) return lineHeight + 16;
         // 改行数をカウント
         const msg = docMessages[index].msg;
-        const lines = msg.split('\n').length;
+        const itemLines = msg.split('\n').length;
         // 1行ごとの文字数で折り返し行数を推定
         const charCount = msg.length;
         const charsPerLine = Math.floor(listWidth / 13);
         const estimatedLines = Math.max(
-            lines,
+            itemLines,
             ...msg.split('\n').map(line => Math.ceil(line.length / charsPerLine) || 1)
         );
         return estimatedLines * lineHeight + 8;
