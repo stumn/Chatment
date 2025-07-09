@@ -14,6 +14,7 @@ const DocRow = ({ data, index, style }) => {
 
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
+    const removeDocMessage = usePostStore((state) => state.removePost);
 
     // useSocketからemitDocAdd, emitDocEditを取得
     const { emitDocAdd, emitDocEdit } = useSocket();
@@ -31,11 +32,12 @@ const DocRow = ({ data, index, style }) => {
         console.log('handleAddBelow displayOrder:', message.displayOrder);
 
         const data = {
-            nickname: userInfo.nickname + `(${userInfo.status}+${userInfo.ageGroup})` || 'Unknown', // userInfo.nicknameも考慮
+            nickname: userInfo.id || 'Undefined', // userInfo.nicknameも考慮
             msg: '',
             insertAfterId: message.id, // このメッセージの後に挿入したいという意図を伝える
-            displayOrder: message.displayOrder // ここでdisplayOrderを指定
-        }
+            displayOrder: message.displayOrder, // ここでdisplayOrderを指定
+            datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
+        };
 
         console.log('handleAddBelow called for message:', data);
 
@@ -79,6 +81,18 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
+    // 空白行判定
+    const isBlank = !message?.msg || message.msg.trim() === '';
+
+    // 行削除
+    const handleDelete = () => {
+        // TODO: emitDocDelete でサーバー連携も追加可能
+        removeDocMessage(message.id);
+        if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+            listRef.current.resetAfterIndex(index, true);
+        }
+    };
+
     return (
         // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
         <Draggable draggableId={String(message?.id ?? index)} index={index} key={message?.id ?? index}>
@@ -109,7 +123,7 @@ const DocRow = ({ data, index, style }) => {
                             </React.Fragment>
                         ))}
                     </div>
-                    {/* ホバー時のみ表示される編集ボタン（右端） */}
+                    {/* ホバー時のみ表示される編集・削除・追加ボタン（右端に横並び） */}
                     <button
                         className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
                         title="編集"
@@ -119,7 +133,17 @@ const DocRow = ({ data, index, style }) => {
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                     </button>
-                    {/* ホバー時のみ表示される＋ボタン（右端） */}
+                    {isBlank && (
+                        <button
+                            className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
+                            title="空白行を削除"
+                            onClick={handleDelete}
+                            tabIndex={-1}
+                            type="button"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                        </button>
+                    )}
                     <button
                         className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
                         title="下に行を挿入"

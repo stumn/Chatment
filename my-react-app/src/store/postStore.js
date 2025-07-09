@@ -59,6 +59,11 @@ const usePostStore = create((set, get) => ({
             (msg.id === id || msg.id === String(id)) ? { ...msg, negative, isNegative } : msg
         ),
     })),
+
+    // 行削除（id指定）
+    removePost: (id) => set((state) => ({
+        posts: state.posts.filter((msg) => msg.id !== id)
+    })),
 }));
 
 export default usePostStore;
