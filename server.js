@@ -21,7 +21,7 @@ app.get('/plain', (req, res) => { // 変更
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
-  saveLog // 追加
+  saveLog, deleteDocRow // 追加
 } = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -323,6 +323,19 @@ io.on('connection', (socket) => {
 
         // --- ログ記録 ---
         saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
+      } catch (e) { console.error(e); }
+    });
+
+    // --- Doc系: 行削除 ---
+    socket.on('doc-delete', async (payload) => {
+      // payload: { id }
+      try {
+        console.log('doc-delete:', payload);
+        const deleted = await deleteDocRow(payload.id);
+        if (deleted) {
+          io.emit('doc-delete', { id: payload.id });
+          saveLog({ userId: null, action: 'doc-delete', detail: payload });
+        }
       } catch (e) { console.error(e); }
     });
   });

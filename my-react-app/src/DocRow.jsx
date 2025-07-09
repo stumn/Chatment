@@ -17,7 +17,7 @@ const DocRow = ({ data, index, style }) => {
     const removeDocMessage = usePostStore((state) => state.removePost);
 
     // useSocketからemitDocAdd, emitDocEditを取得
-    const { emitDocAdd, emitDocEdit } = useSocket();
+    const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket();
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
@@ -86,7 +86,7 @@ const DocRow = ({ data, index, style }) => {
 
     // 行削除
     const handleDelete = () => {
-        // TODO: emitDocDelete でサーバー連携も追加可能
+        emitDocDelete && emitDocDelete(message.id);
         removeDocMessage(message.id);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);

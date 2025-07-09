@@ -167,8 +167,19 @@ async function saveLog({ userId, userNickname = '', action, detail }) {
     }
 }
 
+// --- 指定idのPostを削除 ---
+async function deleteDocRow(id) {
+    try {
+        const deleted = await Post.findByIdAndDelete(id);
+        return deleted ? organizeLogs(deleted) : null;
+    } catch (error) {
+        handleErrors(error, 'deleteDocRow 削除時にエラーが発生しました');
+    }
+}
+
 module.exports = {
     saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage,
     getPostsByDisplayOrder, addDocRow, updateDisplayOrder,
-    saveLog // 追加
+    saveLog, // 追加
+    deleteDocRow // 追加
 };

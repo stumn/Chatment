@@ -68,6 +68,10 @@ export default function useSocket() {
       reorderPost(posts);
     };
 
+    const handleDocDelete = (payload) => {
+      usePostStore.getState().removePost(payload.id);
+    };
+
     // ソケットイベントのリスナーを登録
     socket.on('heightChange', handleHeightChange);
     socket.on('connect OK', handleConnectOK);
@@ -79,6 +83,7 @@ export default function useSocket() {
     socket.on('doc-add', handleDocAdd);
     socket.on('doc-edit', handleDocEdit);
     socket.on('doc-reorder', handleDocReorder);
+    socket.on('doc-delete', handleDocDelete);
 
     // クリーンアップでリスナー解除
     return () => {
@@ -91,6 +96,7 @@ export default function useSocket() {
       socket.off('doc-add', handleDocAdd);
       socket.off('doc-edit', handleDocEdit);
       socket.off('doc-reorder', handleDocReorder);
+      socket.off('doc-delete', handleDocDelete);
     };
     // 依存配列は[]で固定。useSocketが複数回呼ばれてもリスナーが多重登録されないようにする。
   }, []);
@@ -183,6 +189,11 @@ export default function useSocket() {
     });
   };
 
+  const emitDocDelete = (id) => {
+    socket.emit('doc-delete', { id });
+    emitLog({ action: 'doc-delete', detail: { id } });
+  };
+
   // --- 任意の操作ログをサーバに送信 ---
   const emitLog = (log) => {
     socket.emit('log', log);
@@ -199,6 +210,7 @@ export default function useSocket() {
     emitDocAdd,
     emitDocEdit,
     emitDocReorder,
+    emitDocDelete,
     emitLog, // 追加
   };
 }
