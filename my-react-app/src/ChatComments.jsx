@@ -19,8 +19,10 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
             const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
             return aTime - bTime;
         });
+        // ★空白行を除外
+        const filtered = sorted.filter(msg => msg && msg.msg && msg.msg.trim() !== "");
         // timeプロパティを生成して付与
-        return sorted.slice(-Math.ceil(lines.num)).map(msg => ({
+        return filtered.slice(-Math.ceil(lines.num)).map(msg => ({
             ...msg,
             time: msg.updatedAt
                 ? new Date(msg.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
