@@ -6,9 +6,9 @@ import Paper from "@mui/material/Paper";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 
-import usePostStore from "./store/postStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
+import usePostStore from "./store/postStore";
 
 export default function ResizablePanels({ emitFunctions }) {
 
@@ -22,7 +22,7 @@ export default function ResizablePanels({ emitFunctions }) {
 
     // socket関連の関数を抽出
     const { emitLog } = emitFunctions;
-    
+
     const emitFunctions_docs = {
         emitChatMessage: emitFunctions.emitChatMessage,
         emitDocReorder: emitFunctions.emitDocReorder,
@@ -156,14 +156,18 @@ export default function ResizablePanels({ emitFunctions }) {
 
             <div
                 id='slide-bar'
-                style={{ height: `${DIVIDER_HEIGHT}px`, width: `${CONTAINER_resizable_WIDTH}px`, backgroundColor: "rgba(53, 59, 72, 0.6)", cursor: "row-resize" }}
+                style={{
+                    height: `${DIVIDER_HEIGHT}px`,
+                    width: `${CONTAINER_resizable_WIDTH}px`,
+                    backgroundColor: "rgba(53, 59, 72, 0.6)",
+                    cursor: "row-resize"
+                }}
                 onMouseDown={handleMouseDown}
             />
 
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                {/* emitFavをChatCommentsに渡す */}
                 <ChatComments lines={lines} bottomHeight={bottomHeight} emitFunctions_chat={emitFunctions_chat} />
             </div>
         </Paper>
