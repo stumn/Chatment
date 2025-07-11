@@ -2,81 +2,48 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import useSocket from './hooks/useSocket'; // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
+import useSocket from './hooks/useSocket'; // useSocketはApp全体で1回だけ呼び出す。
 
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
 
 import useResponsiveSize from './useResponsiveSize';
 
-const BeforeLogin = lazy(() => import('./BeforeLogin'));
+import BeforeLogin from "./BeforeLogin";
 const AfterLogin = lazy(() => import('./AfterLogin'));
 
 function App() {
-  useResponsiveSize(); // レスポンシブサイズのフックを呼び出す
-  const { width, height } = useSizeStore(); // サイズストアからwidthとheightを取得
+  // --- 状態管理フックを先に記述 ---
+  const [open, setOpen] = useState(true);
 
-  // --- open状態をuseStateで管理（BeforeLoginのopen propエラー防止） ---
-  const [open, setOpen] = useState(true); // ログインダイアログの表示状態
+  // --- カスタムフック ---
+  useResponsiveSize();
 
-  const {
-    emitLoginName,
-    emitHeightChange,
-    heightArray, // ← socket を意識せず取得
-    emitLog,
-    emitChatMessage,
-    emitDocReorder,
-    emitDocAdd,
-    emitDemandLock,
-    emitDocEdit,
-    emitDocDelete,
-    socketId,
-    emitPositive,
-    emitNegative
-  } = useSocket(); // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
+  // --- ストアからの状態取得 ---
+  const { width, height } = useSizeStore();
+  const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore();
 
-  // emitFunctionsから必要な関数を抽出
-  const socketFunctions = {
-    emitLog,
-    emitChatMessage,
-    emitDocReorder,
-    emitDocAdd,
-    emitDemandLock,
-    emitDocEdit,
-    emitDocDelete,
-    socketId,
-    emitPositive,
-    emitNegative
-  };
+  // --- useSocketを呼び出してsocket関数を取得 ---
+  const socketFunctions = useSocket(); // useSocketの戻り値を直接利用
+  const { heightArray, emitLoginName, emitHeightChange } = socketFunctions; // 個別に使いたいものだけを分割代入
 
-  // login & name //////////////////////////////////////////
-  const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore(); // useAppStoreからuserInfoとsetUserInfoを取得
+  // ログイン状態を判定する変数を定義////////////////////////////////////
+  const isLoggedIn = userInfo.nickname !== undefined;
 
   useEffect(() => {
+    if (!isLoggedIn) return; // 判定変数を利用
+    emitLoginName(userInfo);
+    setOpen(false);
+  }, [userInfo, isLoggedIn]); // isLoggedInも依存配列に追加
 
-    if (userInfo.nickname === undefined) return; // userInfoがundefinedの場合は何もしない
-    emitLoginName(userInfo); // サーバーにログイン名を送信
-    setOpen(false); // ログイン後にダイアログを閉じる
+  // myHeightが変更されたらサーバーに高さを送信///////////////////////////
+  useEffect(() => { emitHeightChange(myHeight); }, [myHeight]);
 
-  }, [userInfo]);
 
-  // height & telomere /////////////////////////////////////
-
-  // 1. 各ユーザーの高さを記憶するuseState
-
-  // 1 -> server 各ユーザの高さが変更されたら、サーバーに送信
-  useEffect(() => {
-    emitHeightChange(myHeight); // サーバーに高さを送信
-  }, [myHeight]); // myHeightが変更されたら実行
-
-  ////////////////////////////////////////////////////////////
-
-  // if (connected && userInfo) {
-  if (userInfo.nickname !== undefined) { // userInfoがundefinedでない場合に表示
+  if (isLoggedIn) { // ログイン完了後
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
-          {/* userInfoをAfterLoginに渡す */}
           <AfterLogin
             heightArray={heightArray}
             socketFunctions={socketFunctions}
@@ -84,12 +51,11 @@ function App() {
           />
         </Suspense>
       </div>
-    )
-  } else {
+    );
+  } else { // ログイン前
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
         <Suspense fallback={<div>Loading...</div>}>
-          {/* open propを明示的に渡す。onLoginでsetUserInfoを渡す。*/}
           <BeforeLogin open={open} onLogin={setUserInfo} />
         </Suspense>
       </div>
