@@ -32,7 +32,7 @@ function BeforeLogin({ open, onLogin }) {
         }
 
         // 収集したデータを親コンポーネントに渡す
-        onLogin({nickname, status, ageGroup});
+        onLogin({ nickname, status, ageGroup });
     };
 
     // 年代の選択肢
@@ -49,8 +49,11 @@ function BeforeLogin({ open, onLogin }) {
                     onSubmit: handleSubmit,
                 }}
             >
+
                 <DialogTitle>ログイン</DialogTitle>
+
                 <DialogContent>
+
                     {/* ニックネーム入力欄 */}
                     <TextField
                         autoFocus
@@ -65,6 +68,7 @@ function BeforeLogin({ open, onLogin }) {
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                     />
+
                     {/* 属性選択 */}
                     <FormControl fullWidth required margin="dense" variant="standard">
                         <InputLabel id="status-select-label">属性</InputLabel>
@@ -81,6 +85,7 @@ function BeforeLogin({ open, onLogin }) {
                             <MenuItem value={'その他'}>その他</MenuItem>
                         </Select>
                     </FormControl>
+
                     {/* 年代選択 */}
                     <FormControl fullWidth required margin="dense" variant="standard">
                         <InputLabel id="age-group-select-label">年代</InputLabel>
@@ -96,10 +101,13 @@ function BeforeLogin({ open, onLogin }) {
                             ))}
                         </Select>
                     </FormControl>
+
                 </DialogContent>
+
                 <DialogActions>
-                    <Button type="submit">登録する</Button>
+                    <Button type="submit">ログインする</Button>
                 </DialogActions>
+
             </Dialog>
         </ThemeProvider>
     );
