@@ -47,6 +47,7 @@ export default function useSocket() {
     const handlePositive = (data) => {
       usePostStore.getState().updatePositive(data.id, data.positive, data.isPositive);
     };
+
     const handleNegative = (data) => {
       usePostStore.getState().updateNegative(data.id, data.negative, data.isNegative);
     };
@@ -89,38 +90,39 @@ export default function useSocket() {
       usePostStore.getState().removePost(payload.id);
     };
 
-    // ソケットイベントのリスナーを登録
-    socket.on('heightChange', handleHeightChange);
-    socket.on('connect OK', handleConnectOK);
-    socket.on('history', handleHistory);
-    socket.on('docs', handleDocsHistory);
-    socket.on('chat-message', handleChatMessage);
-    socket.on('positive', handlePositive);
-    socket.on('negative', handleNegative);
-    socket.on('doc-add', handleDocAdd);
-
-    socket.on('Lock-permitted', handleLockPermitted);
-    socket.on('row-locked', handleRowLocked);
-    socket.on('Lock-not-allowed', handleLockNotAllowed)
-
-    socket.on('doc-edit', handleDocEdit);
-    socket.on('doc-reorder', handleDocReorder);
-    socket.on('doc-delete', handleDocDelete);
-
-    // クリーンアップでリスナー解除
-    return () => {
-      socket.off('heightChange', handleHeightChange);
-      socket.off('connect OK', handleConnectOK);
-      socket.off('history', handleHistory);
-      socket.off('chat-message', handleChatMessage);
-      socket.off('positive', handlePositive);
-      socket.off('negative', handleNegative);
-      socket.off('doc-add', handleDocAdd);
-      socket.off('doc-edit', handleDocEdit);
-      socket.off('doc-reorder', handleDocReorder);
-      socket.off('doc-delete', handleDocDelete);
+    // イベントとハンドラの対応表
+    const eventHandlers = {
+      'heightChange': handleHeightChange,
+      'connect OK': handleConnectOK,
+      'history': handleHistory,
+      'docs': handleDocsHistory,
+      'chat-message': handleChatMessage,
+      'positive': handlePositive,
+      'negative': handleNegative,
+      'doc-add': handleDocAdd,
+      'Lock-permitted': handleLockPermitted,
+      'row-locked': handleRowLocked,
+      'Lock-not-allowed': handleLockNotAllowed,
+      'doc-edit': handleDocEdit,
+      'doc-reorder': handleDocReorder,
+      'doc-delete': handleDocDelete,
     };
-    // 依存配列は[]で固定。useSocketが複数回呼ばれてもリスナーが多重登録されないようにする。
+
+    // ループでイベントリスナーを登録
+    Object.entries(eventHandlers).forEach(([event, handler]) => {
+      socket.on(event, handler);
+    });
+
+    // クリーンアップ
+    return () => {
+      // ループでイベントリスナーを解除
+      Object.keys(eventHandlers).forEach(event => {
+        socket.off(event);
+      });
+    };
+
+    // useEffectの依存配列は空にして、初回マウント時のみ実行
+    // 万一useSocketが複数回呼ばれても、リスナーが多重登録されないため。
   }, []);
 
   // userIdが空文字列や不正な場合はundefinedにするユーティリティ
