@@ -17,7 +17,7 @@ const DocRow = ({ data, index, style }) => {
     const removeDocMessage = usePostStore((state) => state.removePost);
 
     // useSocketからemitDocAdd, emitDocEditを取得
-    const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket();
+    const { emitDocAdd, emitDemandLock, emitDocEdit, emitDocDelete } = useSocket();
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
@@ -57,21 +57,35 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
-    // 編集ボタン押下で編集モードに
+    const askIsLocked = () => {
+        console.log('askIsLocked called for message:', message);
+        const data = {
+            // `dc-${index}-${message?.displayOrder}-${message?.id}`
+            rowElementId: `dc-${index}-${message?.displayOrder}-${message?.id}`,
+            nickname: message.nickname || userInfo.nickname, // nicknameを渡す
+        };
+        emitDemandLock(data);
+    };
+
     const handleEdit = () => {
-        setIsEditing(true);
-        setTimeout(() => {
-            if (contentRef.current) {
-                contentRef.current.focus();
-                // キャレットを末尾に
-                const range = document.createRange();
-                range.selectNodeContents(contentRef.current);
-                range.collapse(false);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }, 0);
+        if (isPermitted) {
+            setIsEditing(true);
+            setTimeout(() => {
+                if (contentRef.current) {
+                    contentRef.current.focus();
+
+                    // キャレットを末尾に
+                    const range = document.createRange();
+                    range.selectNodeContents(contentRef.current);
+                    range.collapse(false);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }, 0);
+        } else {
+            alert('編集できません');
+        };
     };
 
     // 編集中に内容が変わったときも高さ再計算
@@ -107,7 +121,7 @@ const DocRow = ({ data, index, style }) => {
                 >
                     <span {...provided.dragHandleProps} className='maru' />
                     <div
-                        id={`dc-${index}-${message?.displayOrder}`}
+                        id={`dc-${index}-${message?.displayOrder}-${message?.id}`}
                         className='doc-comment-content'
                         contentEditable={isEditing}
                         suppressContentEditableWarning={true}
@@ -128,7 +142,7 @@ const DocRow = ({ data, index, style }) => {
                     <button
                         className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
                         title="編集"
-                        onClick={handleEdit}
+                        onClick={askIsLocked}
                         tabIndex={-1}
                         type="button"
                     >

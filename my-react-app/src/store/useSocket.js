@@ -59,6 +59,26 @@ export default function useSocket() {
       addMessage(payload);
     };
 
+    const handleLockPermitted = (payload) => {
+      // payload: { id, nickname}
+      console.log('Lock-permitted payload:', payload);
+
+    }
+
+    const handleRowLocked = (payload) => {
+      // payload: { id, nickname }
+      console.log('Row-locked payload:', payload);
+
+      // ロックされた行を特定し、UIを更新する処理を追加
+      const { id, nickname } = payload;
+      const LockedRow = document.querySelector(`[data-id="${id}"]`);
+    }
+
+    const handleLockNotAllowed = (payload) => {
+      console.log('Lock-not-allowed payload:', payload);
+
+    }
+
     const handleDocEdit = (payload) => {
       updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
     };
@@ -81,6 +101,11 @@ export default function useSocket() {
     socket.on('positive', handlePositive);
     socket.on('negative', handleNegative);
     socket.on('doc-add', handleDocAdd);
+
+    socket.on('Lock-permitted', handleLockPermitted);
+    socket.on('row-locked', handleRowLocked);
+    socket.on('Lock-not-allowed', handleLockNotAllowed)
+
     socket.on('doc-edit', handleDocEdit);
     socket.on('doc-reorder', handleDocReorder);
     socket.on('doc-delete', handleDocDelete);
@@ -167,6 +192,24 @@ export default function useSocket() {
     });
   };
 
+  // doc のロック要求
+  const emitDemandLock = (data) => {
+    // data:{ `dc-${index}-${message?.displayOrder}-${message?.id}`, nickname }
+    const { rowElementId, nickname } = data;
+    console.log('emitDemandLock', { rowElementId, nickname });
+
+    socket.emit('demand-lock', data);
+
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
+      action: 'doc-demand-lock',
+      detail: data
+    });
+
+  };
+
+  // doc の編集完了
   const emitDocEdit = (payload) => {
     console.log('emitDocEdit', payload);
     socket.emit('doc-edit', payload);
@@ -208,6 +251,7 @@ export default function useSocket() {
     heightArray,
     socketId: socket.id,
     emitDocAdd,
+    emitDemandLock,
     emitDocEdit,
     emitDocReorder,
     emitDocDelete,

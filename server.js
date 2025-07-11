@@ -34,6 +34,10 @@ function addHeightMemory(id, height) {
   return heightMemory.map(item => item.height); // 高さを全て返す
 }
 
+// 現在ロック中の行IDとユーザ情報のマップ
+const lockedRows = new Map(); // 行IDとユーザ情報(nickname, userId)のマップ
+console.log(lockedRows);
+
 // const FADE_OUT_TIME = 10000; // 10秒後に削除
 // function removeHeightMemory(id) {
 
@@ -270,16 +274,47 @@ io.on('connection', (socket) => {
       return 1;
     }
 
+    // --- Doc 系；ロック要求の受け取り---
+    socket.on('demand-lock', async (data) => {
+      // data:{ `dc-${index}-${message?.displayOrder}-${message?.id}`, nickname }
+      try {
+        console.log('demand-lock received:', data);
+
+        if (data.rowElementId && data.nickname) {
+          
+          // lockedRows に含まれているかどうかをチェック(lockdRows: Id, nickname, userId)
+          if (lockedRows.has(data.rowElementId)) {
+            console.log('Row is already locked:', data.rowElementId);
+            socket.emit('Lock-not-allowed', { id: data.rowElementId, message: 'Row is already locked' });
+          } else {
+            // ロックを許可
+            lockedRows.set(data.rowElementId, { nickname: data.nickname, userId: data.userId });
+            console.log('Row locked:', data.rowElementId, 'by', data.nickname);
+
+            // 'demand-lock'を送ってきたクライアントのみに送信
+            socket.emit('Lock-permitted', { id: data.rowElementId, nickname: data.nickname });
+
+            // 他のクライアントにロックされた行をブロードキャスト
+            socket.broadcast.emit('row-locked', { id: data.rowElementId, nickname: data.nickname });
+          }
+        }
+      } catch (e) { console.error(e); }
+
+    });
+
     // --- Doc系: 行編集 ---
     socket.on('doc-edit', async (payload) => {
       // payload: { index, newMsg, id, nickname }
       try {
         console.log('doc-edit:', payload);
+
         if (payload.id) {
           const updateObj = { msg: payload.newMsg };
           if (payload.nickname) updateObj.nickname = payload.nickname;
           updateObj.updatedAt = new Date();
+
           const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
+
           // updatedAtをpayloadに追加してemit
           io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
         } else {
