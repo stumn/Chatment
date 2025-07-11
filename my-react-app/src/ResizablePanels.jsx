@@ -9,9 +9,8 @@ import DocComments from "./docComments";
 import usePostStore from "./store/postStore";
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
-import useSocket from "./store/useSocket";
 
-export default function ResizablePanels({ emitChatMessage }) {
+export default function ResizablePanels({ emitFunctions }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -19,21 +18,32 @@ export default function ResizablePanels({ emitChatMessage }) {
 
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
-    const { emitLog } = useSocket();
     const { userInfo } = useAppStore();
+
+    // socket関連の関数を抽出
+    const { emitLog } = emitFunctions;
+    
+    const emitFunctions_docs = {
+        emitChatMessage: emitFunctions.emitChatMessage,
+        emitDocReorder: emitFunctions.emitDocReorder,
+        emitDocAdd: emitFunctions.emitDocAdd,
+        emitDemandLock: emitFunctions.emitDemandLock,
+        emitDocEdit: emitFunctions.emitDocEdit,
+        emitDocDelete: emitFunctions.emitDocDelete
+    };
+
+    const emitFunctions_chat = {
+        emitChatMessage: emitFunctions.emitChatMessage,
+        socketId: emitFunctions.socketId,
+        emitPositive: emitFunctions.emitPositive,
+        emitNegative: emitFunctions.emitNegative
+    };
 
     const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
     const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
 
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
-
-    // --- 無限ループ・update depth exceeded 問題の修正 ---
-    // 課題: usePostStore((state) => state.getChatMessages()) のように、zustandのセレクタで毎回新しい配列を返すと、
-    // Reactの再レンダリングが無限ループになることがある。
-    // 理由: getChatMessages()は新しい配列を返すため、useEffectやuseMemoの依存配列が毎回変化し、
-    //       Reactが再レンダリング→zustandが新配列→再レンダリング...となる。
-    // 解決: posts配列を直接取得し、useMemoでgetChatMessagesのロジックを再現し、postsが変化したときだけ再計算する。
 
     const posts = usePostStore((state) => state.posts);
     const messages = useMemo(() => {
@@ -49,9 +59,9 @@ export default function ResizablePanels({ emitChatMessage }) {
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
         setLines({ num: newLines, timestamp: Date.now() });
-        
+
         if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
-        
+
         // ログをemit
         const data = {
             userId: userInfo && userInfo._id,
@@ -66,20 +76,6 @@ export default function ResizablePanels({ emitChatMessage }) {
         emitLog(data);
 
     }, [bottomHeight, messages]);
-
-    // サイズ変更
-    // useEffect(() => {
-    //     const handleResize = () => {
-    //         const newBottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
-    //         const newLines = calculateLines(newBottomHeight);
-    //         setLines(newLines);
-    //     };
-
-    //     window.addEventListener("resize", handleResize);
-    //     return () => {
-    //         window.removeEventListener("resize", handleResize);
-    //     };
-    // }, [myHeight, CONTAINER_resizable_HEIGHT]);
 
     const calculateLines = (newBottomHeight) => {
         let totalHeight = 0;
@@ -155,7 +151,7 @@ export default function ResizablePanels({ emitChatMessage }) {
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments lines={lines} emitChatMessage={emitChatMessage} />
+                <DocComments lines={lines} emitFunctions_docs={emitFunctions_docs} />
             </div>
 
             <div
@@ -168,7 +164,7 @@ export default function ResizablePanels({ emitChatMessage }) {
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 {/* emitFavをChatCommentsに渡す */}
-                <ChatComments lines={lines} bottomHeight={bottomHeight} emitChatMessage={emitChatMessage} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} emitFunctions_chat={emitFunctions_chat} />
             </div>
         </Paper>
     );

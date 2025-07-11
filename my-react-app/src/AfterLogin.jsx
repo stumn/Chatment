@@ -7,9 +7,13 @@ import Telomere from './Telomere';
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 
-export default function AfterLogin({ heightArray, emitChatMessage, userInfo }) {
+export default function AfterLogin({ heightArray, socketFunctions, userInfo }) {
     // userInfoをpropsから受け取る
     const { nickname, status, ageGroup, userId } = userInfo;
+
+    // emitFunctionsから必要な関数を抽出
+    const { emitChatMessage } = socketFunctions;
+    const emitFunctions = socketFunctions;
 
     // after-login-containerの幅・高さを設定(sizeStore から取得)
     const CONTAINER_1_WIDTH = sizeStore((state) => state.width);
@@ -40,7 +44,7 @@ export default function AfterLogin({ heightArray, emitChatMessage, userInfo }) {
                 }}>
 
                 {/* emitFavをResizablePanelsに渡す */}
-                <ResizablePanels emitChatMessage={emitChatMessage} />
+                <ResizablePanels emitFunctions={emitFunctions} />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 

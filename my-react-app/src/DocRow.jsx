@@ -3,21 +3,27 @@
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-import useSocket from './store/useSocket';
 import usePostStore from './store/postStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
     // data = { docMessages, userInfo, emitChatMessage, setShouldScroll }
-    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef } = data;
+    const {        
+        docMessages,
+        userInfo,
+        emitChatMessage,
+        emitDocAdd,
+        emitDemandLock,
+        emitDocEdit,
+        emitDocDelete,
+        setShouldScroll,
+        listRef,
+    } = data;
     const message = docMessages[index];
 
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
-
-    // useSocketからemitDocAdd, emitDocEditを取得
-    const { emitDocAdd, emitDemandLock, emitDocEdit, emitDocDelete } = useSocket();
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);

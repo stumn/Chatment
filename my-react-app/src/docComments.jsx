@@ -9,40 +9,29 @@ import DocRow from './DocRow'; // ←遅延読み込みをやめて通常import
 
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
-import useSocket from './store/useSocket';
 import usePostStore from './store/postStore';
 
-const DocComments = ({ lines, emitChatMessage }) => {
+const DocComments = ({ lines, emitFunctions_docs }) => {
 
     const listRef = useRef(null);
 
     // --- 新規行追加時の自動スクロール抑制用 ---
     const [shouldScroll, setShouldScroll] = useState(true);
 
-    // const messages = useChatStore((state) => state.messages);
-    // const updateMessage = useChatStore((state) => state.updateMessage);
-    // const reorderMessages = useChatStore((state) => state.reorderMessages);
-    // const docMessages = useDocStore((state) => state.docMessages);
-    // const setDocMessages = useDocStore((state) => state.setDocMessages);
-    // const updateDocMessage = useDocStore((state) => state.updateDocMessage);
-    // const reorderDocMessages = useDocStore((state) => state.reorderDocMessages);
-    // const addDocMessage = useDocStore((state) => state.addDocMessage);
-    // --- 無限ループ・update depth exceeded 問題の修正 ---
-    // 課題: usePostStore((state) => state.getDocMessages()) のように、zustandのセレクタで毎回新しい配列を返すと、
-    // Reactの再レンダリングが無限ループになることがある。
-    // 理由: getDocMessages()は新しい配列を返すため、useEffectやuseMemoの依存配列が毎回変化し、
-    //       Reactが再レンダリング→zustandが新配列→再レンダリング...となる。
-    // 解決: getDocMessages()の呼び出しをuseMemoでラップし、posts配列が変化したときだけ再計算する。
     const posts = usePostStore((state) => state.posts);
     const docMessages = useMemo(() => {
         // getDocMessages()のロジックをここに移植
         return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
     }, [posts]);
-    const updateDocMessage = usePostStore((state) => state.updatePost);
-    const reorderDocMessages = usePostStore((state) => state.reorderPost);
-    const addDocMessage = usePostStore((state) => state.addPost);
 
-    const { emitDocReorder } = useSocket();
+    const { 
+        emitChatMessage,
+        emitDocReorder,
+        emitDocAdd,
+        emitDemandLock,
+        emitDocEdit,
+        emitDocDelete
+    } = emitFunctions_docs;
 
     const { userInfo, myHeight } = useAppStore();
 
@@ -97,7 +86,7 @@ const DocComments = ({ lines, emitChatMessage }) => {
 
         // サーバーに並び替えを通知
         emitDocReorder && emitDocReorder(data);
-        
+
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true);
         }
@@ -112,10 +101,12 @@ const DocComments = ({ lines, emitChatMessage }) => {
         docMessages: filteredDocMessages,
         userInfo,
         emitChatMessage,
+        emitDocAdd,
+        emitDemandLock,
+        emitDocEdit,
+        emitDocDelete,
         setShouldScroll,
         listRef,
-        addDocMessage,
-        updateDocMessage,
     }), [filteredDocMessages, userInfo, emitChatMessage]);
 
     // ListのitemRenderer

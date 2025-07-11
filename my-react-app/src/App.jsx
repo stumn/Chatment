@@ -20,9 +20,32 @@ function App() {
   const {
     emitLoginName,
     emitHeightChange,
-    emitChatMessage,
     heightArray, // ← socket を意識せず取得
+    emitLog,
+    emitChatMessage,
+    emitDocReorder,
+    emitDocAdd,
+    emitDemandLock,
+    emitDocEdit,
+    emitDocDelete,
+    socketId,
+    emitPositive,
+    emitNegative
   } = useSocket(); // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
+
+  // emitFunctionsから必要な関数を抽出
+  const socketFunctions = {
+    emitLog,
+    emitChatMessage,
+    emitDocReorder,
+    emitDocAdd,
+    emitDemandLock,
+    emitDocEdit,
+    emitDocDelete,
+    socketId,
+    emitPositive,
+    emitNegative
+  };
 
   // login & name //////////////////////////////////////////
   const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore(); // useAppStoreからuserInfoとsetUserInfoを取得
@@ -54,7 +77,7 @@ function App() {
           {/* userInfoをAfterLoginに渡す */}
           <AfterLogin
             heightArray={heightArray}
-            emitChatMessage={emitChatMessage}
+            socketFunctions={socketFunctions}
             userInfo={userInfo}
           />
         </Suspense>

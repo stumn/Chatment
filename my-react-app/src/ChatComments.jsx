@@ -5,10 +5,9 @@ import React, { useEffect, useMemo, useRef } from 'react';
 // import { VariableSizeList as List } from 'react-window';
 
 import usePostStore from './store/postStore';
-import useSocket from './store/useSocket';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
+const ChatComments = ({ lines, bottomHeight, emitFunctions_chat }) => {
     const listRef = useRef(null);
     // const chatMessages = usePostStore((state) => state.getChatMessages(Math.ceil(lines.num)));
     const posts = usePostStore((state) => state.posts);
@@ -44,8 +43,12 @@ const ChatComments = ({ lines, bottomHeight, emitChatMessage }) => {
         }
     }, [filteredChatMessages]);
 
-    // --- useSocketからsocket.idを取得し、itemDataに含める ---
-    const { socketId, emitPositive, emitNegative } = useSocket();
+    const { 
+        emitChatMessage,
+        socketId, 
+        emitPositive, 
+        emitNegative 
+    } = emitFunctions_chat;
 
     // Listの代わりにdiv+mapで描画
     return (
