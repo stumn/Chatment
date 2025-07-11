@@ -1,6 +1,4 @@
-// TODO: Doc系のsocket通信（emitDocAdd, emitDocEdit, emitDocReorder等）を実装し、chatStoreのcustomAddMessage, updateMessage, reorderMessagesから呼び出すこと
-// 例: emitDocAdd({ nickname, msg, index }) など
-// TODO: サーバー側にもdoc-add, doc-edit, doc-reorder等のsocketイベントを実装すること
+// ℹ️カスタムフック
 
 // store/useSocket.js
 import { useEffect, useState } from 'react';
@@ -132,7 +130,8 @@ export default function useSocket() {
     return id;
   };
 
-  const emitLoginName = (userInfo) => {
+  const emitLoginName = () => {
+    const { userInfo } = useAppStore.getState();
     socket.emit('login', userInfo);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
@@ -153,6 +152,7 @@ export default function useSocket() {
 
   // --- emitPositive/emitNegativeを実装 ---
   const emitPositive = (id) => {
+    const { userInfo } = useAppStore.getState();
     if (!id || !userInfo.nickname) return;
     socket.emit('positive', {
       postId: id,
@@ -165,7 +165,9 @@ export default function useSocket() {
       detail: { postId: id, nickname: userInfo.nickname }
     });
   };
+
   const emitNegative = (id) => {
+    const { userInfo } = useAppStore.getState();
     if (!id || !userInfo.nickname) return;
     socket.emit('negative', {
       postId: id,
@@ -181,6 +183,7 @@ export default function useSocket() {
 
   // --- Doc系のemit（サーバー連携実装） ---
   const emitDocAdd = (payload) => {
+    const { userInfo } = useAppStore.getState();
     console.log('emitDocAdd', payload);
     socket.emit('doc-add', payload);
 
@@ -194,6 +197,7 @@ export default function useSocket() {
 
   // doc のロック要求
   const emitDemandLock = (data) => {
+    const { userInfo } = useAppStore.getState();
     // data:{ `dc-${index}-${message?.displayOrder}-${message?.id}`, nickname }
     const { rowElementId, nickname } = data;
     console.log('emitDemandLock', { rowElementId, nickname });
@@ -211,6 +215,7 @@ export default function useSocket() {
 
   // doc の編集完了
   const emitDocEdit = (payload) => {
+    const { userInfo } = useAppStore.getState();
     console.log('emitDocEdit', payload);
     socket.emit('doc-edit', payload);
     emitLog({
@@ -222,6 +227,7 @@ export default function useSocket() {
   };
 
   const emitDocReorder = (payload) => {
+    const { userInfo } = useAppStore.getState();
     console.log('emitDocReorder', payload);
     socket.emit('doc-reorder', payload);
     emitLog({
@@ -233,6 +239,7 @@ export default function useSocket() {
   };
 
   const emitDocDelete = (id) => {
+    const { userInfo } = useAppStore.getState();
     socket.emit('doc-delete', { id });
     emitLog({ action: 'doc-delete', detail: { id } });
   };
