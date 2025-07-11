@@ -2,9 +2,11 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import useSocket from './store/useSocket';
+import useSocket from './hooks/useSocket'; // useSocketはApp全体で1回だけ呼び出す。不要な呼び出しがないか確認済み。
+
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
+
 import useResponsiveSize from './useResponsiveSize';
 
 const BeforeLogin = lazy(() => import('./BeforeLogin'));

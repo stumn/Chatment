@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 const socket = io();
 
-import useAppStore from './appStore';
-import usePostStore from './postStore';
+import useAppStore from './../store/appStore'; // Assuming you have an app store for userInfo
+import usePostStore from './../store/postStore'; // Assuming you have a post store for managing posts
 
 // --- socketインスタンスを外部参照用にexport ---
 export const socketId = () => socket.id;
