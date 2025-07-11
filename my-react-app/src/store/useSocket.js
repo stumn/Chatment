@@ -17,7 +17,7 @@ export const socketId = () => socket.id;
 export default function useSocket() {
 
   const [heightArray, setHeightArray] = useState([]);
-  const { userInfo } = useAppStore();
+  const { userInfo } = useAppStore((state) => state.userInfo);
 
   const addMessage = usePostStore((state) => state.addPost);
   const updatePost = usePostStore((state) => state.updatePost);
