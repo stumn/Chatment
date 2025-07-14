@@ -3,27 +3,21 @@
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
+import useSocket from './hooks/useSocket'; // Assuming you have a custom hook for socket management
 import usePostStore from './store/postStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
     // data = { docMessages, userInfo, emitChatMessage, setShouldScroll }
-    const {
-        docMessages,
-        userInfo,
-        emitChatMessage,
-        emitDocAdd,
-        emitDemandLock,
-        emitDocEdit,
-        emitDocDelete,
-        setShouldScroll,
-        listRef,
-    } = data;
+    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef } = data;
     const message = docMessages[index];
 
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
+
+    // useSocketからemitDocAdd, emitDocEditを取得
+    const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket();
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
@@ -63,35 +57,21 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
-    const askIsLocked = () => {
-        console.log('askIsLocked called for message:', message);
-        const data = {
-            // `dc-${index}-${message?.displayOrder}-${message?.id}`
-            rowElementId: `dc-${index}-${message?.displayOrder}-${message?.id}`,
-            nickname: message.nickname || userInfo.nickname, // nicknameを渡す
-        };
-        emitDemandLock(data);
-    };
-
+    // 編集ボタン押下で編集モードに
     const handleEdit = () => {
-        if (isPermitted) {
-            setIsEditing(true);
-            setTimeout(() => {
-                if (contentRef.current) {
-                    contentRef.current.focus();
-
-                    // キャレットを末尾に
-                    const range = document.createRange();
-                    range.selectNodeContents(contentRef.current);
-                    range.collapse(false);
-                    const selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            }, 0);
-        } else {
-            alert('編集できません');
-        };
+        setIsEditing(true);
+        setTimeout(() => {
+            if (contentRef.current) {
+                contentRef.current.focus();
+                // キャレットを末尾に
+                const range = document.createRange();
+                range.selectNodeContents(contentRef.current);
+                range.collapse(false);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }, 0);
     };
 
     // 編集中に内容が変わったときも高さ再計算
@@ -114,17 +94,6 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
-    // アイコンをコンポーネントとして定義
-    const EditIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-    );
-    const DeleteIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
-    );
-    const AddIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
-    );
-
     return (
         // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
         <Draggable draggableId={String(message?.id ?? index)} index={index} key={message?.id ?? index}>
@@ -138,7 +107,7 @@ const DocRow = ({ data, index, style }) => {
                 >
                     <span {...provided.dragHandleProps} className='maru' />
                     <div
-                        id={`dc-${index}-${message?.displayOrder}-${message?.id}`}
+                        id={`dc-${index}-${message?.displayOrder}`}
                         className='doc-comment-content'
                         contentEditable={isEditing}
                         suppressContentEditableWarning={true}
@@ -159,11 +128,11 @@ const DocRow = ({ data, index, style }) => {
                     <button
                         className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
                         title="編集"
-                        onClick={askIsLocked}
+                        onClick={handleEdit}
                         tabIndex={-1}
                         type="button"
                     >
-                        <EditIcon />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                     </button>
                     {isBlank && (
                         <button
@@ -173,7 +142,7 @@ const DocRow = ({ data, index, style }) => {
                             tabIndex={-1}
                             type="button"
                         >
-                            <DeleteIcon />
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
                         </button>
                     )}
                     <button
@@ -183,7 +152,7 @@ const DocRow = ({ data, index, style }) => {
                         tabIndex={-1}
                         type="button"
                     >
-                        <AddIcon />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
                     </button>
                 </div>
             )}
