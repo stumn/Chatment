@@ -1,6 +1,9 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
+// ❌ 問題: react-windowを削除したため、大量のチャットメッセージでパフォーマンスが低下します
+// 数百〜数千のメッセージが表示される場合、ブラウザの描画が重くなる可能性があります
+// ✅ 修正案: react-windowを再導入するか、メッセージ数を制限する
 // react-windowのimportを削除
 // import { VariableSizeList as List } from 'react-window';
 

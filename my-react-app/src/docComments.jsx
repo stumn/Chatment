@@ -107,7 +107,7 @@ const DocComments = ({ lines, emitFunctions_docs }) => {
         emitDocDelete,
         setShouldScroll,
         listRef,
-    }), [filteredDocMessages, userInfo, emitChatMessage]);
+    }), [filteredDocMessages, userInfo, emitChatMessage, emitDocAdd, emitDemandLock, emitDocEdit, emitDocDelete]);
 
     // ListのitemRenderer
     const renderRow = ({ index, style, data }) => (

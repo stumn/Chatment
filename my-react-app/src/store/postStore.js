@@ -13,6 +13,9 @@ const usePostStore = create((set, get) => ({
     // 1件追加（仮IDは使わず、サーバ返却値のみ）
     addPost: (post) =>
         set((state) => {
+            // ❌ 問題: IDの重複チェックはされていますが、サーバーからの重複データが
+            // 多数送信された場合のパフォーマンスが悪い可能性があります
+            // ✅ 修正案: Map を使用してO(1)での重複チェックを行う
             if (state.posts.some(m => m.id === post.id)) return { posts: state.posts };
             return { posts: [...state.posts, post].sort((a, b) => a.displayOrder - b.displayOrder) };
         }),

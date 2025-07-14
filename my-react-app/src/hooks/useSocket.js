@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 
 import { io } from 'socket.io-client';
+// ❌ 問題: socketインスタンスがモジュールスコープで作成されているため、
+// アプリが再マウントされてもsocket接続が残り、メモリリークの原因になる可能性があります
+// ✅ 修正案: useEffect内でsocket接続を管理し、クリーンアップで切断する
 const socket = io();
 
 import useAppStore from './../store/appStore'; // Assuming you have an app store for userInfo
@@ -14,13 +17,28 @@ export const socketId = () => socket.id;
 export default function useSocket() {
 
   const [heightArray, setHeightArray] = useState([]);
-  const { userInfo } = useAppStore((state) => state.userInfo);
+  // ❌ 問題: この書き方だとuseridはundefinedになります。appStoreの構造を確認してください
+  // const { userInfo } = useAppStore((state) => state.userInfo); // 間違った書き方
+  // ✅ 修正: 正しいstore取得方法
+  const userInfo = useAppStore((state) => state.userInfo);
 
   const addMessage = usePostStore((state) => state.addPost);
   const updatePost = usePostStore((state) => state.updatePost);
   const reorderPost = usePostStore((state) => state.reorderPost);
 
   useEffect(() => {
+    // ❌ 問題: Socket接続エラーやネットワーク断線時のエラーハンドリングがありません
+    // ✅ 修正案: エラーハンドリングを追加
+    const handleConnectError = (error) => {
+      console.error('Socket connection error:', error);
+      // TODO: ユーザーにエラーメッセージを表示する仕組みを追加
+    };
+
+    const handleDisconnect = (reason) => {
+      console.warn('Socket disconnected:', reason);
+      // TODO: 再接続の試行やユーザー通知の仕組みを追加
+    };
+
     const handleHeightChange = (data) => setHeightArray(data);
     const handleConnectOK = (userInfo) => {
       socket.emit('fetch-history');
@@ -60,16 +78,22 @@ export default function useSocket() {
     const handleLockPermitted = (payload) => {
       // payload: { id, nickname}
       console.log('Lock-permitted payload:', payload);
-
+      // ❌ 問題: ロック許可時のUI更新処理が実装されていません
+      // ✅ 修正案: 該当する行を編集可能状態にする処理を追加
+      // 例: const rowElement = document.querySelector(`[data-id="${payload.id}"]`);
+      // rowElement?.setAttribute('contenteditable', 'true');
     }
 
     const handleRowLocked = (payload) => {
       // payload: { id, nickname }
       console.log('Row-locked payload:', payload);
 
-      // ロックされた行を特定し、UIを更新する処理を追加
+      // ❌ 問題: ロック状態の視覚的フィードバックが不完全です
+      // DOMを直接操作しているため、Reactの仮想DOMと競合する可能性があります
+      // ✅ 修正案: Zustandストアで行のロック状態を管理し、Reactコンポーネントで表示する
       const { id, nickname } = payload;
       const LockedRow = document.querySelector(`[data-id="${id}"]`);
+      // TODO: LockedRowに対する処理を実装
     }
 
     const handleLockNotAllowed = (payload) => {
@@ -106,6 +130,9 @@ export default function useSocket() {
       'doc-edit': handleDocEdit,
       'doc-reorder': handleDocReorder,
       'doc-delete': handleDocDelete,
+      // エラーハンドリング追加
+      'connect_error': handleConnectError,
+      'disconnect': handleDisconnect,
     };
 
     // ループでイベントリスナーを登録

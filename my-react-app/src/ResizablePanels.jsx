@@ -46,6 +46,8 @@ export default function ResizablePanels({ emitFunctions }) {
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
     const posts = usePostStore((state) => state.posts);
+    // ❌ 問題: 毎回ソートが実行されるため、大量のデータでパフォーマンスが低下する可能性があります
+    // ✅ 修正案: useMemoの依存配列を最適化し、posts.lengthも考慮する
     const messages = useMemo(() => {
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;

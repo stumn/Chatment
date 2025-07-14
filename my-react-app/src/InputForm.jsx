@@ -23,7 +23,11 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', emi
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // ❌ 問題: trim()だけでは不十分なバリデーションです
+    // ✅ 修正案: 文字数制限やHTMLタグの除去など、より厳密なバリデーションを追加
     if (message.trim()) {
+      // TODO: XSS対策やメッセージ長制限を追加
+      // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
       emitChatMessage(handleName, message, userId); // userIdも送信
       setMessage(''); // 送信後、入力フィールドをクリア
     }

@@ -31,6 +31,11 @@ function BeforeLogin({ open, onLogin }) {
             return;
         }
 
+        // ❌ 問題: ログイン情報がローカルストレージに保存されないため、
+        // ページリロード時にログイン情報が失われます
+        // ✅ 修正案: localStorageに保存して永続化する
+        // localStorage.setItem('userInfo', JSON.stringify({ nickname, status, ageGroup }));
+
         // 収集したデータを親コンポーネントに渡す
         onLogin({ nickname, status, ageGroup });
     };

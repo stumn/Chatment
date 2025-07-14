@@ -34,10 +34,16 @@ function App() {
     if (!isLoggedIn) return; // 判定変数を利用
     emitLoginName(userInfo);
     setOpen(false);
-  }, [userInfo, isLoggedIn]); // isLoggedInも依存配列に追加
+    // ❌ 問題: emitLoginNameが依存配列に含まれていないため、ESLintの警告が出る可能性があります
+    // ✅ 修正: 必要な依存を全て含める、またはemitLoginNameを依存配列から除外する理由をコメントで明記
+  }, [userInfo, isLoggedIn, emitLoginName]); // emitLoginNameを追加
 
   // myHeightが変更されたらサーバーに高さを送信///////////////////////////
-  useEffect(() => { emitHeightChange(myHeight); }, [myHeight]);
+  useEffect(() => { 
+    emitHeightChange(myHeight); 
+    // ❌ 問題: emitHeightChangeが依存配列に含まれていない
+    // ✅ 修正: emitHeightChangeを依存配列に追加するか、useCallbackで安定化する
+  }, [myHeight, emitHeightChange]);
 
 
   if (isLoggedIn) { // ログイン完了後

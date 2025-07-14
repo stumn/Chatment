@@ -3,21 +3,22 @@
 import React, { useState, useRef } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-import useSocket from './hooks/useSocket'; // Assuming you have a custom hook for socket management
+// ❌ 問題: useSocketを直接インポートすると、propsで受け取ったemitFunctionsと重複してsocket接続が複数作られる可能性があります
+// import useSocket from './hooks/useSocket'; // 削除：propsからemitFunctionsを使用する
 import usePostStore from './store/postStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
-    // data = { docMessages, userInfo, emitChatMessage, setShouldScroll }
-    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef } = data;
+    // data = { docMessages, userInfo, emitChatMessage, setShouldScroll, emitDocAdd, emitDocEdit, emitDocDelete }
+    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef, emitDocAdd, emitDocEdit, emitDocDelete } = data;
     const message = docMessages[index];
 
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
 
-    // useSocketからemitDocAdd, emitDocEditを取得
-    const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket();
+    // ✅ 修正: propsから受け取ったemit関数を使用（重複インポートを回避）
+    // const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket(); // 削除
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
