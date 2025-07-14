@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import usePostStore from './store/postStore';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
-const ChatComments = ({ lines, bottomHeight, emitFunctions_chat }) => {
+const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);
     // const chatMessages = usePostStore((state) => state.getChatMessages(Math.ceil(lines.num)));
     const posts = usePostStore((state) => state.posts);
@@ -46,12 +46,11 @@ const ChatComments = ({ lines, bottomHeight, emitFunctions_chat }) => {
         }
     }, [filteredChatMessages]);
 
+    // ✅ 修正: chatFunctionsから必要な関数を取得
     const { 
-        emitChatMessage,
-        socketId, 
-        emitPositive, 
-        emitNegative 
-    } = emitFunctions_chat;
+        chat: { send, addPositive, addNegative },
+        socket: { id: socketId }
+    } = chatFunctions;
 
     // Listの代わりにdiv+mapで描画
     return (
@@ -70,10 +69,10 @@ const ChatComments = ({ lines, bottomHeight, emitFunctions_chat }) => {
                         key={msg.id || idx}
                         data={{
                             chatMessages: filteredChatMessages,
-                            emitChatMessage,
+                            sendChatMessage: send,
                             userSocketId: socketId,
-                            emitPositive,
-                            emitNegative
+                            addPositive,
+                            addNegative
                         }}
                         index={idx}
                         style={{}}

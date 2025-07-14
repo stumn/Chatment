@@ -10,7 +10,7 @@ import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";
 import usePostStore from "./store/postStore";
 
-export default function ResizablePanels({ emitFunctions }) {
+export default function ResizablePanels({ appController }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -20,23 +20,19 @@ export default function ResizablePanels({ emitFunctions }) {
     const { myHeight, setMyHeight } = useAppStore();
     const { userInfo } = useAppStore();
 
-    // socket関連の関数を抽出
-    const { emitLog } = emitFunctions;
+    // ✅ 修正: appControllerから必要な関数を取得
+    const { raw: { emitLog } } = appController;
 
-    const emitFunctions_docs = {
-        emitChatMessage: emitFunctions.emitChatMessage,
-        emitDocReorder: emitFunctions.emitDocReorder,
-        emitDocAdd: emitFunctions.emitDocAdd,
-        emitDemandLock: emitFunctions.emitDemandLock,
-        emitDocEdit: emitFunctions.emitDocEdit,
-        emitDocDelete: emitFunctions.emitDocDelete
+    // Document操作用の関数群を抽出
+    const documentFunctions = {
+        document: appController.document,
+        chat: appController.chat.send, // sendChatMessage
     };
 
-    const emitFunctions_chat = {
-        emitChatMessage: emitFunctions.emitChatMessage,
-        socketId: emitFunctions.socketId,
-        emitPositive: emitFunctions.emitPositive,
-        emitNegative: emitFunctions.emitNegative
+    // Chat操作用の関数群を抽出  
+    const chatFunctions = {
+        chat: appController.chat,
+        socket: appController.socket
     };
 
     const DIVIDER_HEIGHT = 15;
@@ -64,18 +60,20 @@ export default function ResizablePanels({ emitFunctions }) {
 
         if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
 
-        // ログをemit
-        const data = {
-            userId: userInfo && userInfo._id,
-            action: 'calculate-lines',
-            detail: {
-                height: bottomHeight,
-                lines: newLines,
-                user: userInfo && userInfo.nickname
-            }
-        };
-        console.log("emitLog:", data);
-        emitLog(data);
+        // ✅ 修正: ログの送信を制限（デバッグ目的でのみ送信）
+        if (process.env.NODE_ENV === 'development') {
+            const data = {
+                userId: userInfo && userInfo._id,
+                action: 'calculate-lines',
+                detail: {
+                    height: bottomHeight,
+                    lines: newLines,
+                    user: userInfo && userInfo.nickname
+                }
+            };
+            console.log("emitLog:", data);
+            // emitLog(data); // ✅ 修正: 本番環境では送信しない
+        }
 
     }, [bottomHeight, messages]);
 
@@ -117,18 +115,20 @@ export default function ResizablePanels({ emitFunctions }) {
             document.removeEventListener("mouseup", onMouseUp);
             document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
-            // ログをemit
-            const data = {
-                userId: userInfo && userInfo._id,
-                action: 'slide-bar-move',
-                detail: {
-                    from: startY,
-                    to: startHeight,
-                    user: userInfo && userInfo.nickname
-                }
-            };
-            console.log("emitLog:", data);
-            emitLog(data);
+            // ✅ 修正: スライドバーログも制限
+            if (process.env.NODE_ENV === 'development') {
+                const data = {
+                    userId: userInfo && userInfo._id,
+                    action: 'slide-bar-move',
+                    detail: {
+                        from: startY,
+                        to: startHeight,
+                        user: userInfo && userInfo.nickname
+                    }
+                };
+                console.log("emitLog:", data);
+                // emitLog(data); // ✅ 修正: 本番環境では送信しない
+            }
         };
 
         document.addEventListener("mousemove", onMouseMove);
@@ -153,7 +153,7 @@ export default function ResizablePanels({ emitFunctions }) {
             <div
                 id='doc-container'
                 style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
-                <DocComments lines={lines} emitFunctions_docs={emitFunctions_docs} />
+                <DocComments lines={lines} documentFunctions={documentFunctions} />
             </div>
 
             <div
@@ -170,7 +170,7 @@ export default function ResizablePanels({ emitFunctions }) {
             <div
                 id='chat-container'
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} emitFunctions_chat={emitFunctions_chat} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} />
             </div>
         </Paper>
     );

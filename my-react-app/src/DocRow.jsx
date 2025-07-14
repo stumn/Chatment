@@ -9,16 +9,16 @@ import usePostStore from './store/postStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
-    // data = { docMessages, userInfo, emitChatMessage, setShouldScroll, emitDocAdd, emitDocEdit, emitDocDelete }
-    const { docMessages, userInfo, emitChatMessage, setShouldScroll, listRef, emitDocAdd, emitDocEdit, emitDocDelete } = data;
+    // ✅ 修正: documentFunctionsから必要な関数を取得
+    const { docMessages, userInfo, documentFunctions, setShouldScroll, listRef } = data;
     const message = docMessages[index];
 
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
 
-    // ✅ 修正: propsから受け取ったemit関数を使用（重複インポートを回避）
-    // const { emitDocAdd, emitDocEdit, emitDocDelete } = useSocket(); // 削除
+    // ✅ 修正: documentFunctionsから操作関数を取得（重複インポートを回避）
+    const { document: { add, edit, delete: deleteDoc }, chat: sendChatMessage } = documentFunctions;
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
@@ -43,7 +43,7 @@ const DocRow = ({ data, index, style }) => {
         console.log('handleAddBelow called for message:', data);
 
         // 新しい行を挿入したいメッセージのIDをサーバーに送信
-        emitDocAdd && emitDocAdd(data);
+        add && add(data);
 
         setIsEditing(false); // 新規行はサーバからのdoc-addで追加されるため、setTimeoutでのfocusは不要
     };
@@ -51,7 +51,7 @@ const DocRow = ({ data, index, style }) => {
     // 編集終了
     const handleBlur = (e) => {
         updateDocMessage(message.id, e.target.textContent.replace(/\r/g, ''));
-        emitDocEdit && emitDocEdit({ id: message.id, newMsg: e.target.textContent.replace(/\r/g, ''), nickname: userInfo.nickname });
+        edit && edit(message.id, e.target.textContent.replace(/\r/g, ''));
         setIsEditing(false);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);
@@ -88,7 +88,7 @@ const DocRow = ({ data, index, style }) => {
     // 行削除
     const handleDelete = () => {
         if (setShouldScroll) setShouldScroll(false); // 削除時はスクロール抑制
-        emitDocDelete && emitDocDelete(message.id);
+        deleteDoc && deleteDoc(message.id);
         removeDocMessage(message.id);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);

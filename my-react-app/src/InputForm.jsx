@@ -11,11 +11,14 @@ import MenuItem from '@mui/material/MenuItem'; // MenuItemをインポート
 
 import useSizeStore from './store/sizeStore';
 
-const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', emitChatMessage }) => {
+const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
   
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
+  
+  // ✅ 修正: appControllerからsendChatMessage関数を取得
+  const { chat: { send: sendChatMessage } } = appController;
   
   // --- 年代＋ステータスの組み合わせを生成 ---
   const ageLabel = ageGroup ? ageGroup.replace('s', '代') : '';
@@ -28,14 +31,14 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', emi
     if (message.trim()) {
       // TODO: XSS対策やメッセージ長制限を追加
       // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
-      emitChatMessage(handleName, message, userId); // userIdも送信
+      sendChatMessage(handleName, message); // ✅ 修正: appControllerのsendChatMessage使用
       setMessage(''); // 送信後、入力フィールドをクリア
     }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
-      emitChatMessage(handleName, message, userId);
+      sendChatMessage(handleName, message);
       setMessage('');
     }
   };

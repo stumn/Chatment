@@ -14,10 +14,10 @@ const ChatRow = ({ data, index, style }) => {
     if (fontSize < 10) fontSize = 10;
 
     // --- emitPositive/emitNegativeを取得 ---
-    const emitPositive = data.emitPositive;
-    const emitNegative = data.emitNegative;
-    const handlePositive = () => emitPositive && emitPositive(cMsg.id);
-    const handleNegative = () => emitNegative && emitNegative(cMsg.id);
+    const addPositive = data.addPositive;
+    const addNegative = data.addNegative;
+    const handlePositive = () => addPositive && addPositive(cMsg.id);
+    const handleNegative = () => addNegative && addNegative(cMsg.id);
 
     return (
         <div style={style} key={cMsg.order} className="chat-cMsg list-item-container">

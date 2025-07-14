@@ -161,11 +161,14 @@ export default function useSocket() {
   const emitLoginName = () => {
     const { userInfo } = useAppStore.getState();
     socket.emit('login', userInfo);
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      action: 'login',
-      detail: { user: userInfo && userInfo.nickname }
-    });
+    // ✅ 修正: ログイン時のログ送信を制限
+    if (process.env.NODE_ENV === 'development') {
+      emitLog({
+        userId: validUserId(userInfo && userInfo._id),
+        action: 'login',
+        detail: { user: userInfo && userInfo.nickname }
+      });
+    }
   };
   const emitHeightChange = (height) => socket.emit('heightChange', height);
 

@@ -1,23 +1,5 @@
 // src/hooks/useAppController.js
 
-// ❌ 問題: このファイルが作成されているが、アプリケーション内でどこでも使用されていません
-// 一方で、各コンポーネントで直接useSocketを呼び出しているため、ロジックが分散しています
-// ✅ 修正案: 
-// 1. このコントローラーを実際に使用してビジネスロジックを集約する
-// 2. または、不要であれば削除してコードをシンプルに保つ
-
-// 1. useSocket から socket通信を行う関数 (emit系) を受け取ります。
-// 2. usePostStore や useAppStore から 状態を更新する関数 (action系) を受け取ります。
-
-// 🎯UIコンポーネントのために、「状態更新」と「socket通信」を両方実行する
-// ⇒　新しい関数（例：addDocument）を定義して提供します。
-
-import useSocket from './useSocket'; // ✅ 修正: 正しいパスに変更
-import usePostStore from '../store/postStore';
-import useAppStore from '../store/appStore';
-
-// src/hooks/useAppController.js
-
 import { useCallback, useMemo } from 'react';
 import useSocket from './useSocket';
 import usePostStore from '../store/postStore';
@@ -49,6 +31,9 @@ export const useAppController = () => {
     // Store関連の取得
     const userInfo = useAppStore((state) => state.userInfo);
     const { addPost, updatePost, removePost, reorderPost } = usePostStore();
+
+    // ✅ 修正: socketFunctionsの参照を安定化（useMemoで包む）
+    const stableSocketFunctions = useMemo(() => socketFunctions, [socketFunctions]);
 
     // ===== DOCUMENT操作 =====
 
@@ -253,14 +238,14 @@ export const useAppController = () => {
         },
 
         // 生のsocket関数（後方互換性のため）
-        raw: socketFunctions,
+        raw: stableSocketFunctions, // ✅ 修正: 安定化されたsocketFunctionsを使用
 
         // ユーザー情報
         user: userInfo
     }), [
         addDocument, editDocument, deleteDocument, reorderDocument, requestLock,
         sendChatMessage, addPositive, addNegative,
-        socketId, heightArray, socketFunctions, userInfo
+        socketId, heightArray, stableSocketFunctions, userInfo // ✅ 修正: stableSocketFunctionsに変更
     ]);
 
     return api;

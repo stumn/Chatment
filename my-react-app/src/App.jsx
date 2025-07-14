@@ -2,7 +2,8 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import useSocket from './hooks/useSocket'; // useSocketはApp全体で1回だけ呼び出す。
+// ✅ 修正: useSocketの代わりにuseAppControllerを使用
+import { useAppController } from './hooks/useAppContoroller';
 
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
@@ -19,31 +20,30 @@ function App() {
   // --- カスタムフック ---
   useResponsiveSize();
 
-  // --- ストアからの状態取得 ---
+  // ストアからの状態取得
   const { width, height } = useSizeStore();
   const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore();
 
-  // --- useSocketを呼び出してsocket関数を取得 ---
-  const socketFunctions = useSocket(); // useSocketの戻り値を直接利用
-  const { heightArray, emitLoginName, emitHeightChange } = socketFunctions; // 個別に使いたいものだけを分割代入
+  // ✅ 修正: useAppControllerを使用してSocket通信を一元管理
+  const appController = useAppController();
+  const { socket: { heightArray }, raw: socketFunctions } = appController;
 
-  // ログイン状態を判定する変数を定義////////////////////////////////////
+  // ログイン状態を判定する変数を定義
   const isLoggedIn = userInfo.nickname !== undefined;
 
   useEffect(() => {
-    if (!isLoggedIn) return; // 判定変数を利用
-    emitLoginName(userInfo);
+    if (!isLoggedIn) return;
+    // ✅ 修正: appControllerから取得したsocket関数を使用
+    socketFunctions.emitLoginName(userInfo);
     setOpen(false);
-    // ❌ 問題: emitLoginNameが依存配列に含まれていないため、ESLintの警告が出る可能性があります
-    // ✅ 修正: 必要な依存を全て含める、またはemitLoginNameを依存配列から除外する理由をコメントで明記
-  }, [userInfo, isLoggedIn, emitLoginName]); // emitLoginNameを追加
+    // ✅ 修正: socketFunctionsを依存配列から除外（useSocketはApp全体で1つのインスタンス）
+  }, [userInfo, isLoggedIn]);
 
-  // myHeightが変更されたらサーバーに高さを送信///////////////////////////
+  // myHeightが変更されたらサーバーに高さを送信
   useEffect(() => { 
-    emitHeightChange(myHeight); 
-    // ❌ 問題: emitHeightChangeが依存配列に含まれていない
-    // ✅ 修正: emitHeightChangeを依存配列に追加するか、useCallbackで安定化する
-  }, [myHeight, emitHeightChange]);
+    socketFunctions.emitHeightChange(myHeight); 
+    // ✅ 修正: socketFunctionsを依存配列から除外（安定したsocket接続）
+  }, [myHeight]);
 
 
   if (isLoggedIn) { // ログイン完了後
@@ -52,7 +52,7 @@ function App() {
         <Suspense fallback={<div>Loading...</div>}>
           <AfterLogin
             heightArray={heightArray}
-            socketFunctions={socketFunctions}
+            appController={appController}
             userInfo={userInfo}
           />
         </Suspense>

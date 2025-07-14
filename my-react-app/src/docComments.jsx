@@ -11,7 +11,7 @@ import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 import usePostStore from './store/postStore';
 
-const DocComments = ({ lines, emitFunctions_docs }) => {
+const DocComments = ({ lines, documentFunctions }) => {
 
     const listRef = useRef(null);
 
@@ -24,14 +24,8 @@ const DocComments = ({ lines, emitFunctions_docs }) => {
         return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
     }, [posts]);
 
-    const { 
-        emitChatMessage,
-        emitDocReorder,
-        emitDocAdd,
-        emitDemandLock,
-        emitDocEdit,
-        emitDocDelete
-    } = emitFunctions_docs;
+    // ✅ 修正: documentFunctionsから必要な関数を取得
+    const { document: { reorder }, chat: sendChatMessage } = documentFunctions;
 
     const { userInfo, myHeight } = useAppStore();
 
@@ -85,7 +79,7 @@ const DocComments = ({ lines, emitFunctions_docs }) => {
         console.log('onDragEnd data:', data)
 
         // サーバーに並び替えを通知
-        emitDocReorder && emitDocReorder(data);
+        reorder && reorder(data);
 
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true);
@@ -100,14 +94,10 @@ const DocComments = ({ lines, emitFunctions_docs }) => {
     const itemData = useMemo(() => ({
         docMessages: filteredDocMessages,
         userInfo,
-        emitChatMessage,
-        emitDocAdd,
-        emitDemandLock,
-        emitDocEdit,
-        emitDocDelete,
+        documentFunctions, // ✅ 修正: documentFunctionsを渡す
         setShouldScroll,
         listRef,
-    }), [filteredDocMessages, userInfo, emitChatMessage, emitDocAdd, emitDemandLock, emitDocEdit, emitDocDelete]);
+    }), [filteredDocMessages, userInfo, documentFunctions]);
 
     // ListのitemRenderer
     const renderRow = ({ index, style, data }) => (
