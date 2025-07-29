@@ -365,7 +365,15 @@ io.on('connection', (socket) => {
 
         // 全クライアントに並び替えをブロードキャスト
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
-        io.emit('doc-reorder', posts);
+        
+        // ✅ 修正: 並び替え情報に実行者の情報を含めて送信
+        io.emit('doc-reorder', {
+          posts: posts,
+          reorderInfo: {
+            movedPostId: movedPostId,
+            executorNickname: nickname
+          }
+        });
 
         // ✅ 追加: 並び替え完了時にロック解除
         unlockRowByPostId(movedPostId);

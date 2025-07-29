@@ -41,7 +41,7 @@ function BeforeLogin({ open, onLogin }) {
     };
 
     // 年代の選択肢
-    const ageGroups = ['10s', '20s', '30s', '40s', '50s', '60s', '70s', '80s', '90s'];
+    const ageGroups = ['10s', '20s', '30s', '40s', '50s', 'over 60s'];
 
     return (
         <ThemeProvider theme={defaultTheme}>

@@ -25,6 +25,8 @@ export default function useSocket() {
   const addMessage = usePostStore((state) => state.addPost);
   const updatePost = usePostStore((state) => state.updatePost);
   const reorderPost = usePostStore((state) => state.reorderPost);
+  // ✅ 追加: 変更状態管理のメソッドを取得
+  const setChangeState = usePostStore((state) => state.setChangeState);
 
   useEffect(() => {
     // ❌ 問題: Socket接続エラーやネットワーク断線時のエラーハンドリングがありません
@@ -47,18 +49,21 @@ export default function useSocket() {
 
     const handleHistory = (historyArray) => {
       historyArray.forEach((msg) => {
-        addMessage(msg);
+        // ✅ 修正: 履歴データは新規作成ではないのでfalse
+        addMessage(msg, false);
       });
     };
 
     const handleDocsHistory = (docs) => {
       docs.forEach((doc) => {
-        addMessage(doc);
+        // ✅ 修正: 履歴データは新規作成ではないのでfalse
+        addMessage(doc, false);
       });
     };
 
     const handleChatMessage = (data) => {
-      addMessage(data);
+      // ✅ 修正: チャットメッセージは新規作成として扱う
+      addMessage(data, true);
     };
 
     // --- positive/negativeイベントを受信しstoreを更新 ---
@@ -72,7 +77,10 @@ export default function useSocket() {
 
     // --- Doc系イベント受信 ---
     const handleDocAdd = (payload) => {
-      addMessage(payload);
+      console.log('handleDocAdd called with payload:', payload);
+      // ✅ 修正: 新規作成として変更状態を記録
+      addMessage(payload, true); // 第2引数をtrueにして新規作成であることを示す
+      console.log('addMessage called with isNewlyCreated=true');
     };
 
     const handleLockPermitted = (payload) => {
@@ -112,9 +120,22 @@ export default function useSocket() {
       updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
     };
 
-    const handleDocReorder = (posts) => {
-      // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
-      reorderPost(posts);
+    const handleDocReorder = (payload) => {
+      // ✅ 修正: サーバーからの新しい形式に対応
+      if (payload.posts && payload.reorderInfo) {
+        // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
+        reorderPost(payload.posts);
+        
+        // ✅ 追加: 並び替えされた投稿の変更状態を記録（全クライアントで表示）
+        setChangeState(
+          payload.reorderInfo.movedPostId, 
+          'reordered', 
+          payload.reorderInfo.executorNickname
+        );
+      } else {
+        // 旧形式との互換性維持
+        reorderPost(payload);
+      }
     };
 
     const handleDocDelete = (payload) => {

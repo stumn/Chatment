@@ -19,6 +19,10 @@ const DocComments = ({ lines, documentFunctions }) => {
     const [shouldScroll, setShouldScroll] = useState(true);
 
     const posts = usePostStore((state) => state.posts);
+    
+    // ✅ 追加: 変更状態管理のメソッドを取得
+    const clearOldChangeStates = usePostStore((state) => state.clearOldChangeStates);
+    
     const docMessages = useMemo(() => {
         // getDocMessages()のロジックをここに移植
         return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
@@ -31,6 +35,15 @@ const DocComments = ({ lines, documentFunctions }) => {
 
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8);
     const charsPerLine = Math.floor(listWidth / 13);
+
+    // ✅ 追加: 定期的に古い変更状態をクリア（10分経過したもの）
+    useEffect(() => {
+        const interval = setInterval(() => {
+            clearOldChangeStates(10); // ✅ 修正: 10分経過した変更状態をクリア（フェードアウト時間に合わせて調整）
+        }, 60000); // 1分ごとにチェック
+
+        return () => clearInterval(interval);
+    }, [clearOldChangeStates]);
 
     // スクロールを最下部に（shouldScrollがtrueのときのみ）
     useEffect(() => {

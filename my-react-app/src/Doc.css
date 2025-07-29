@@ -212,3 +212,46 @@
   pointer-events: none;
   user-select: none;
 }
+
+/* ✅ 追加: 変更バー（サイドバー）のスタイル */
+.change-bar {
+    width: 4px;
+    height: 100%;
+    min-height: 20px;
+    margin-right: 8px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    cursor: pointer; /* ホバー可能であることを示す */
+    opacity: 1;
+}
+
+.change-bar.fade-out {
+    opacity: 0;
+    transition: opacity 2s ease-out; /* 2秒かけてフェードアウト */
+}
+
+.change-bar:hover {
+    width: 6px; /* ホバー時に少し太く */
+    box-shadow: 0 0 4px rgba(0,0,0,0.3); /* ホバー時に影を追加 */
+    opacity: 1 !important; /* ホバー中はフェードアウトを一時停止 */
+}
+
+.bar-added { 
+    background-color: #2196F3; /* 青 - 空行追加 */
+}
+
+.bar-deleted { 
+    background-color: #F44336; /* 赤 - 削除 */
+}
+
+.bar-modified { 
+    background-color: #4CAF50; /* 緑 - 編集 */
+}
+
+.bar-reordered { 
+    background-color: #FF9800; /* オレンジ - 並び替え */
+}
+
+.bar-none { 
+    background-color: transparent; /* 変更なし */
+}
