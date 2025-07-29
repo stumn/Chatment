@@ -41,6 +41,29 @@
     cursor: grabbing;
 }
 
+/* ✅ 追加: ロック中の行のドラッグ無効化スタイル */
+.locked .maru {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+    background-color: #ccc !important;
+}
+
+.locked .maru:hover {
+    background-color: #ccc !important;
+    transform: none !important;
+}
+
+/* ✅ 追加: ロック中のアイテム全体のスタイル */
+.locked {
+    background-color: #fff3cd !important;
+    border-color: #ffeaa7 !important;
+    pointer-events: none; /* ドラッグを完全に無効化 */
+}
+
+.locked .doc-comment-content {
+    pointer-events: auto; /* テキスト選択は有効にする */
+}
+
 .is-dragging {
     background-color: #f0f8ff;
     border: 1.5px solid #8ec3f1;
@@ -171,4 +194,21 @@
 .doc-comment-item.locked .delete-button,
 .doc-comment-item.locked .add-button {
   display: none !important;
+}
+
+/* ✅ ドラッグ・アンド・ドロップのロック状態 */
+.doc-comment-item.locked .maru {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}
+
+.doc-comment-item.locked .maru:hover {
+  background-color: #dc3545 !important;
+  transform: none !important;
+}
+
+/* ドラッグ中の状態 */
+.doc-comment-item.drag-disabled {
+  pointer-events: none;
+  user-select: none;
 }

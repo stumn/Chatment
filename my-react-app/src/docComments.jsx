@@ -56,10 +56,40 @@ const DocComments = ({ lines, documentFunctions }) => {
         return estimatedLines * lineHeight + 8;
     };
 
+    // ✅ 追加: ドラッグ開始時のロック要求
+    const onDragStart = (start) => {
+        console.log('onDragStart:', start);
+        
+        const draggedMessage = docMessages[start.source.index];
+        if (draggedMessage && draggedMessage.id) {
+            const rowElementId = `dc-${start.source.index}-${draggedMessage.displayOrder}-${draggedMessage.id}`;
+            
+            // ドラッグ開始時にロックを要求
+            documentFunctions.document.requestLock(rowElementId, userInfo.nickname, userInfo._id);
+        }
+    };
+
     // DnDのonDragEnd
     const onDragEnd = (result) => {
         const { source, destination } = result;
-        if (!destination || source.index === destination.index) return;
+        
+        // ドラッグされた行の情報を取得
+        const draggedMessage = docMessages[source.index];
+        const rowElementId = `dc-${source.index}-${draggedMessage?.displayOrder}-${draggedMessage?.id}`;
+        
+        // ドラッグが中断された場合（destination が null）はロック解除のみ
+        if (!destination) {
+            console.log('Drag cancelled, unlocking row:', rowElementId);
+            documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
+            return;
+        }
+        
+        // 同じ位置にドロップされた場合もロック解除のみ
+        if (source.index === destination.index) {
+            console.log('Drag to same position, unlocking row:', rowElementId);
+            documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
+            return;
+        }
 
         console.log('onDragEnd:', source, destination);
 
@@ -80,6 +110,10 @@ const DocComments = ({ lines, documentFunctions }) => {
 
         // サーバーに並び替えを通知
         reorder && reorder(data);
+
+        // ✅ 追加: ドラッグ完了後にロック解除
+        console.log('Drag completed successfully, unlocking row:', rowElementId);
+        documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
 
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true);
@@ -109,7 +143,7 @@ const DocComments = ({ lines, documentFunctions }) => {
     );
 
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
+        <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
             <Droppable
                 droppableId="droppable"
                 mode="virtual"

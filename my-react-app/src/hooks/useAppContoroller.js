@@ -200,13 +200,16 @@ export const useAppController = () => {
 
     /**
      * ドキュメント行のロックを要求
-     * @param {object} data - ロック要求データ
+     * @param {string} rowElementId - 行のElement ID
+     * @param {string} nickname - ユーザーのニックネーム  
+     * @param {string} userId - ユーザーID
      */
-    const requestLock = useCallback((data) => {
+    const requestLock = useCallback((rowElementId, nickname, userId) => {
         try {
             emitDemandLock({
-                ...data,
-                nickname: userInfo?.nickname,
+                rowElementId,
+                nickname: nickname || userInfo?.nickname,
+                userId: userId || userInfo?._id,
                 timestamp: new Date().toISOString()
             });
         } catch (error) {

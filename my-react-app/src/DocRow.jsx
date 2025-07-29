@@ -78,11 +78,7 @@ const DocRow = ({ data, index, style }) => {
         }
 
         // ✅ 追加: ロック要求を送信
-        requestLock && requestLock({
-            rowElementId,
-            nickname: userInfo?.nickname,
-            postId: message?.id
-        });
+        requestLock && requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
 
         setIsEditing(true);
         setTimeout(() => {
@@ -121,7 +117,12 @@ const DocRow = ({ data, index, style }) => {
 
     return (
         // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
-        <Draggable draggableId={String(message?.id ?? index)} index={index} key={message?.id ?? index}>
+        <Draggable 
+            draggableId={String(message?.id ?? index)} 
+            index={index} 
+            key={message?.id ?? index}
+            isDragDisabled={locked} // ✅ 追加: ロック中はドラッグ無効化
+        >
             {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}
