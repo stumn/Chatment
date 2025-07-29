@@ -5,7 +5,7 @@ import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 
 import './Doc.css';
-import DocRow from './DocRow'; // ←遅延読み込みをやめて通常import
+import DocRow from './DocRow';
 
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
@@ -18,15 +18,17 @@ const DocComments = ({ lines, documentFunctions }) => {
     // --- 新規行追加時の自動スクロール抑制用 ---
     const [shouldScroll, setShouldScroll] = useState(true);
 
-    const posts = usePostStore((state) => state.posts);
-    
     // 変更状態管理のメソッドを取得
     const clearOldChangeStates = usePostStore((state) => state.clearOldChangeStates);
-    
+
+    // ドキュメントの投稿を取得(後ろからlines分は取り除く)
+    const posts = usePostStore((state) => state.posts);
+
     const docMessages = useMemo(() => {
-        // getDocMessages()のロジックをここに移植
-        return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
-    }, [posts]);
+        let docPosts = posts.slice(0, -lines.num);
+        docPosts = [...docPosts].sort((a, b) => a.displayOrder - b.displayOrder);
+        return docPosts;
+    }, [posts, lines.num]);
 
     // documentFunctionsから必要な関数を取得
     const { document: { reorder }, chat: sendChatMessage } = documentFunctions;
@@ -72,11 +74,11 @@ const DocComments = ({ lines, documentFunctions }) => {
     // ドラッグ開始時のロック要求
     const onDragStart = (start) => {
         console.log('onDragStart:', start);
-        
+
         const draggedMessage = docMessages[start.source.index];
         if (draggedMessage && draggedMessage.id) {
             const rowElementId = `dc-${start.source.index}-${draggedMessage.displayOrder}-${draggedMessage.id}`;
-            
+
             // ドラッグ開始時にロックを要求
             documentFunctions.document.requestLock(rowElementId, userInfo.nickname, userInfo._id);
         }
@@ -85,18 +87,18 @@ const DocComments = ({ lines, documentFunctions }) => {
     // DnDのonDragEnd
     const onDragEnd = (result) => {
         const { source, destination } = result;
-        
+
         // ドラッグされた行の情報を取得
         const draggedMessage = docMessages[source.index];
         const rowElementId = `dc-${source.index}-${draggedMessage?.displayOrder}-${draggedMessage?.id}`;
-        
+
         // ドラッグが中断された場合（destination が null）はロック解除のみ
         if (!destination) {
             console.log('Drag cancelled, unlocking row:', rowElementId);
             documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
             return;
         }
-        
+
         // 同じ位置にドロップされた場合もロック解除のみ
         if (source.index === destination.index) {
             console.log('Drag to same position, unlocking row:', rowElementId);
@@ -134,7 +136,11 @@ const DocComments = ({ lines, documentFunctions }) => {
     };
 
     // idがundefinedなものを除外し、重複idも除外
-    const filteredDocMessages = useMemo(() => docMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx), [docMessages]);
+    const filteredDocMessages = useMemo(() =>
+        docMessages.filter((msg, idx, arr) =>
+            msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx)
+        , [docMessages]);
+
     const docCount = filteredDocMessages.length;
 
     // Listに渡すitemData
