@@ -17,7 +17,6 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
   
-  // ✅ 修正: appControllerからsendChatMessage関数を取得
   const { chat: { send: sendChatMessage } } = appController;
   
   // --- 年代＋ステータスの組み合わせを生成 ---
@@ -31,8 +30,10 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     if (message.trim()) {
       // TODO: XSS対策やメッセージ長制限を追加
       // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
-      sendChatMessage(handleName, message); // ✅ 修正: appControllerのsendChatMessage使用
-      setMessage(''); // 送信後、入力フィールドをクリア
+      sendChatMessage(handleName, message);
+      
+      // 送信後、入力フィールドをクリア
+      setMessage('');
     }
   };
 

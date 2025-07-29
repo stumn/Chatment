@@ -41,7 +41,6 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
         }
     }, [filteredChatMessages]);
 
-    // ✅ 修正: chatFunctionsから必要な関数を取得
     const { 
         chat: { send, addPositive, addNegative },
         socket: { id: socketId }

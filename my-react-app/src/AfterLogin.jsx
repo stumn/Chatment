@@ -11,7 +11,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     // userInfoをpropsから受け取る
     const { nickname, status, ageGroup, userId } = userInfo;
 
-    // ✅ 修正: appControllerから必要な関数を抽出
+    // appControllerから必要な関数を抽出
     const { chat } = appController;
 
     // after-login-containerの幅・高さを設定(sizeStore から取得)
@@ -42,14 +42,12 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                     gap: '4px', // Add spacing between elements
                 }}>
 
-                {/* ✅ 修正: appControllerを渡すように変更 */}
                 <ResizablePanels appController={appController} />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 
             </div>
 
-            {/* ✅ 修正: InputFormにappControllerを渡す */}
             <InputForm nickname={nickname} status={status} ageGroup={ageGroup} userId={userId} appController={appController} />
         </div>
     );

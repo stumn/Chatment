@@ -20,7 +20,7 @@ const DocComments = ({ lines, documentFunctions }) => {
 
     const posts = usePostStore((state) => state.posts);
     
-    // ✅ 追加: 変更状態管理のメソッドを取得
+    // 変更状態管理のメソッドを取得
     const clearOldChangeStates = usePostStore((state) => state.clearOldChangeStates);
     
     const docMessages = useMemo(() => {
@@ -28,7 +28,7 @@ const DocComments = ({ lines, documentFunctions }) => {
         return [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
     }, [posts]);
 
-    // ✅ 修正: documentFunctionsから必要な関数を取得
+    // documentFunctionsから必要な関数を取得
     const { document: { reorder }, chat: sendChatMessage } = documentFunctions;
 
     const { userInfo, myHeight } = useAppStore();
@@ -36,10 +36,10 @@ const DocComments = ({ lines, documentFunctions }) => {
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8);
     const charsPerLine = Math.floor(listWidth / 13);
 
-    // ✅ 追加: 定期的に古い変更状態をクリア（10分経過したもの）
+    // 定期的に古い変更状態をクリア（10分経過したもの）
     useEffect(() => {
         const interval = setInterval(() => {
-            clearOldChangeStates(10); // ✅ 修正: 10分経過した変更状態をクリア（フェードアウト時間に合わせて調整）
+            clearOldChangeStates(10); // 10分経過した変更状態をクリア（フェードアウト時間に合わせて調整）
         }, 60000); // 1分ごとにチェック
 
         return () => clearInterval(interval);
@@ -69,7 +69,7 @@ const DocComments = ({ lines, documentFunctions }) => {
         return estimatedLines * lineHeight + 8;
     };
 
-    // ✅ 追加: ドラッグ開始時のロック要求
+    // ドラッグ開始時のロック要求
     const onDragStart = (start) => {
         console.log('onDragStart:', start);
         
@@ -124,7 +124,7 @@ const DocComments = ({ lines, documentFunctions }) => {
         // サーバーに並び替えを通知
         reorder && reorder(data);
 
-        // ✅ 追加: ドラッグ完了後にロック解除
+        // ドラッグ完了後にロック解除
         console.log('Drag completed successfully, unlocking row:', rowElementId);
         documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
 
@@ -141,7 +141,7 @@ const DocComments = ({ lines, documentFunctions }) => {
     const itemData = useMemo(() => ({
         docMessages: filteredDocMessages,
         userInfo,
-        documentFunctions, // ✅ 修正: documentFunctionsを渡す
+        documentFunctions,
         setShouldScroll,
         listRef,
     }), [filteredDocMessages, userInfo, documentFunctions]);

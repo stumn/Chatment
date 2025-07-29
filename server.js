@@ -292,7 +292,7 @@ io.on('connection', (socket) => {
             lockedRows.set(data.rowElementId, { 
               nickname: data.nickname, 
               userId: data.userId,
-              socketId: socket.id // ✅ 追加: socketIdも保存
+              socketId: socket.id
             });
             console.log('Row locked:', data.rowElementId, 'by', data.nickname);
 
@@ -323,7 +323,7 @@ io.on('connection', (socket) => {
           // updatedAtをpayloadに追加してemit
           io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
 
-          // ✅ 追加: 編集完了時にロック解除
+          // 編集完了時にロック解除
           unlockRowByPostId(payload.id);
         } else {
           io.emit('doc-edit', payload);
@@ -367,7 +367,7 @@ io.on('connection', (socket) => {
         // 全クライアントに並び替えをブロードキャスト
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
         
-        // ✅ 修正: 並び替え情報に実行者の情報を含めて送信
+        // 並び替え情報に実行者の情報を含めて送信
         io.emit('doc-reorder', {
           posts: posts,
           reorderInfo: {
@@ -376,7 +376,7 @@ io.on('connection', (socket) => {
           }
         });
 
-        // ✅ 追加: 並び替え完了時にロック解除
+        // 並び替え完了時にロック解除
         unlockRowByPostId(movedPostId);
 
         // --- ログ記録 ---
@@ -432,7 +432,7 @@ io.on('connection', (socket) => {
     saveLog(log);
   });
 
-  // ✅ 追加: ロック解除のユーティリティ関数群
+  // ロック解除のユーティリティ関数群
   
   // PostIDからロック中の行を特定してロック解除
   function unlockRowByPostId(postId) {
@@ -470,7 +470,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
 
-    // ✅ 追加: ユーザー切断時に該当ユーザーがロックしていた行を全て解除
+    // ユーザー切断時に該当ユーザーがロックしていた行を全て解除
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
       if (lockInfo.socketId === socket.id) {
         console.log('Unlocking row due to disconnect:', rowElementId);

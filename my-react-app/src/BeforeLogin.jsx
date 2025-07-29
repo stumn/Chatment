@@ -46,7 +46,7 @@ function BeforeLogin({ open, onLogin }) {
             return;
         }
 
-        // ✅ 修正案: localStorageに保存して永続化する
+        // 次回以降、フォームに自動入力するためにlocalStorageに保存
         localStorage.setItem('userInfo', JSON.stringify({ nickname, status, ageGroup }));
 
         // 収集したデータを親コンポーネントに渡す

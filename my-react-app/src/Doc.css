@@ -15,7 +15,10 @@
 .doc-comment-item {
     display: flex;
     align-items: center;
-    padding: 4px 16px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 4px;  
+    padding-right: 16px;
     box-sizing: border-box;
     background-color: white;
     /* ★改善: レイアウトのズレを防ぐため、予め透明なボーダーでスペースを確保 */
@@ -41,7 +44,7 @@
     cursor: grabbing;
 }
 
-/* ✅ 追加: ロック中の行のドラッグ無効化スタイル */
+/* ロック中の行のドラッグ無効化スタイル */
 .locked .maru {
     cursor: not-allowed !important;
     opacity: 0.5;
@@ -53,7 +56,7 @@
     transform: none !important;
 }
 
-/* ✅ 追加: ロック中のアイテム全体のスタイル */
+/* ロック中のアイテム全体のスタイル */
 .locked {
     background-color: #fff3cd !important;
     border-color: #ffeaa7 !important;
@@ -176,7 +179,7 @@
     align-items: stretch;
 }
 
-/* ✅ 追加: ロック状態の視覚的表現 */
+/* ロック状態の視覚的表現 */
 
 .doc-comment-item.locked {
   background-color: #fff3cd !important;
@@ -196,7 +199,7 @@
   display: none !important;
 }
 
-/* ✅ ドラッグ・アンド・ドロップのロック状態 */
+/* ドラッグ・アンド・ドロップのロック状態 */
 .doc-comment-item.locked .maru {
   cursor: not-allowed !important;
   opacity: 0.5;
@@ -213,12 +216,13 @@
   user-select: none;
 }
 
-/* ✅ 追加: 変更バー（サイドバー）のスタイル */
+/* 変更バー（サイドバー）のスタイル */
 .change-bar {
-    width: 4px;
+    width: 12px;
     height: 100%;
     min-height: 20px;
-    margin-right: 8px;
+    margin-left: 4px; /* 左側に寄せる */
+    margin-right: 4px;
     border-radius: 2px;
     transition: all 0.2s ease;
     cursor: pointer; /* ホバー可能であることを示す */
@@ -231,7 +235,7 @@
 }
 
 .change-bar:hover {
-    width: 6px; /* ホバー時に少し太く */
+    width: 12px; /* ホバー時に少し太く */
     box-shadow: 0 0 4px rgba(0,0,0,0.3); /* ホバー時に影を追加 */
     opacity: 1 !important; /* ホバー中はフェードアウトを一時停止 */
 }

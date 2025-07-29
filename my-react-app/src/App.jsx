@@ -2,7 +2,6 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-// ✅ 修正: useSocketの代わりにuseAppControllerを使用
 import { useAppController } from './hooks/useAppContoroller';
 
 import useAppStore from './store/appStore';
@@ -24,7 +23,7 @@ function App() {
   const { width, height } = useSizeStore();
   const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore();
 
-  // ✅ 修正: useAppControllerを使用してSocket通信を一元管理
+  // useAppControllerを使用してSocket通信を一元管理
   const appController = useAppController();
   const { socket: { heightArray }, raw: socketFunctions } = appController;
 
@@ -33,16 +32,13 @@ function App() {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    // ✅ 修正: appControllerから取得したsocket関数を使用
     socketFunctions.emitLoginName(userInfo);
     setOpen(false);
-    // ✅ 修正: socketFunctionsを依存配列から除外（useSocketはApp全体で1つのインスタンス）
   }, [userInfo, isLoggedIn]);
 
   // myHeightが変更されたらサーバーに高さを送信
   useEffect(() => { 
     socketFunctions.emitHeightChange(myHeight); 
-    // ✅ 修正: socketFunctionsを依存配列から除外（安定したsocket接続）
   }, [myHeight]);
 
 

@@ -20,7 +20,6 @@ export default function ResizablePanels({ appController }) {
     const { myHeight, setMyHeight } = useAppStore();
     const { userInfo } = useAppStore();
 
-    // ✅ 修正: appControllerから必要な関数を取得
     const { raw: { emitLog } } = appController;
 
     // Document操作用の関数群を抽出
@@ -42,8 +41,7 @@ export default function ResizablePanels({ appController }) {
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
     const posts = usePostStore((state) => state.posts);
-    // ❌ 問題: 毎回ソートが実行されるため、大量のデータでパフォーマンスが低下する可能性があります
-    // ✅ 修正案: useMemoの依存配列を最適化し、posts.lengthも考慮する
+    // useMemoの依存配列を最適化し、posts.lengthも考慮する
     const messages = useMemo(() => {
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -51,7 +49,7 @@ export default function ResizablePanels({ appController }) {
             return aTime - bTime;
         });
         return sorted;
-    }, [posts]);
+    }, [posts.length, posts.map(p => p.createdAt).join(',')]); // より効率的な依存配列
 
     const [lines, setLines] = useState({ num: 5, timestamp: 0 }); // 初期値は4行分の高さ
     useEffect(() => {
@@ -60,7 +58,6 @@ export default function ResizablePanels({ appController }) {
 
         if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
 
-        // ✅ 修正: ログの送信を制限（デバッグ目的でのみ送信）
         if (process.env.NODE_ENV === 'development') {
             const data = {
                 userId: userInfo && userInfo._id,
@@ -72,7 +69,7 @@ export default function ResizablePanels({ appController }) {
                 }
             };
             console.log("emitLog:", data);
-            // emitLog(data); // ✅ 修正: 本番環境では送信しない
+            emitLog(data);
         }
 
     }, [bottomHeight, messages]);
@@ -115,7 +112,6 @@ export default function ResizablePanels({ appController }) {
             document.removeEventListener("mouseup", onMouseUp);
             document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
-            // ✅ 修正: スライドバーログも制限
             if (process.env.NODE_ENV === 'development') {
                 const data = {
                     userId: userInfo && userInfo._id,
@@ -127,13 +123,15 @@ export default function ResizablePanels({ appController }) {
                     }
                 };
                 console.log("emitLog:", data);
-                // emitLog(data); // ✅ 修正: 本番環境では送信しない
+                emitLog(data);
             }
         };
 
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
     };
+
+    const [isDragging, setIsDragging] = useState(false);
 
     return (
         <Paper
@@ -161,7 +159,7 @@ export default function ResizablePanels({ appController }) {
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,
                     width: `${CONTAINER_resizable_WIDTH}px`,
-                    backgroundColor: "rgba(53, 59, 72, 0.6)",
+                    backgroundColor: isDragging ? "rgba(4, 149, 35, 0.51)" : "rgba(53, 59, 72, 0.6)",
                     cursor: "row-resize"
                 }}
                 onMouseDown={handleMouseDown}
