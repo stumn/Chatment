@@ -16,15 +16,26 @@ const DocRow = ({ data, index, style }) => {
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
+    
+    // ✅ 追加: ロック状態を取得
+    const isRowLocked = usePostStore((state) => state.isRowLocked);
+    const getRowLockInfo = usePostStore((state) => state.getRowLockInfo);
 
     // ✅ 修正: documentFunctionsから操作関数を取得（重複インポートを回避）
-    const { document: { add, edit, delete: deleteDoc }, chat: sendChatMessage } = documentFunctions;
+    const { document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage } = documentFunctions;
 
     // 編集状態を管理するためのステート
     const [isEditing, setIsEditing] = useState(false);
 
     // contentEditableの要素を参照するためのref
     const contentRef = useRef(null);
+
+    // ✅ 追加: 行のElement IDを生成
+    const rowElementId = `dc-${index}-${message?.displayOrder}-${message?.id}`;
+    
+    // ✅ 追加: この行がロックされているかチェック
+    const locked = isRowLocked(rowElementId);
+    const lockInfo = getRowLockInfo(rowElementId);
 
     // 新規行追加
     const handleAddBelow = () => {
@@ -60,6 +71,19 @@ const DocRow = ({ data, index, style }) => {
 
     // 編集ボタン押下で編集モードに
     const handleEdit = () => {
+        // ✅ 追加: ロック中の場合は編集不可
+        if (locked) {
+            console.log('Row is locked by:', lockInfo?.nickname);
+            return;
+        }
+
+        // ✅ 追加: ロック要求を送信
+        requestLock && requestLock({
+            rowElementId,
+            nickname: userInfo?.nickname,
+            postId: message?.id
+        });
+
         setIsEditing(true);
         setTimeout(() => {
             if (contentRef.current) {
@@ -103,14 +127,15 @@ const DocRow = ({ data, index, style }) => {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}`}
+                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
+                    data-row-id={rowElementId} // ✅ 追加: ロック管理用のdata属性
                 >
                     <span {...provided.dragHandleProps} className='maru' />
                     <div
-                        id={`dc-${index}-${message?.displayOrder}`}
+                        id={rowElementId}
                         className='doc-comment-content'
-                        contentEditable={isEditing}
+                        contentEditable={isEditing && !locked} // ✅ 修正: ロック中は編集不可
                         suppressContentEditableWarning={true}
                         ref={contentRef}
                         onBlur={handleBlur}
@@ -125,36 +150,55 @@ const DocRow = ({ data, index, style }) => {
                             </React.Fragment>
                         ))}
                     </div>
-                    {/* ホバー時のみ表示される編集・削除・追加ボタン（右端に横並び） */}
-                    <button
-                        className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
-                        title="編集"
-                        onClick={handleEdit}
-                        tabIndex={-1}
-                        type="button"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-                    </button>
-                    {isBlank && (
-                        <button
-                            className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
-                            title="空白行を削除"
-                            onClick={handleDelete}
-                            tabIndex={-1}
-                            type="button"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
-                        </button>
+                    
+                    {/* ✅ 追加: ロック中は操作ボタンを非表示 */}
+                    {!locked && (
+                        <>
+                            {/* ホバー時のみ表示される編集・削除・追加ボタン（右端に横並び） */}
+                            <button
+                                className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                                title="編集"
+                                onClick={handleEdit}
+                                tabIndex={-1}
+                                type="button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                            </button>
+                            {isBlank && (
+                                <button
+                                    className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
+                                    title="空白行を削除"
+                                    onClick={handleDelete}
+                                    tabIndex={-1}
+                                    type="button"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                                </button>
+                            )}
+                            <button
+                                className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
+                                title="下に行を挿入"
+                                onClick={handleAddBelow}
+                                tabIndex={-1}
+                                type="button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
+                            </button>
+                        </>
                     )}
-                    <button
-                        className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
-                        title="下に行を挿入"
-                        onClick={handleAddBelow}
-                        tabIndex={-1}
-                        type="button"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
-                    </button>
+
+                    {/* ✅ 追加: ロック中の表示 */}
+                    {locked && (
+                        <div className="lock-info" style={{
+                            position: 'absolute',
+                            top: '2px',
+                            right: '8px',
+                            fontSize: '11px',
+                            color: '#856404'
+                        }}>
+                            🔒{lockInfo?.nickname}が編集中
+                        </div>
+                    )}
                 </div>
             )}
         </Draggable>

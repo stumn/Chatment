@@ -23,6 +23,7 @@ export const useAppController = () => {
         emitPositive,
         emitNegative,
         emitDemandLock,
+        emitUnlockRow, // ✅ 追加
         heightArray,
         socketId,
         emitLog
@@ -213,6 +214,22 @@ export const useAppController = () => {
         }
     }, [userInfo, emitDemandLock]);
 
+    /**
+     * ドキュメント行のロックを解除
+     * @param {object} data - ロック解除データ
+     */
+    const unlockRow = useCallback((data) => {
+        try {
+            emitUnlockRow({
+                ...data,
+                nickname: userInfo?.nickname,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('Failed to unlock row:', error);
+        }
+    }, [userInfo, emitUnlockRow]);
+
     // ===== 公開API =====
     const api = useMemo(() => ({
         // Document操作
@@ -221,7 +238,8 @@ export const useAppController = () => {
             edit: editDocument,
             delete: deleteDocument,
             reorder: reorderDocument,
-            requestLock
+            requestLock,
+            unlockRow // ✅ 追加
         },
         
         // Chat操作  
@@ -243,7 +261,7 @@ export const useAppController = () => {
         // ユーザー情報
         user: userInfo
     }), [
-        addDocument, editDocument, deleteDocument, reorderDocument, requestLock,
+        addDocument, editDocument, deleteDocument, reorderDocument, requestLock, unlockRow, // ✅ 追加
         sendChatMessage, addPositive, addNegative,
         socketId, heightArray, stableSocketFunctions, userInfo // ✅ 修正: stableSocketFunctionsに変更
     ]);

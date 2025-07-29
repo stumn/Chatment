@@ -288,7 +288,11 @@ io.on('connection', (socket) => {
             socket.emit('Lock-not-allowed', { id: data.rowElementId, message: 'Row is already locked' });
           } else {
             // ロックを許可
-            lockedRows.set(data.rowElementId, { nickname: data.nickname, userId: data.userId });
+            lockedRows.set(data.rowElementId, { 
+              nickname: data.nickname, 
+              userId: data.userId,
+              socketId: socket.id // ✅ 追加: socketIdも保存
+            });
             console.log('Row locked:', data.rowElementId, 'by', data.nickname);
 
             // 'demand-lock'を送ってきたクライアントのみに送信
@@ -317,6 +321,9 @@ io.on('connection', (socket) => {
 
           // updatedAtをpayloadに追加してemit
           io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+
+          // ✅ 追加: 編集完了時にロック解除
+          unlockRowByPostId(payload.id);
         } else {
           io.emit('doc-edit', payload);
         }
@@ -359,6 +366,9 @@ io.on('connection', (socket) => {
         // 全クライアントに並び替えをブロードキャスト
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
         io.emit('doc-reorder', posts);
+
+        // ✅ 追加: 並び替え完了時にロック解除
+        unlockRowByPostId(movedPostId);
 
         // --- ログ記録 ---
         saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
@@ -413,8 +423,54 @@ io.on('connection', (socket) => {
     saveLog(log);
   });
 
+  // ✅ 追加: ロック解除のユーティリティ関数群
+  
+  // PostIDからロック中の行を特定してロック解除
+  function unlockRowByPostId(postId) {
+    for (const [rowElementId, lockInfo] of lockedRows.entries()) {
+      // rowElementIdにpostIdが含まれているかチェック
+      if (rowElementId.includes(postId)) {
+        console.log('Unlocking row:', rowElementId, 'for post:', postId);
+        lockedRows.delete(rowElementId);
+        
+        // 全クライアントにロック解除をブロードキャスト
+        io.emit('row-unlocked', { id: rowElementId, postId });
+        break;
+      }
+    }
+  }
+
+  // 明示的なロック解除イベント
+  socket.on('unlock-row', (data) => {
+    // data: { rowElementId, postId }
+    try {
+      console.log('unlock-row received:', data);
+      
+      if (data.rowElementId && lockedRows.has(data.rowElementId)) {
+        const lockInfo = lockedRows.get(data.rowElementId);
+        console.log('Unlocking row:', data.rowElementId, 'previously locked by:', lockInfo.nickname);
+        
+        lockedRows.delete(data.rowElementId);
+        
+        // 全クライアントにロック解除をブロードキャスト
+        io.emit('row-unlocked', { id: data.rowElementId, postId: data.postId });
+      }
+    } catch (e) { console.error(e); }
+  });
+
   socket.on('disconnect', () => {
     console.log('user disconnected');
+
+    // ✅ 追加: ユーザー切断時に該当ユーザーがロックしていた行を全て解除
+    for (const [rowElementId, lockInfo] of lockedRows.entries()) {
+      if (lockInfo.socketId === socket.id) {
+        console.log('Unlocking row due to disconnect:', rowElementId);
+        lockedRows.delete(rowElementId);
+        
+        // 全クライアントにロック解除をブロードキャスト
+        io.emit('row-unlocked', { id: rowElementId, reason: 'user_disconnected' });
+      }
+    }
 
     // hightArray から 削除する
     // const heightArray = removeHeightMemory(socket.id);

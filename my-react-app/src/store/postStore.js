@@ -3,6 +3,32 @@ import { create } from 'zustand';
 // 投稿（チャット・ドキュメント共通）ストア
 const usePostStore = create((set, get) => ({
     posts: [], // 全投稿（サーバのPostコレクションと同じ）
+    
+    // ✅ 追加: ロックされた行の状態管理
+    lockedRows: new Map(), // rowElementId -> { nickname, userId, postId }
+
+    // ✅ 追加: ロック状態の操作メソッド
+    lockRow: (rowElementId, lockInfo) => set((state) => {
+        const newLockedRows = new Map(state.lockedRows);
+        newLockedRows.set(rowElementId, lockInfo);
+        return { lockedRows: newLockedRows };
+    }),
+
+    unlockRow: (rowElementId) => set((state) => {
+        const newLockedRows = new Map(state.lockedRows);
+        newLockedRows.delete(rowElementId);
+        return { lockedRows: newLockedRows };
+    }),
+
+    isRowLocked: (rowElementId) => {
+        const state = get();
+        return state.lockedRows.has(rowElementId);
+    },
+
+    getRowLockInfo: (rowElementId) => {
+        const state = get();
+        return state.lockedRows.get(rowElementId);
+    },
 
     // サーバから全件取得してセット（サーバ側の順序を保持）
     setPosts: (posts) =>

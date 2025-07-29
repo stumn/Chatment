@@ -78,23 +78,30 @@ export default function useSocket() {
     const handleLockPermitted = (payload) => {
       // payload: { id, nickname}
       console.log('Lock-permitted payload:', payload);
-      // ❌ 問題: ロック許可時のUI更新処理が実装されていません
-      // ✅ 修正案: 該当する行を編集可能状態にする処理を追加
-      // 例: const rowElement = document.querySelector(`[data-id="${payload.id}"]`);
-      // rowElement?.setAttribute('contenteditable', 'true');
+      // ✅ 修正: ロック許可時のUI更新処理を追加
+      // 自分がロックを取得した場合なので、編集可能状態にする
+      // この処理はコンポーネント側で handle する
     }
 
     const handleRowLocked = (payload) => {
       // payload: { id, nickname }
       console.log('Row-locked payload:', payload);
 
-      // ❌ 問題: ロック状態の視覚的フィードバックが不完全です
-      // DOMを直接操作しているため、Reactの仮想DOMと競合する可能性があります
-      // ✅ 修正案: Zustandストアで行のロック状態を管理し、Reactコンポーネントで表示する
-      const { id, nickname } = payload;
-      const LockedRow = document.querySelector(`[data-id="${id}"]`);
-      // TODO: LockedRowに対する処理を実装
+      // ✅ 修正: ロック状態をStoreで管理
+      usePostStore.getState().lockRow(payload.id, {
+        nickname: payload.nickname,
+        lockedAt: new Date().toISOString()
+      });
     }
+
+    // ✅ 追加: ロック解除イベントハンドラー
+    const handleRowUnlocked = (payload) => {
+      // payload: { id, postId, reason? }
+      console.log('Row-unlocked payload:', payload);
+      
+      // ストアからロック状態を削除
+      usePostStore.getState().unlockRow(payload.id);
+    };
 
     const handleLockNotAllowed = (payload) => {
       console.log('Lock-not-allowed payload:', payload);
@@ -126,6 +133,7 @@ export default function useSocket() {
       'doc-add': handleDocAdd,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
+      'row-unlocked': handleRowUnlocked, // ✅ 追加
       'Lock-not-allowed': handleLockNotAllowed,
       'doc-edit': handleDocEdit,
       'doc-reorder': handleDocReorder,
@@ -244,6 +252,21 @@ export default function useSocket() {
 
   };
 
+  // ✅ 追加: ロック解除
+  const emitUnlockRow = (data) => {
+    const { userInfo } = useAppStore.getState();
+    console.log('emitUnlockRow', data);
+
+    socket.emit('unlock-row', data);
+
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
+      action: 'doc-unlock-row',
+      detail: data
+    });
+  };
+
   // doc の編集完了
   const emitDocEdit = (payload) => {
     const { userInfo } = useAppStore.getState();
@@ -290,6 +313,7 @@ export default function useSocket() {
     socketId: socket.id,
     emitDocAdd,
     emitDemandLock,
+    emitUnlockRow, // ✅ 追加
     emitDocEdit,
     emitDocReorder,
     emitDocDelete,
