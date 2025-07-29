@@ -26,6 +26,7 @@ const {
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
+
 function addHeightMemory(id, height) {
   const index = heightMemory.findIndex(item => item.id === id);
   index !== -1
@@ -491,3 +492,4 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log('listening on PORT:' + PORT);
 });
+
