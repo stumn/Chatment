@@ -1,6 +1,6 @@
 // File: my-react-app/src/BeforeLogin.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -22,6 +22,21 @@ function BeforeLogin({ open, onLogin }) {
     const [status, setStatus] = useState('');
     const [ageGroup, setAgeGroup] = useState('');
 
+    // コンポーネントマウント時にローカルストレージから前回の入力値を読み込む
+    useEffect(() => {
+        const savedUserInfo = localStorage.getItem('userInfo');
+        if (savedUserInfo) {
+            try {
+                const { nickname, status, ageGroup } = JSON.parse(savedUserInfo);
+                setNickname(nickname || '');
+                setStatus(status || '');
+                setAgeGroup(ageGroup || '');
+            } catch (error) {
+                console.error('ローカルストレージのデータ読み込みエラー:', error);
+            }
+        }
+    }, []);
+
     // フォーム送信時のハンドラ
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -31,10 +46,8 @@ function BeforeLogin({ open, onLogin }) {
             return;
         }
 
-        // ❌ 問題: ログイン情報がローカルストレージに保存されないため、
-        // ページリロード時にログイン情報が失われます
         // ✅ 修正案: localStorageに保存して永続化する
-        // localStorage.setItem('userInfo', JSON.stringify({ nickname, status, ageGroup }));
+        localStorage.setItem('userInfo', JSON.stringify({ nickname, status, ageGroup }));
 
         // 収集したデータを親コンポーネントに渡す
         onLogin({ nickname, status, ageGroup });
