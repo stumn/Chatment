@@ -23,7 +23,7 @@ export const useAppController = () => {
         emitPositive,
         emitNegative,
         emitDemandLock,
-        emitUnlockRow, // ✅ 追加
+        emitUnlockRow,
         heightArray,
         socketId,
         emitLog
@@ -33,7 +33,7 @@ export const useAppController = () => {
     const userInfo = useAppStore((state) => state.userInfo);
     const { addPost, updatePost, removePost, reorderPost } = usePostStore();
 
-    // ✅ 修正: socketFunctionsの参照を安定化（useMemoで包む）
+    // socketFunctionsの参照を安定化（useMemoで包む）
     const stableSocketFunctions = useMemo(() => socketFunctions, [socketFunctions]);
 
     // ===== DOCUMENT操作 =====
@@ -242,7 +242,7 @@ export const useAppController = () => {
             delete: deleteDocument,
             reorder: reorderDocument,
             requestLock,
-            unlockRow // ✅ 追加
+            unlockRow
         },
         
         // Chat操作  
@@ -259,14 +259,15 @@ export const useAppController = () => {
         },
 
         // 生のsocket関数（後方互換性のため）
-        raw: stableSocketFunctions, // ✅ 修正: 安定化されたsocketFunctionsを使用
+        raw: stableSocketFunctions, // 安定化されたsocketFunctionsを使用
 
         // ユーザー情報
         user: userInfo
     }), [
-        addDocument, editDocument, deleteDocument, reorderDocument, requestLock, unlockRow, // ✅ 追加
-        sendChatMessage, addPositive, addNegative,
-        socketId, heightArray, stableSocketFunctions, userInfo // ✅ 修正: stableSocketFunctionsに変更
+        addDocument, editDocument, deleteDocument, reorderDocument, 
+        requestLock, unlockRow, sendChatMessage, addPositive, 
+        addNegative, socketId, heightArray, stableSocketFunctions, 
+        userInfo
     ]);
 
     return api;

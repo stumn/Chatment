@@ -17,15 +17,12 @@ export const socketId = () => socket.id;
 export default function useSocket() {
 
   const [heightArray, setHeightArray] = useState([]);
-  // ❌ 問題: この書き方だとuseridはundefinedになります。appStoreの構造を確認してください
-  // const { userInfo } = useAppStore((state) => state.userInfo); // 間違った書き方
-  // ✅ 修正: 正しいstore取得方法
   const userInfo = useAppStore((state) => state.userInfo);
 
   const addMessage = usePostStore((state) => state.addPost);
   const updatePost = usePostStore((state) => state.updatePost);
   const reorderPost = usePostStore((state) => state.reorderPost);
-  // ✅ 追加: 変更状態管理のメソッドを取得
+
   const setChangeState = usePostStore((state) => state.setChangeState);
 
   useEffect(() => {
@@ -49,20 +46,20 @@ export default function useSocket() {
 
     const handleHistory = (historyArray) => {
       historyArray.forEach((msg) => {
-        // ✅ 修正: 履歴データは新規作成ではないのでfalse
+        // 履歴データは新規作成ではないのでfalse
         addMessage(msg, false);
       });
     };
 
     const handleDocsHistory = (docs) => {
       docs.forEach((doc) => {
-        // ✅ 修正: 履歴データは新規作成ではないのでfalse
+        // 履歴データは新規作成ではないのでfalse
         addMessage(doc, false);
       });
     };
 
     const handleChatMessage = (data) => {
-      // ✅ 修正: チャットメッセージは新規作成として扱う
+      // チャットメッセージは新規作成として扱う
       addMessage(data, true);
     };
 
@@ -78,7 +75,7 @@ export default function useSocket() {
     // --- Doc系イベント受信 ---
     const handleDocAdd = (payload) => {
       console.log('handleDocAdd called with payload:', payload);
-      // ✅ 修正: 新規作成として変更状態を記録
+      // 新規作成として変更状態を記録
       addMessage(payload, true); // 第2引数をtrueにして新規作成であることを示す
       console.log('addMessage called with isNewlyCreated=true');
     };
@@ -86,7 +83,7 @@ export default function useSocket() {
     const handleLockPermitted = (payload) => {
       // payload: { id, nickname}
       console.log('Lock-permitted payload:', payload);
-      // ✅ 修正: ロック許可時のUI更新処理を追加
+      // ロック許可時のUI更新処理を追加
       // 自分がロックを取得した場合なので、編集可能状態にする
       // この処理はコンポーネント側で handle する
     }
@@ -95,18 +92,18 @@ export default function useSocket() {
       // payload: { id, nickname }
       console.log('Row-locked payload:', payload);
 
-      // ✅ 修正: ロック状態をStoreで管理
+      // ロック状態をStoreで管理
       usePostStore.getState().lockRow(payload.id, {
         nickname: payload.nickname,
         lockedAt: new Date().toISOString()
       });
     }
 
-    // ✅ 追加: ロック解除イベントハンドラー
+    // ロック解除イベントハンドラー
     const handleRowUnlocked = (payload) => {
       // payload: { id, postId, reason? }
       console.log('Row-unlocked payload:', payload);
-      
+
       // ストアからロック状態を削除
       usePostStore.getState().unlockRow(payload.id);
     };
@@ -121,15 +118,15 @@ export default function useSocket() {
     };
 
     const handleDocReorder = (payload) => {
-      // ✅ 修正: サーバーからの新しい形式に対応
+      // サーバーからの新しい形式に対応
       if (payload.posts && payload.reorderInfo) {
         // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
         reorderPost(payload.posts);
-        
-        // ✅ 追加: 並び替えされた投稿の変更状態を記録（全クライアントで表示）
+
+        // 追加: 並び替えされた投稿の変更状態を記録（全クライアントで表示）
         setChangeState(
-          payload.reorderInfo.movedPostId, 
-          'reordered', 
+          payload.reorderInfo.movedPostId,
+          'reordered',
           payload.reorderInfo.executorNickname
         );
       } else {
@@ -154,7 +151,7 @@ export default function useSocket() {
       'doc-add': handleDocAdd,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
-      'row-unlocked': handleRowUnlocked, // ✅ 追加
+      'row-unlocked': handleRowUnlocked,
       'Lock-not-allowed': handleLockNotAllowed,
       'doc-edit': handleDocEdit,
       'doc-reorder': handleDocReorder,
@@ -190,14 +187,11 @@ export default function useSocket() {
   const emitLoginName = () => {
     const { userInfo } = useAppStore.getState();
     socket.emit('login', userInfo);
-    // ✅ 修正: ログイン時のログ送信を制限
-    if (process.env.NODE_ENV === 'development') {
-      emitLog({
-        userId: validUserId(userInfo && userInfo._id),
-        action: 'login',
-        detail: { user: userInfo && userInfo.nickname }
-      });
-    }
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      action: 'login',
+      detail: { user: userInfo && userInfo.nickname }
+    });
   };
   const emitHeightChange = (height) => socket.emit('heightChange', height);
 
@@ -273,7 +267,7 @@ export default function useSocket() {
 
   };
 
-  // ✅ 追加: ロック解除
+  // ロック解除
   const emitUnlockRow = (data) => {
     const { userInfo } = useAppStore.getState();
     console.log('emitUnlockRow', data);

@@ -233,7 +233,7 @@ const DocRow = ({ data, index, style }) => {
                                changeState.type === 'deleted' ? '削除' : 
                                changeState.type === 'reordered' ? '順序変更' : ''}】
 実行者: ${changeState.userNickname}
-時刻: ${changeState.timestamp.toLocaleString()} : ''}
+時刻: ${changeState.timestamp.toLocaleString()}` : ''}
                         onMouseEnter={() => setIsHovering(true)}
                         onMouseLeave={() => setIsHovering(false)}
                     >  </div>

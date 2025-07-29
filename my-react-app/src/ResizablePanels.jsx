@@ -58,19 +58,17 @@ export default function ResizablePanels({ appController }) {
 
         if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
 
-        if (process.env.NODE_ENV === 'development') {
-            const data = {
-                userId: userInfo && userInfo._id,
-                action: 'calculate-lines',
-                detail: {
-                    height: bottomHeight,
-                    lines: newLines,
-                    user: userInfo && userInfo.nickname
-                }
-            };
-            console.log("emitLog:", data);
-            emitLog(data);
-        }
+        const data = {
+            userId: userInfo && userInfo._id,
+            action: 'calculate-lines',
+            detail: {
+                height: bottomHeight,
+                lines: newLines,
+                user: userInfo && userInfo.nickname
+            }
+        };
+        console.log("emitLog:", data);
+        emitLog(data);
 
     }, [bottomHeight, messages]);
 
@@ -112,19 +110,19 @@ export default function ResizablePanels({ appController }) {
             document.removeEventListener("mouseup", onMouseUp);
             document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
-            if (process.env.NODE_ENV === 'development') {
-                const data = {
-                    userId: userInfo && userInfo._id,
-                    action: 'slide-bar-move',
-                    detail: {
-                        from: startY,
-                        to: startHeight,
-                        user: userInfo && userInfo.nickname
-                    }
-                };
-                console.log("emitLog:", data);
-                emitLog(data);
-            }
+
+            const data = {
+                userId: userInfo && userInfo._id,
+                action: 'slide-bar-move',
+                detail: {
+                    from: startY,
+                    to: startHeight,
+                    user: userInfo && userInfo.nickname
+                }
+            };
+            console.log("emitLog:", data);
+            emitLog(data);
+
         };
 
         document.addEventListener("mousemove", onMouseMove);

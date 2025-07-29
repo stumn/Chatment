@@ -4,13 +4,13 @@ import { create } from 'zustand';
 const usePostStore = create((set, get) => ({
     posts: [], // 全投稿（サーバのPostコレクションと同じ）
     
-    // ✅ 追加: ロックされた行の状態管理
+    // ロックされた行の状態管理
     lockedRows: new Map(), // rowElementId -> { nickname, userId, postId }
     
-    // ✅ 追加: 変更状態を管理するためのマップ
+    // 変更状態を管理するためのマップ
     changeStates: new Map(), // postId -> { type: 'added'|'modified'|'deleted'|'reordered', timestamp: Date, userNickname: string }
 
-    // ✅ 追加: ロック状態の操作メソッド
+    // ロック状態の操作メソッド
     lockRow: (rowElementId, lockInfo) => set((state) => {
         const newLockedRows = new Map(state.lockedRows);
         newLockedRows.set(rowElementId, lockInfo);
@@ -33,7 +33,7 @@ const usePostStore = create((set, get) => ({
         return state.lockedRows.get(rowElementId);
     },
 
-    // ✅ 追加: 変更状態の操作メソッド
+    // 変更状態の操作メソッド
     setChangeState: (postId, changeType, userNickname) => set((state) => {
         const newChangeStates = new Map(state.changeStates);
         newChangeStates.set(postId, {
@@ -55,7 +55,7 @@ const usePostStore = create((set, get) => ({
         return state.changeStates.get(postId);
     },
 
-    // ✅ 追加: 一定時間後に変更状態をクリアする
+    // 一定時間後に変更状態をクリアする
     clearOldChangeStates: (ageInMinutes = 5) => set((state) => {
         const now = new Date();
         const newChangeStates = new Map(state.changeStates);
@@ -89,12 +89,12 @@ const usePostStore = create((set, get) => ({
                 return { posts: state.posts };
             }
             
-            // ✅ 修正: 新規作成の場合のみ変更状態を記録
+            // 新規作成の場合のみ変更状態を記録
             const newChangeStates = new Map(state.changeStates);
             if (isNewlyCreated) {
                 console.log('Processing newly created post for change state');
-                
-                // ✅ 修正: isNewlyCreated=trueの場合は必ず変更状態を記録
+
+                // isNewlyCreated=trueの場合は必ず変更状態を記録
                 // タイムスタンプチェックは参考程度にし、新規作成フラグを優先
                 let shouldAddChangeState = true;
                 
@@ -139,7 +139,7 @@ const usePostStore = create((set, get) => ({
             const existingPost = state.posts.find(m => m.id === id);
             if (!existingPost) return { posts: state.posts };
             
-            // ✅ 追加: 編集の場合の変更状態を記録（内容が実際に変わった場合のみ）
+            // 編集の場合の変更状態を記録（内容が実際に変わった場合のみ）
             const newChangeStates = new Map(state.changeStates);
             if (newMsg !== undefined && newMsg !== existingPost.msg) {
                 newChangeStates.set(id, {
@@ -167,7 +167,7 @@ const usePostStore = create((set, get) => ({
     // 並び替え（DnDやチャット用order再採番）
     reorderPost: (posts) =>
         set((state) => {
-            // ✅ 修正: バグ対策 - 並び替えは実行者のみに変更状態を記録（事前に記録済み）
+            // バグ対策 - 並び替えは実行者のみに変更状態を記録（事前に記録済み）
             // ここでは状態の記録は行わず、投稿の順序のみ更新
             return {
                 posts: [...posts]
@@ -205,7 +205,7 @@ const usePostStore = create((set, get) => ({
 
     // 行削除（id指定）
     removePost: (id) => set((state) => {
-        // ✅ 追加: 削除の場合の変更状態を記録
+        // 削除の場合の変更状態を記録
         const newChangeStates = new Map(state.changeStates);
         const deletedPost = state.posts.find(p => p.id === id);
         if (deletedPost) {
