@@ -27,7 +27,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     const CONTAINER_2_HEIGHT = CONTAINER_1_HEIGHT * 0.8; //80%の高さ
 
     // 目次が開いている場合のレイアウト調整
-    const tocOffset = isTocOpen ? 280 : 0; // 目次の幅分オフセット
+    const tocOffset = isTocOpen ? 80 : 0; // 目次の幅分オフセット
 
     return (
         <div
@@ -52,24 +52,6 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                     <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
                         {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
                     </h6>
-                    
-                    {/* 目次ボタン */}
-                    <button
-                        onClick={toggleToc}
-                        style={{
-                            backgroundColor: isTocOpen ? '#4CAF50' : '#f0f0f0',
-                            color: isTocOpen ? 'white' : '#666',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            padding: '6px 12px',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                        title="目次の表示/非表示"
-                    >
-                        📚 目次
-                    </button>
                 </div>
                 
                 <div style={{ 
