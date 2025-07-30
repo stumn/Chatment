@@ -46,7 +46,8 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center', 
-                margin: '8px 0' 
+                marginTop: '24px',
+                marginBottom: '12px', 
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
