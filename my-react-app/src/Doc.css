@@ -80,7 +80,7 @@
     flex: 1;
     outline: none;
     word-break: break-word;
-    cursor: text;
+    cursor: default;
     text-align: left;
     padding-left: 8px;
     padding-right: 72px;
