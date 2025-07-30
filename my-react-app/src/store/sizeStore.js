@@ -2,13 +2,13 @@
 import { create } from 'zustand';
 
 const useSizeStore = create((set) => ({
-    width: Math.min(1000, window.innerWidth * 0.9),
-    height: Math.min(800, window.innerHeight * 0.9),
+    width: Math.min(800, window.innerWidth * 0.9),
+    height: '95vh',
 
     updateSize: () => {
         set({
-            width: Math.min(1000, window.innerWidth * 0.9),
-            height: Math.min(800, window.innerHeight * 0.9),
+            width: Math.min(800, window.innerWidth * 0.9),
+            height: '95vh',
         });
     },
 }));

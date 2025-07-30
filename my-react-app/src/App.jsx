@@ -37,14 +37,14 @@ function App() {
   }, [userInfo, isLoggedIn]);
 
   // myHeightが変更されたらサーバーに高さを送信
-  useEffect(() => { 
-    socketFunctions.emitHeightChange(myHeight); 
+  useEffect(() => {
+    socketFunctions.emitHeightChange(myHeight);
   }, [myHeight]);
 
 
   if (isLoggedIn) { // ログイン完了後
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: width, height: height }}>
         <Suspense fallback={<div>Loading...</div>}>
           <AfterLogin
             heightArray={heightArray}
