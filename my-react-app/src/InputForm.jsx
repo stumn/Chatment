@@ -48,6 +48,7 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
 
   return (
     <Stack
+      id="input-form"
       direction="row"
       spacing={2}
       sx={{ margin: '24px 8%', width: textBoxWidth, alignItems: 'center' }}
