@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
+import './Toc.css';
 
 const TableOfContents = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
@@ -53,20 +54,8 @@ const TableOfContents = ({ isOpen, onToggle }) => {
 
     if (!isOpen) {
         return (
-            <div style={{
-                position: 'fixed',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 1000,
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ccc',
-                borderRadius: '0 8px 8px 0',
-                padding: '8px 4px',
-                cursor: 'pointer',
-                boxShadow: '2px 0 4px rgba(0,0,0,0.1)'
-            }} onClick={onToggle}>
-                <div style={{ writingMode: 'vertical-rl', fontSize: '14px', color: '#666' }}>
+            <div className="toc-tab-closed" onClick={onToggle}>
+                <div className="toc-tab-text">
                     目次
                 </div>
             </div>
@@ -74,154 +63,58 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     }
 
     return (
-        <div style={{
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            width: '280px',
-            height: '100vh',
-            backgroundColor: '#fafafa',
-            borderRight: '1px solid #e0e0e0',
-            zIndex: 1000,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '2px 0 8px rgba(0,0,0,0.1)'
-        }}>
+        <div className="toc-panel">
             {/* ヘッダー */}
-            <div style={{
-                padding: '16px',
-                borderBottom: '1px solid #e0e0e0',
-                backgroundColor: '#fff',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+            <div className="toc-header">
+                <h3 className="toc-title">
                     📚 目次
                 </h3>
                 <button
                     onClick={onToggle}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '18px',
-                        cursor: 'pointer',
-                        color: '#666',
-                        padding: '4px'
-                    }}
+                    className="toc-close-button"
                 >
                     ×
                 </button>
             </div>
 
             {/* コンテンツ */}
-            <div style={{
-                flex: 1,
-                overflow: 'auto',
-                padding: '16px'
-            }}>
+            <div className="toc-content">
                 {tocData.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        color: '#999',
-                        fontSize: '14px',
-                        marginTop: '40px'
-                    }}>
+                    <div className="toc-empty-message">
                         見出しや注目コメントがありません
                     </div>
                 ) : (
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    <ul className="toc-list">
                         {tocData.map(section => (
-                            <li key={section.id} style={{ marginBottom: '16px' }}>
+                            <li key={section.id} className="toc-section">
                                 {/* 見出し */}
                                 <button
                                     onClick={() => handleItemClick(section.id)}
-                                    style={{
-                                        width: '100%',
-                                        textAlign: 'left',
-                                        padding: '8px 12px',
-                                        backgroundColor: 'transparent',
-                                        border: '1px solid transparent',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '16px',
-                                        fontWeight: '600',
-                                        color: isColorfulMode ? '#6D28D9' : '#333',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        transition: 'all 0.2s',
-                                        ':hover': {
-                                            backgroundColor: isColorfulMode ? 'rgba(109, 40, 217, 0.1)' : '#f0f0f0'
-                                        }
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = isColorfulMode ? 'rgba(109, 40, 217, 0.1)' : '#f0f0f0';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = 'transparent';
-                                    }}
+                                    className={`toc-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
                                 >
-                                    <span style={{ marginRight: '8px' }}>#</span>
-                                    <span style={{ 
-                                        overflow: 'hidden', 
-                                        textOverflow: 'ellipsis', 
-                                        whiteSpace: 'nowrap' 
-                                    }}>
+                                    <span className="toc-heading-icon">#</span>
+                                    <span className="toc-heading-text">
                                         {section.msg.replace(/^#+\s*/, '')}
                                     </span>
                                 </button>
 
                                 {/* ネストされた注目コメント */}
                                 {section.comments.length > 0 && (
-                                    <ul style={{
-                                        listStyle: 'none',
-                                        padding: 0,
-                                        margin: '8px 0 0 20px',
-                                        borderLeft: `2px solid ${isColorfulMode ? 'rgba(109, 40, 217, 0.3)' : '#ddd'}`,
-                                        paddingLeft: '12px'
-                                    }}>
+                                    <ul className={`toc-comments-list ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                         {section.comments.map(comment => (
-                                            <li key={comment.id} style={{ marginBottom: '8px' }}>
+                                            <li key={comment.id} className="toc-comment-item">
                                                 <button
                                                     onClick={() => handleItemClick(comment.id)}
-                                                    style={{
-                                                        width: '100%',
-                                                        textAlign: 'left',
-                                                        padding: '6px 8px',
-                                                        backgroundColor: 'transparent',
-                                                        border: '1px solid transparent',
-                                                        borderRadius: '4px',
-                                                        cursor: 'pointer',
-                                                        fontSize: '13px',
-                                                        color: '#555',
-                                                        transition: 'all 0.2s'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.target.style.backgroundColor = '#f0f0f0';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.target.style.backgroundColor = 'transparent';
-                                                    }}
+                                                    className="toc-comment-button"
                                                 >
-                                                    <div style={{
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap',
-                                                        marginBottom: '4px'
-                                                    }}>
+                                                    <div className="toc-comment-text">
                                                         {comment.msg}
                                                     </div>
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        fontSize: '11px',
-                                                        color: '#999'
-                                                    }}>
-                                                        <span style={{ color: isColorfulMode ? '#10B981' : '#999', marginRight: '8px' }}>
+                                                    <div className="toc-comment-reactions">
+                                                        <span className={`toc-reaction-positive ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                                             ⬆ {comment.positive}
                                                         </span>
-                                                        <span style={{ color: isColorfulMode ? '#EF4444' : '#999' }}>
+                                                        <span className={`toc-reaction-negative ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                                             ⬇ {comment.negative}
                                                         </span>
                                                     </div>

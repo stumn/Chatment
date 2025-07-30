@@ -1,0 +1,197 @@
+/* TableOfContents Component Styles */
+
+/* 目次タブ（閉じた状態） */
+.toc-tab-closed {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 0 8px 8px 0;
+    padding: 8px 4px;
+    cursor: pointer;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.toc-tab-text {
+    writing-mode: vertical-rl;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 目次パネル（開いた状態） */
+.toc-panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: #fafafa;
+    border-right: 1px solid #e0e0e0;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 目次ヘッダー */
+.toc-header {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toc-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.toc-close-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+}
+
+.toc-close-button:hover {
+    color: #333;
+}
+
+/* 目次コンテンツ */
+.toc-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+}
+
+.toc-empty-message {
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+    margin-top: 40px;
+}
+
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc-section {
+    margin-bottom: 16px;
+}
+
+/* 見出しボタン */
+.toc-heading-button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.toc-heading-button:hover {
+    background-color: #f0f0f0;
+}
+
+.toc-heading-button.colorful-mode {
+    color: #6D28D9;
+}
+
+.toc-heading-button.colorful-mode:hover {
+    background-color: rgba(109, 40, 217, 0.1);
+}
+
+.toc-heading-icon {
+    margin-right: 8px;
+}
+
+.toc-heading-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ネストされたコメントリスト */
+.toc-comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 20px;
+    border-left: 2px solid #ddd;
+    padding-left: 12px;
+}
+
+.toc-comments-list.colorful-mode {
+    border-left-color: rgba(109, 40, 217, 0.3);
+}
+
+.toc-comment-item {
+    margin-bottom: 8px;
+}
+
+/* コメントボタン */
+.toc-comment-button {
+    width: 100%;
+    text-align: left;
+    padding: 6px 8px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.toc-comment-button:hover {
+    background-color: #f0f0f0;
+}
+
+.toc-comment-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+}
+
+.toc-comment-reactions {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: #999;
+}
+
+.toc-reaction-positive {
+    color: #999;
+    margin-right: 8px;
+}
+
+.toc-reaction-positive.colorful-mode {
+    color: #10B981;
+}
+
+.toc-reaction-negative {
+    color: #999;
+}
+
+.toc-reaction-negative.colorful-mode {
+    color: #EF4444;
+}
