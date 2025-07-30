@@ -3,7 +3,7 @@
 /* --- 修正ポイント ---
 1. .is-dragging, .is-drag-placeholder, .doc-comment-item などのDnD用クラスを明確化
 2. .doc-comment-contentのoutline, border, background, focus時の見た目を改善
-3. .maruのドラッグハンドルの見た目を改善
+3. .dotのドラッグハンドルの見た目を改善
 4. コメントを追加
 */
 
@@ -45,13 +45,13 @@
 }
 
 /* ロック中の行のドラッグ無効化スタイル */
-.locked .maru {
+.locked .dot {
     cursor: not-allowed !important;
     opacity: 0.5;
     background-color: #ccc !important;
 }
 
-.locked .maru:hover {
+.locked .dot:hover {
     background-color: #ccc !important;
     transform: none !important;
 }
@@ -100,7 +100,7 @@
     background: #f5fbff;
 }
 
-.maru {
+.dot {
     margin-right: 8px;
     user-select: none;
     display: flex;
@@ -112,14 +112,14 @@
     font-size: 20px;
 }
 
-.maru::before {
+.dot::before {
     content: '\22ee\22ee';
     font-size: 20px;
     line-height: 1;
     letter-spacing: -2px;
 }
 
-.maru:active {
+.dot:active {
     cursor: grabbing;
 }
 
@@ -200,12 +200,12 @@
 }
 
 /* ドラッグ・アンド・ドロップのロック状態 */
-.doc-comment-item.locked .maru {
+.doc-comment-item.locked .dot {
   cursor: not-allowed !important;
   opacity: 0.5;
 }
 
-.doc-comment-item.locked .maru:hover {
+.doc-comment-item.locked .dot:hover {
   background-color: #dc3545 !important;
   transform: none !important;
 }

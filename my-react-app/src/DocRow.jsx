@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
+import Tooltip from '@mui/material/Tooltip';
 
 // ❌ 問題: useSocketを直接インポートすると、propsで受け取ったemitFunctionsと重複してsocket接続が複数作られる可能性があります
 // import useSocket from './hooks/useSocket'; // 削除：propsからemitFunctionsを使用する
@@ -16,10 +17,10 @@ const DocRow = ({ data, index, style }) => {
     const addDocMessage = usePostStore((state) => state.addPost);
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const removeDocMessage = usePostStore((state) => state.removePost);
-    
+
     const isRowLocked = usePostStore((state) => state.isRowLocked);
     const getRowLockInfo = usePostStore((state) => state.getRowLockInfo);
-    
+
     const getChangeState = usePostStore((state) => state.getChangeState);
     const setChangeState = usePostStore((state) => state.setChangeState);
     const clearChangeState = usePostStore((state) => state.clearChangeState);
@@ -27,8 +28,8 @@ const DocRow = ({ data, index, style }) => {
     // カラフルモードの状態を取得
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
 
-    const { 
-        document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage 
+    const {
+        document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage
     } = documentFunctions;
 
     // 編集状態を管理するためのステート
@@ -39,19 +40,19 @@ const DocRow = ({ data, index, style }) => {
 
     // 行のElement IDを生成
     const rowElementId = `dc-${index}-${message?.displayOrder}-${message?.id}`;
-    
+
     // この行がロックされているかチェック
     const locked = isRowLocked(rowElementId);
     const lockInfo = getRowLockInfo(rowElementId);
-    
+
     // この行の変更状態を取得
     const changeState = getChangeState(message?.id);
-    
+
     // フェードアウト状態の管理
     const [isFadingOut, setIsFadingOut] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const fadeTimeoutRef = useRef(null);
-    
+
     // 変更状態が変わったときのフェードアウトタイマー設定
     useEffect(() => {
         if (changeState && !isFadingOut) {
@@ -59,12 +60,12 @@ const DocRow = ({ data, index, style }) => {
             if (fadeTimeoutRef.current) {
                 clearTimeout(fadeTimeoutRef.current);
             }
-            
+
             // 5秒後にフェードアウト開始
             fadeTimeoutRef.current = setTimeout(() => {
                 if (!isHovering) { // ホバー中でなければフェードアウト
                     setIsFadingOut(true);
-                    
+
                     // フェードアウト完了後に変更状態をクリア（2秒後）
                     setTimeout(() => {
                         clearChangeState(message?.id);
@@ -73,7 +74,7 @@ const DocRow = ({ data, index, style }) => {
                 }
             }, 15000); // 15秒でフェードアウト（合計約17秒程度）
         }
-        
+
         // クリーンアップ
         return () => {
             if (fadeTimeoutRef.current) {
@@ -105,7 +106,7 @@ const DocRow = ({ data, index, style }) => {
     // 変更バーのスタイルクラスを決定
     const getChangeBarClass = () => {
         if (!changeState) return 'bar-none';
-        
+
         switch (changeState.type) {
             case 'added':
                 return 'bar-added';
@@ -146,7 +147,7 @@ const DocRow = ({ data, index, style }) => {
     const handleBlur = (e) => {
         const newContent = e.target.textContent.replace(/\r/g, '');
         const originalContent = message.msg || '';
-        
+
         updateDocMessage(message.id, newContent);
         edit && edit(message.id, newContent);
 
@@ -154,7 +155,7 @@ const DocRow = ({ data, index, style }) => {
         if (newContent !== originalContent) {
             setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
         }
-        
+
         setIsEditing(false);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
             listRef.current.resetAfterIndex(index, true);
@@ -206,10 +207,10 @@ const DocRow = ({ data, index, style }) => {
 
         const positive = message?.positive || 0;
         const negative = message?.negative || 0;
-        
+
         // ポジティブ・ネガティブの差を計算
         const diff = positive - negative;
-        
+
         if (diff > 0) {
             // ポジティブが優勢
             return {
@@ -225,7 +226,7 @@ const DocRow = ({ data, index, style }) => {
                 borderRadius: '4px'
             };
         }
-        
+
         // 差がない場合は何もしない
         return {};
     };
@@ -233,10 +234,10 @@ const DocRow = ({ data, index, style }) => {
     // 行削除
     const handleDelete = () => {
         if (setShouldScroll) setShouldScroll(false); // 削除時はスクロール抑制
-        
+
         // 削除の変更状態を記録
         setChangeState(message.id, 'deleted', userInfo?.nickname || 'Unknown');
-        
+
         deleteDoc && deleteDoc(message.id);
         removeDocMessage(message.id);
         if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
@@ -246,9 +247,9 @@ const DocRow = ({ data, index, style }) => {
 
     return (
         // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
-        <Draggable 
-            draggableId={String(message?.id ?? index)} 
-            index={index} 
+        <Draggable
+            draggableId={String(message?.id ?? index)}
+            index={index}
             key={message?.id ?? index}
             isDragDisabled={locked} // ロック中はドラッグ無効化
         >
@@ -259,21 +260,43 @@ const DocRow = ({ data, index, style }) => {
                     {...provided.dragHandleProps}
                     className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
-                    data-row-id={rowElementId} // ロック管理用のdata属性
+                // ロック管理用のdata属性
                 >
-                    <div 
-                        className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
-                        title={changeState ? `【${changeState.type === 'added' ? '空行追加' : 
-                               changeState.type === 'modified' ? '内容編集' : 
-                               changeState.type === 'deleted' ? '削除' : 
-                               changeState.type === 'reordered' ? '順序変更' : ''}】
-実行者: ${changeState.userNickname}
-時刻: ${changeState.timestamp.toLocaleString()}` : ''}
-                        onMouseEnter={() => setIsHovering(true)}
-                        onMouseLeave={() => setIsHovering(false)}
-                    >  </div>
-                    
-                    <span {...provided.dragHandleProps} className='maru' />
+                    <Tooltip
+                        title={
+                            changeState
+                                ? (
+                                    <>
+                                        【{
+                                            changeState.type === 'added' ? '空行追加' :
+                                                changeState.type === 'modified' ? '内容編集' :
+                                                    changeState.type === 'deleted' ? '削除' :
+                                                        changeState.type === 'reordered' ? '順序変更' : ''
+                                        }】<br />
+                                        実行者: {changeState.userNickname}<br />
+                                        時刻: {changeState.timestamp.toLocaleString()}
+                                    </>
+                                )
+                                : ''
+                        }
+                        arrow
+                        placement="left"
+                        enterDelay={300}
+                        leaveDelay={100}
+                        componentsProps={{
+                            tooltip: {
+                                sx: { whiteSpace: 'pre-line', fontSize: '0.85em' }
+                            }
+                        }}
+                    >
+                        <div
+                            className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
+                            onMouseEnter={() => setIsHovering(true)}
+                            onMouseLeave={() => setIsHovering(false)}
+                        >  </div>
+                    </Tooltip>
+
+                    <span {...provided.dragHandleProps} className='dot' />
                     <div
                         id={rowElementId}
                         className='doc-comment-content'
