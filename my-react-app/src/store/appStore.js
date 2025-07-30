@@ -16,6 +16,9 @@ const useAppStore = create((set) => ({
   // カラフルモード（true: カラフル、false: シンプル）
   isColorfulMode: true,
 
+  // 目次の開閉状態
+  isTocOpen: false,
+
   // アクション: ユーザー情報を設定する
   setUserInfo: ({ nickname, status, ageGroup, userId }) => set((state) => ({
     userInfo: {
@@ -31,6 +34,9 @@ const useAppStore = create((set) => ({
 
   // アクション: カラフルモードを切り替える
   toggleColorfulMode: () => set((state) => ({ isColorfulMode: !state.isColorfulMode })),
+
+  // アクション: 目次の開閉を切り替える
+  toggleToc: () => set((state) => ({ isTocOpen: !state.isTocOpen })),
 
 }));
 

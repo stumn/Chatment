@@ -3,6 +3,7 @@
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
+import TableOfContents from './TableOfContents';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
@@ -12,7 +13,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     const { nickname, status, ageGroup, userId } = userInfo;
 
     // カラフルモードの状態管理
-    const { isColorfulMode, toggleColorfulMode } = useAppStore();
+    const { isColorfulMode, toggleColorfulMode, isTocOpen, toggleToc } = useAppStore();
 
     // appControllerから必要な関数を抽出
     const { chat } = appController;
@@ -25,10 +26,21 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     const CONTAINER_2_WIDTH = CONTAINER_1_WIDTH; // 100%の幅
     const CONTAINER_2_HEIGHT = CONTAINER_1_HEIGHT * 0.8; //80%の高さ
 
+    // 目次が開いている場合のレイアウト調整
+    const tocOffset = isTocOpen ? 280 : 0; // 目次の幅分オフセット
+
     return (
         <div
             id="after-login-container"
-            style={{ width: `${CONTAINER_1_WIDTH}px`, height: `${CONTAINER_1_HEIGHT}px` }}>
+            style={{ 
+                width: `${CONTAINER_1_WIDTH}px`, 
+                height: `${CONTAINER_1_HEIGHT}px`,
+                marginLeft: `${tocOffset}px`, // 目次が開いている場合は右にシフト
+                transition: 'margin-left 0.3s ease' // スムーズな移動
+            }}>
+
+            {/* 目次コンポーネント */}
+            <TableOfContents isOpen={isTocOpen} onToggle={toggleToc} />
 
             <div style={{ 
                 display: 'flex', 
@@ -36,9 +48,29 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                 alignItems: 'center', 
                 margin: '8px 0' 
             }}>
-                <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
-                    {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
-                </h6>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
+                        {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
+                    </h6>
+                    
+                    {/* 目次ボタン */}
+                    <button
+                        onClick={toggleToc}
+                        style={{
+                            backgroundColor: isTocOpen ? '#4CAF50' : '#f0f0f0',
+                            color: isTocOpen ? 'white' : '#666',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            padding: '6px 12px',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                        title="目次の表示/非表示"
+                    >
+                        📚 目次
+                    </button>
+                </div>
                 
                 <div style={{ 
                     display: 'flex', 
@@ -100,12 +132,13 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             <div
                 id="resizable-container"
                 style={{
-                    width: `${CONTAINER_2_WIDTH}px`,
+                    width: `${CONTAINER_2_WIDTH - tocOffset}px`, // 目次の幅分を引く
                     height: `${CONTAINER_2_HEIGHT}px`,
                     display: 'flex',
                     flexDirection: 'row', // Change to row for horizontal layout
                     alignItems: 'flex-start', // Align items at the top
                     gap: '4px', // Add spacing between elements
+                    transition: 'width 0.3s ease' // スムーズな幅変更
                 }}>
 
                 <ResizablePanels appController={appController} />
