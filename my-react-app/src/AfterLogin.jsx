@@ -46,7 +46,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                     gap: '8px' 
                 }}>
                     <span style={{ fontSize: '14px', color: '#666' }}>
-                        {isColorfulMode ? 'カラフル' : 'シンプル'}
+                        カラフルモード
                     </span>
                     <label style={{ 
                         position: 'relative', 
