@@ -18,11 +18,19 @@ const ChatRow = ({ data, index, style }) => {
     const [hasVotedPositive, setHasVotedPositive] = useState(false);
     const [hasVotedNegative, setHasVotedNegative] = useState(false);
     
+    // 見出し行判定（#で始まる行）
+    const isHeading = cMsg.msg && cMsg.msg.trim().startsWith('#');
+    
     // --- 文字サイズと色を⬆⬇の差で決定（差が大きいほど変化） ---
     const diff = positive - negative;
     let fontSize = 15 + diff * 2; // 差が1で17px、2で19px、-1で13pxなど
     if (fontSize > 30) fontSize = 30;
     if (fontSize < 10) fontSize = 10;
+
+    // 見出しの場合はさらに大きく
+    if (isHeading) {
+        fontSize = Math.max(fontSize * 1.5, 22); // 見出しは最低でも22px
+    }
 
     // --- 文字色を差に応じて決定（カラフルモードの場合のみ） ---
     let textColor = '#000'; // デフォルト色
@@ -74,6 +82,7 @@ const ChatRow = ({ data, index, style }) => {
                     style={{
                         fontSize,
                         color: textColor,
+                        fontWeight: isHeading ? 'bold' : 'normal', // 見出しの場合は太字
                         display: 'inline-block',
                     }}
                 >

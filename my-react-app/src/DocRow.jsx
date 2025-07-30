@@ -220,6 +220,9 @@ const DocRow = ({ data, index, style }) => {
     // 空白行判定
     const isBlank = !message?.msg || message.msg.trim() === '';
 
+    // 見出し行判定（#で始まる行）
+    const isHeading = message?.msg && message.msg.trim().startsWith('#');
+
     // リアクションによるハイライトスタイルの判定
     const getReactionHighlight = () => {
         // シンプルモードの場合はハイライトしない
@@ -251,6 +254,21 @@ const DocRow = ({ data, index, style }) => {
 
         // 差がない場合は何もしない
         return {};
+    };
+
+    // 見出しスタイルと通常スタイルを統合
+    const getContentStyle = () => {
+        const baseStyle = !isBlank ? getReactionHighlight() : {};
+        
+        if (isHeading) {
+            return {
+                ...baseStyle,
+                fontSize: '1.5em',
+                fontWeight: 'bold'
+            };
+        }
+        
+        return baseStyle;
     };
 
     // 行削除
@@ -330,7 +348,7 @@ const DocRow = ({ data, index, style }) => {
                         onInput={handleInput}
                         tabIndex={0}
                         spellCheck={true}
-                        style={!isBlank ? getReactionHighlight() : {}} // 空白行でない場合のみハイライト適用
+                        style={getContentStyle()} // 見出しスタイルとハイライトを統合
                     >
                         {(message?.msg || '').split('\n').map((line, i, arr) => (
                             <React.Fragment key={i}>
