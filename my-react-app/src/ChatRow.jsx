@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useAppStore from './store/appStore';
 import './Doc.css'; // 右端ボタン配置用のスタイルを流用
 
 const ChatRow = ({ data, index, style }) => {
@@ -6,6 +7,9 @@ const ChatRow = ({ data, index, style }) => {
     // --- positive/negative人数 ---
     const positive = cMsg.positive || 0;
     const negative = cMsg.negative || 0;
+    
+    // カラフルモードの状態を取得
+    const isColorfulMode = useAppStore((state) => state.isColorfulMode);
     
     // --- ホバー状態を管理 ---
     const [isHovered, setIsHovered] = useState(false);
@@ -20,12 +24,14 @@ const ChatRow = ({ data, index, style }) => {
     if (fontSize > 30) fontSize = 30;
     if (fontSize < 10) fontSize = 10;
 
-    // --- 文字色を差に応じて決定 ---
+    // --- 文字色を差に応じて決定（カラフルモードの場合のみ） ---
     let textColor = '#000'; // デフォルト色
-    if (diff > 0) {
-        textColor = '#4CAF50'; // 緑色（ポジティブ）
-    } else if (diff < 0) {
-        textColor = '#F44336'; // 赤色（ネガティブ）
+    if (isColorfulMode) {
+        if (diff > 0) {
+            textColor = '#4CAF50'; // 緑色（ポジティブ）
+        } else if (diff < 0) {
+            textColor = '#F44336'; // 赤色（ネガティブ）
+        }
     }
 
     // --- emitPositive/emitNegativeを取得 ---
@@ -84,7 +90,7 @@ const ChatRow = ({ data, index, style }) => {
                                 cursor: hasVotedPositive ? 'not-allowed' : 'pointer',
                                 border: 'none',
                                 background: 'none',
-                                color: hasVotedPositive ? '#ccc' : '#4CAF50', // 押済みはグレーアウト
+                                color: hasVotedPositive ? '#ccc' : (isColorfulMode ? '#4CAF50' : '#888'), // カラフルモードでない場合はグレー
                                 // color: '#888', // 元のグレー色
                                 opacity: hasVotedPositive ? 0.5 : 1,
                             }}
@@ -102,7 +108,7 @@ const ChatRow = ({ data, index, style }) => {
                                 cursor: hasVotedNegative ? 'not-allowed' : 'pointer',
                                 border: 'none',
                                 background: 'none',
-                                color: hasVotedNegative ? '#ccc' : '#F44336', // 押済みはグレーアウト
+                                color: hasVotedNegative ? '#ccc' : (isColorfulMode ? '#F44336' : '#bbb'), // カラフルモードでない場合はグレー
                                 // color: '#bbb', // 元のグレー色
                                 opacity: hasVotedNegative ? 0.5 : 1,
                             }}

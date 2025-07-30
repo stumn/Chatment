@@ -11,6 +11,9 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     // userInfoをpropsから受け取る
     const { nickname, status, ageGroup, userId } = userInfo;
 
+    // カラフルモードの状態管理
+    const { isColorfulMode, toggleColorfulMode } = useAppStore();
+
     // appControllerから必要な関数を抽出
     const { chat } = appController;
 
@@ -27,9 +30,72 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             id="after-login-container"
             style={{ width: `${CONTAINER_1_WIDTH}px`, height: `${CONTAINER_1_HEIGHT}px` }}>
 
-            <h6 style={{ fontSize: '20px', margin: '8px 0', textAlign: 'left' }}>
-                {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
-            </h6>
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                margin: '8px 0' 
+            }}>
+                <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
+                    {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
+                </h6>
+                
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px' 
+                }}>
+                    <span style={{ fontSize: '14px', color: '#666' }}>
+                        {isColorfulMode ? 'カラフル' : 'シンプル'}
+                    </span>
+                    <label style={{ 
+                        position: 'relative', 
+                        display: 'inline-block', 
+                        width: '50px', 
+                        height: '24px' 
+                    }}>
+                        <input
+                            type="checkbox"
+                            checked={isColorfulMode}
+                            onChange={toggleColorfulMode}
+                            style={{ opacity: 0, width: 0, height: 0 }}
+                        />
+                        <span style={{
+                            position: 'absolute',
+                            cursor: 'pointer',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: isColorfulMode ? '#4CAF50' : '#ccc',
+                            transition: '0.4s',
+                            borderRadius: '24px',
+                            '&:before': {
+                                position: 'absolute',
+                                content: '""',
+                                height: '18px',
+                                width: '18px',
+                                left: isColorfulMode ? '26px' : '3px',
+                                bottom: '3px',
+                                backgroundColor: 'white',
+                                transition: '0.4s',
+                                borderRadius: '50%'
+                            }
+                        }}>
+                            <span style={{
+                                position: 'absolute',
+                                height: '18px',
+                                width: '18px',
+                                left: isColorfulMode ? '26px' : '3px',
+                                bottom: '3px',
+                                backgroundColor: 'white',
+                                transition: '0.4s',
+                                borderRadius: '50%'
+                            }} />
+                        </span>
+                    </label>
+                </div>
+            </div>
 
             <div
                 id="resizable-container"

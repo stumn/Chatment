@@ -6,6 +6,7 @@ import { Draggable } from '@hello-pangea/dnd';
 // ❌ 問題: useSocketを直接インポートすると、propsで受け取ったemitFunctionsと重複してsocket接続が複数作られる可能性があります
 // import useSocket from './hooks/useSocket'; // 削除：propsからemitFunctionsを使用する
 import usePostStore from './store/postStore';
+import useAppStore from './store/appStore';
 import './Doc.css'; // Assuming you have a CSS file for styling
 
 const DocRow = ({ data, index, style }) => {
@@ -22,6 +23,9 @@ const DocRow = ({ data, index, style }) => {
     const getChangeState = usePostStore((state) => state.getChangeState);
     const setChangeState = usePostStore((state) => state.setChangeState);
     const clearChangeState = usePostStore((state) => state.clearChangeState);
+
+    // カラフルモードの状態を取得
+    const isColorfulMode = useAppStore((state) => state.isColorfulMode);
 
     const { 
         document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage 
@@ -195,6 +199,11 @@ const DocRow = ({ data, index, style }) => {
 
     // リアクションによるハイライトスタイルの判定
     const getReactionHighlight = () => {
+        // シンプルモードの場合はハイライトしない
+        if (!isColorfulMode) {
+            return {};
+        }
+
         const positive = message?.positive || 0;
         const negative = message?.negative || 0;
         

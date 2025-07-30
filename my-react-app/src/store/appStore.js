@@ -13,6 +13,9 @@ const useAppStore = create((set) => ({
   // ユーザー自身のパネルの高さ
   myHeight: 300,
 
+  // カラフルモード（true: カラフル、false: シンプル）
+  isColorfulMode: true,
+
   // アクション: ユーザー情報を設定する
   setUserInfo: ({ nickname, status, ageGroup, userId }) => set((state) => ({
     userInfo: {
@@ -25,6 +28,9 @@ const useAppStore = create((set) => ({
 
   // アクション: 高さを設定する
   setMyHeight: (height) => set({ myHeight: height }),
+
+  // アクション: カラフルモードを切り替える
+  toggleColorfulMode: () => set((state) => ({ isColorfulMode: !state.isColorfulMode })),
 
 }));
 
