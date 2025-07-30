@@ -115,8 +115,6 @@ const DocRow = ({ data, index, style }) => {
                 return 'bar-none';
         }
     };
-    
-
 
     // 新規行追加
     const handleAddBelow = () => {
@@ -195,6 +193,34 @@ const DocRow = ({ data, index, style }) => {
     // 空白行判定
     const isBlank = !message?.msg || message.msg.trim() === '';
 
+    // リアクションによるハイライトスタイルの判定
+    const getReactionHighlight = () => {
+        const positive = message?.positive || 0;
+        const negative = message?.negative || 0;
+        
+        // ポジティブ・ネガティブの差を計算
+        const diff = positive - negative;
+        
+        if (diff > 0) {
+            // ポジティブが優勢
+            return {
+                backgroundColor: '#e6ffe6', // 薄い緑色
+                padding: '2px 4px',
+                borderRadius: '4px'
+            };
+        } else if (diff < 0) {
+            // ネガティブが優勢
+            return {
+                backgroundColor: '#ffe6e6', // 薄い赤色
+                padding: '2px 4px',
+                borderRadius: '4px'
+            };
+        }
+        
+        // 差がない場合は何もしない
+        return {};
+    };
+
     // 行削除
     const handleDelete = () => {
         if (setShouldScroll) setShouldScroll(false); // 削除時はスクロール抑制
@@ -249,6 +275,7 @@ const DocRow = ({ data, index, style }) => {
                         onInput={handleInput}
                         tabIndex={0}
                         spellCheck={true}
+                        style={!isBlank ? getReactionHighlight() : {}} // 空白行でない場合のみハイライト適用
                     >
                         {(message?.msg || '').split('\n').map((line, i, arr) => (
                             <React.Fragment key={i}>
