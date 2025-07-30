@@ -4,7 +4,7 @@
 .toc-tab-closed {
     position: fixed;
     left: 0;
-    top: 50%;
+    top: 20%;
     transform: translateY(-50%);
     z-index: 1000;
     background-color: #f0f0f0;
@@ -26,7 +26,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 280px;
+    width: 350px;
     height: 100vh;
     background-color: #fafafa;
     border-right: 1px solid #e0e0e0;
