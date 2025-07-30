@@ -195,6 +195,28 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
+    // 編集完了ボタンのハンドラー
+    const handleCompleteEdit = () => {
+        if (contentRef.current) {
+            // handleBlurと同じロジックを実行
+            const newContent = contentRef.current.textContent.replace(/\r/g, '');
+            const originalContent = message.msg || '';
+            
+            updateDocMessage(message.id, newContent);
+            edit && edit(message.id, newContent);
+
+            // 内容が実際に変更された場合のみ変更状態を記録
+            if (newContent !== originalContent) {
+                setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
+            }
+            
+            setIsEditing(false);
+            if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+                listRef.current.resetAfterIndex(index, true);
+            }
+        }
+    };
+
     // 空白行判定
     const isBlank = !message?.msg || message.msg.trim() === '';
 
@@ -321,36 +343,51 @@ const DocRow = ({ data, index, style }) => {
                     {/* ロック中は操作ボタンを非表示 */}
                     {!locked && (
                         <>
-                            {/* ホバー時のみ表示される編集・削除・追加ボタン（右端に横並び） */}
-                            <button
-                                className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
-                                title="編集"
-                                onClick={handleEdit}
-                                tabIndex={-1}
-                                type="button"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-                            </button>
-                            {isBlank && (
+                            {isEditing ? (
+                                // 編集中の場合は編集完了ボタンのみ表示
                                 <button
-                                    className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
-                                    title="空白行を削除"
-                                    onClick={handleDelete}
+                                    className="complete-edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                                    title="編集完了"
+                                    onClick={handleCompleteEdit}
                                     tabIndex={-1}
                                     type="button"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                                 </button>
+                            ) : (
+                                // 通常時は編集・削除・追加ボタンを表示
+                                <>
+                                    <button
+                                        className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                                        title="編集"
+                                        onClick={handleEdit}
+                                        tabIndex={-1}
+                                        type="button"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                                    </button>
+                                    {isBlank && (
+                                        <button
+                                            className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
+                                            title="空白行を削除"
+                                            onClick={handleDelete}
+                                            tabIndex={-1}
+                                            type="button"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" /><path d="M19 6l-1.5 14a2 2 0 0 1-2 2H8.5a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                                        </button>
+                                    )}
+                                    <button
+                                        className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
+                                        title="下に行を挿入"
+                                        onClick={handleAddBelow}
+                                        tabIndex={-1}
+                                        type="button"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
+                                    </button>
+                                </>
                             )}
-                            <button
-                                className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
-                                title="下に行を挿入"
-                                onClick={handleAddBelow}
-                                tabIndex={-1}
-                                type="button"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14" /></svg>
-                            </button>
                         </>
                     )}
 
