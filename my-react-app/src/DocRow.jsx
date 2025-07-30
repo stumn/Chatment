@@ -267,17 +267,17 @@ const DocRow = ({ data, index, style }) => {
                             changeState
                                 ? (
                                     <>
-                                        【{
-                                            changeState.type === 'added' ? '空行追加' :
-                                                changeState.type === 'modified' ? '内容編集' :
-                                                    changeState.type === 'deleted' ? '削除' :
-                                                        changeState.type === 'reordered' ? '順序変更' : ''
-                                        }】<br />
+                                        【{{
+                                            added: '空行追加',
+                                            modified: '内容編集',
+                                            deleted: '削除',
+                                            reordered: '順序変更'
+                                        }[changeState.type] || ''}】<br />
                                         実行者: {changeState.userNickname}<br />
                                         時刻: {changeState.timestamp.toLocaleString()}
                                     </>
                                 )
-                                : ''
+                                : 'この行には、最近の編集履歴がありません'
                         }
                         arrow
                         placement="left"
@@ -293,7 +293,8 @@ const DocRow = ({ data, index, style }) => {
                             className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
                             onMouseEnter={() => setIsHovering(true)}
                             onMouseLeave={() => setIsHovering(false)}
-                        >  </div>
+                            style={{ cursor: 'pointer' }}
+                        />
                     </Tooltip>
 
                     <span {...provided.dragHandleProps} className='dot' />
