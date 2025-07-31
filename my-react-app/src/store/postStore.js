@@ -174,10 +174,21 @@ const usePostStore = create((set, get) => ({
             };
         }),
 
-    // チャット用: 最新N件をupdatedAt順で取得
-    getChatMessages: (count = 10) => {
+    // チャット用: 最新N件をupdatedAt順で取得（ルーム別対応）
+    getChatMessages: (count = 10, roomId = null) => {
         const sorted = [...get().posts]
-            .filter(post => post.msg && post.msg.trim() !== "") // 空メッセージ除外
+            .filter(post => {
+                // 空メッセージ除外
+                if (!post.msg || post.msg.trim() === "") return false;
+                
+                // ルーム指定がある場合はルームでフィルタリング
+                if (roomId) {
+                    return post.roomId === roomId;
+                }
+                
+                // ルーム指定がない場合は、roomId がない投稿のみ表示
+                return !post.roomId;
+            })
             .sort((a, b) => {
                 const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
                 const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
@@ -185,6 +196,27 @@ const usePostStore = create((set, get) => ({
             });
         return sorted.slice(-count);
     },
+
+    // ルーム用: 特定ルームのメッセージのみ取得
+    getRoomMessages: (roomId) => {
+        return [...get().posts]
+            .filter(post => post.roomId === roomId)
+            .sort((a, b) => {
+                const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
+                const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
+                return aTime - bTime;
+            });
+    },
+
+    // ルーム切り替え用: 表示中メッセージをクリアして新しいルームのメッセージを設定
+    switchToRoom: (roomId) => set((state) => {
+        // 現在表示中のメッセージをすべてクリア
+        // 新しいルームのメッセージは handleRoomHistory で追加される
+        console.log(`🔄 [postStore] ルーム切り替え: ${roomId}`);
+        return {
+            posts: state.posts.filter(post => post.roomId === roomId || !post.roomId)
+        };
+    }),
 
     // ドキュメント用: displayOrder順で全件取得
     getDocMessages: () => {

@@ -169,6 +169,21 @@ export default function useSocket() {
       // 現在のルームを更新
       useRoomStore.getState().setActiveRoom(data.roomId);
       
+      // postStoreの表示をルーム用に切り替え（キャッシュから復元）
+      const cachedMessages = useRoomStore.getState().getRoomMessages(data.roomId);
+      if (cachedMessages.length > 0) {
+        console.log(`📋 [useSocket] ${data.roomId}のキャッシュされたメッセージを復元:`, cachedMessages.length, '件');
+        // キャッシュされたメッセージを表示用に追加
+        usePostStore.getState().switchToRoom(data.roomId);
+        cachedMessages.forEach((msg) => {
+          addMessage(msg, false); // 履歴データなのでfalse
+        });
+      } else {
+        // キャッシュがない場合は履歴を要求
+        console.log(`📚 [useSocket] ${data.roomId}のキャッシュがないため履歴を要求`);
+        emitFetchRoomHistory(data.roomId);
+      }
+      
       emitLog({
         userId: validUserId(userInfo && userInfo._id),
         userNickname: userInfo && userInfo.nickname,
@@ -276,6 +291,26 @@ export default function useSocket() {
       }
     };
 
+    // ルーム履歴取得のハンドラー
+    const handleRoomHistory = (data) => {
+      // data: { roomId, messages: [...] }
+      console.log(`📚 [useSocket] ${data.roomId}の履歴を受信:`, data.messages.length, '件');
+      
+      if (data.roomId && data.messages && Array.isArray(data.messages)) {
+        // ルームストアに履歴を設定
+        useRoomStore.getState().setRoomMessages(data.roomId, data.messages);
+        useRoomStore.getState().setRoomHistoryLoaded(data.roomId, true);
+        
+        // 現在のアクティブルームの履歴の場合、postStoreにも追加
+        const currentRoomId = useRoomStore.getState().activeRoomId;
+        if (data.roomId === currentRoomId) {
+          data.messages.forEach((msg) => {
+            addMessage(msg, false); // 履歴データなのでfalse
+          });
+        }
+      }
+    };
+
     // イベントとハンドラの対応表
     const eventHandlers = {
       'heightChange': handleHeightChange,
@@ -301,6 +336,7 @@ export default function useSocket() {
       'room-error': handleRoomError,
       'room-list': handleRoomList,
       'room-info': handleRoomInfo,
+      'room-history': handleRoomHistory,
       // エラーハンドリング
       'connect_error': handleConnectError,
       'disconnect': handleDisconnect,
@@ -544,6 +580,28 @@ export default function useSocket() {
     });
   };
 
+  // ルーム履歴を取得する関数
+  const emitFetchRoomHistory = (roomId) => {
+    const { userInfo } = useAppStore.getState();
+    if (!roomId) return;
+    
+    // 既に履歴が読み込み済みの場合はスキップ
+    if (useRoomStore.getState().isRoomHistoryLoaded(roomId)) {
+      console.log(`📚 [useSocket] ${roomId}の履歴は既に読み込み済み`);
+      return;
+    }
+    
+    console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
+    socket.emit('fetch-room-history', { roomId });
+    
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo && userInfo.nickname,
+      action: 'fetch-room-history',
+      detail: { roomId }
+    });
+  };
+
   return {
     // 基本
     emitLoginName,
@@ -572,5 +630,6 @@ export default function useSocket() {
     emitLeaveRoom,
     emitGetRoomList,
     emitGetRoomInfo,
+    emitFetchRoomHistory,
   };
 }
