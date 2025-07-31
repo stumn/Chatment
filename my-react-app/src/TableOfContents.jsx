@@ -122,14 +122,14 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                                     <div className="toc-comment-text">
                                                         {comment.msg}
                                                     </div>
-                                                    <div className="toc-comment-reactions">
+                                                    {/* <div className="toc-comment-reactions">
                                                         <span className={`toc-reaction-positive ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                                             ⬆ {comment.positive}
                                                         </span>
                                                         <span className={`toc-reaction-negative ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                                             ⬇ {comment.negative}
                                                         </span>
-                                                    </div>
+                                                    </div> */}
                                                 </button>
                                             </li>
                                         ))}
@@ -159,11 +159,6 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                         ({room.participantCount}人)
                                     </span>
                                 </div>
-                                {room.description && (
-                                    <div className="toc-room-description">
-                                        {room.description}
-                                    </div>
-                                )}
                             </button>
                         </li>
                     ))}
