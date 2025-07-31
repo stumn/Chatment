@@ -3,11 +3,18 @@
 import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
+import useRoomStore from './store/roomStore';
 import './Toc.css';
 
 const TableOfContents = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+    
+    // ルーム関連の状態
+    const { rooms, activeRoomId, setActiveRoom } = useRoomStore();
+    
+    // TODO: チャンネル機能は後で実装予定
+    const channels = [];
 
     // 目次データを生成
     const tocData = useMemo(() => {
@@ -25,7 +32,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                     comments: []
                 };
                 result.push(currentSection);
-            } 
+            }
             // 注目のコメント（リアクション数が10以上）の場合、現在のセクションに追加
             else if ((post.positive + post.negative) >= 10 && post.msg && post.msg.trim() !== '') {
                 if (currentSection) {
@@ -50,6 +57,11 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     const handleItemClick = (postId) => {
         // 後で実装予定：該当の投稿位置にスクロール
         console.log('TOC item clicked:', postId);
+    };
+
+    const handleRoomClick = (roomId) => {
+        setActiveRoom(roomId);
+        console.log('Room selected:', roomId);
     };
 
     if (!isOpen) {
@@ -128,6 +140,36 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                     </ul>
                 )}
             </div>
+
+            {/* ルーム一覧 */}
+            <div className="toc-rooms">
+                <h4 className="toc-room-title">🏠 ルーム一覧</h4>
+                <ul className="toc-room-list">
+                    {rooms.map(room => (
+                        <li key={room.id} className="toc-room-item">
+                            <button
+                                onClick={() => handleRoomClick(room.id)}
+                                className={`toc-room-button ${
+                                    activeRoomId === room.id ? 'active' : ''
+                                } ${isColorfulMode ? 'colorful-mode' : ''}`}
+                            >
+                                <div className="toc-room-info">
+                                    <span className="toc-room-name">{room.name}</span>
+                                    <span className="toc-room-participants">
+                                        ({room.participantCount}人)
+                                    </span>
+                                </div>
+                                {room.description && (
+                                    <div className="toc-room-description">
+                                        {room.description}
+                                    </div>
+                                )}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
         </div>
     );
 };
