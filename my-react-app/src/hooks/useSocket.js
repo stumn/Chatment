@@ -231,7 +231,8 @@ export default function useSocket() {
       };
       
       // システムメッセージとして追加
-      addMessage(systemMessage, true);
+      // addMessage(systemMessage, true);
+      console.log('User left room:', systemMessage);
     };
 
     const handleRoomError = (data) => {
