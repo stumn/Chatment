@@ -293,8 +293,14 @@ export default function useSocket() {
 
     // ルーム履歴取得のハンドラー
     const handleRoomHistory = (data) => {
-      // data: { roomId, messages: [...] }
+      // data: { roomId, messages: [...], startTime? }
+      const endTime = performance.now();
+      const loadTime = data.startTime ? endTime - data.startTime : 0;
+      
       console.log(`📚 [useSocket] ${data.roomId}の履歴を受信:`, data.messages.length, '件');
+      if (loadTime > 0) {
+        console.log(`⏱️ [useSocket] 履歴読み込み時間: ${loadTime.toFixed(2)}ms`);
+      }
       
       if (data.roomId && data.messages && Array.isArray(data.messages)) {
         // ルームストアに履歴を設定
@@ -308,6 +314,18 @@ export default function useSocket() {
             addMessage(msg, false); // 履歴データなのでfalse
           });
         }
+        
+        // パフォーマンスログ
+        emitLog({
+          userId: validUserId(useAppStore.getState().userInfo?._id),
+          userNickname: useAppStore.getState().userInfo?.nickname,
+          action: 'room-history-loaded',
+          detail: { 
+            roomId: data.roomId, 
+            messageCount: data.messages.length,
+            loadTimeMs: loadTime 
+          }
+        });
       }
     };
 
@@ -592,13 +610,15 @@ export default function useSocket() {
     }
     
     console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
-    socket.emit('fetch-room-history', { roomId });
+    const startTime = performance.now(); // パフォーマンス測定開始
+    
+    socket.emit('fetch-room-history', { roomId, startTime });
     
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
       action: 'fetch-room-history',
-      detail: { roomId }
+      detail: { roomId, startTime }
     });
   };
 

@@ -18,10 +18,62 @@ app.get('/plain', (req, res) => { // 変更
   res.sendFile(__dirname + '/index.html');
 });
 
+// パフォーマンス測定エンドポイント
+app.get('/api/room-stats', async (req, res) => {
+  try {
+    console.time('room-stats-api');
+    
+    const stats = await getAllRoomsWithStats();
+    const messageCounts = await getRoomMessageCounts();
+    
+    console.timeEnd('room-stats-api');
+    
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      roomStats: stats,
+      messageCounts: messageCounts
+    });
+  } catch (error) {
+    console.error('Room stats API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// インデックス使用状況確認エンドポイント（開発用）
+app.get('/api/db-performance/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const explanation = await explainRoomQuery(roomId);
+    
+    res.json({
+      success: true,
+      roomId: roomId,
+      performance: {
+        executionTimeMillis: explanation.executionStats.executionTimeMillis,
+        totalDocsExamined: explanation.executionStats.totalDocsExamined,
+        totalDocsReturned: explanation.executionStats.totalDocsReturned,
+        indexUsed: explanation.executionStats.executionStages.indexName || 'No index used'
+      }
+    });
+  } catch (error) {
+    console.error('DB performance API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
-  saveLog, deleteDocRow // 追加
+  saveLog, deleteDocRow, // 追加
+  // ルーム機能用の最適化された関数
+  getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery
 } = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -702,7 +754,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ルーム履歴取得
+  // ルーム履歴取得（最適化版）
   socket.on('fetch-room-history', async ({ roomId }) => {
     try {
       console.log(`📚 [server] ${roomId} の履歴要求`);
@@ -712,35 +764,21 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // インデックスを活用した高速クエリ
-      const messages = await Post.find({ roomId })
-        .sort({ createdAt: -1 }) // 新しい順
-        .limit(50) // 最新50件
-        .lean(); // Mongoose overhead削減
+      // 最適化されたデータベース関数を使用
+      const messages = await getRoomHistory(roomId, 50);
       
-      // 古い順に並び替えて送信
-      const sortedMessages = messages.reverse();
-      
-      // メッセージを適切な形式に変換
-      const formattedMessages = sortedMessages.map(msg => ({
-        id: msg._id,
-        nickname: msg.nickname,
-        msg: msg.msg,
-        userId: msg.userId,
-        roomId: msg.roomId,
-        createdAt: msg.createdAt,
-        displayOrder: msg.displayOrder,
-        positive: msg.positive ? msg.positive.length : 0,
-        negative: msg.negative ? msg.negative.length : 0
-      }));
-
       // 履歴をクライアントに送信
       socket.emit('room-history', { 
         roomId, 
-        messages: formattedMessages
+        messages: messages
       });
       
-      console.log(`✅ [server] ${roomId} 履歴送信完了 (${formattedMessages.length}件)`);
+      console.log(`✅ [server] ${roomId} 履歴送信完了 (${messages.length}件)`);
+      
+      // 開発環境でのパフォーマンス測定
+      if (process.env.NODE_ENV === 'development') {
+        await explainRoomQuery(roomId);
+      }
       
     } catch (error) {
       console.error('Error fetching room history:', error);
