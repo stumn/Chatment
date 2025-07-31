@@ -161,19 +161,15 @@ io.on('connection', (socket) => {
 
         const p = await SaveChatMessage(messageData.nickname, messageData.message, messageData.userId, messageData.displayOrder, messageData.roomId);
 
-        // ルームメッセージの場合は、そのルームの参加者のみに送信
+        // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
         if (roomId && rooms.has(roomId)) {
-          console.log(`🏠 [server] ルーム ${roomId} の参加者にメッセージ送信`);
-          const room = rooms.get(roomId);
+          console.log(`🏠 [server] Socket.IO ルーム room-${roomId} にメッセージ送信`);
           
-          // ルームの参加者に送信
-          room.participants.forEach(participantUserId => {
-            const participantSocket = [...io.sockets.sockets.values()]
-              .find(s => s.userId === participantUserId);
-            if (participantSocket) {
-              participantSocket.emit('chat-message', { ...p, roomId });
-            }
-          });
+          // Socket.IOのルーム機能を使用して、該当ルームの全参加者に即座に送信
+          const responseData = { ...p, roomId };
+          io.to(`room-${roomId}`).emit('chat-message', responseData);
+          
+          console.log(`⚡ [server] Socket.IO ルーム配信完了: room-${roomId}`);
         } else {
           // 通常のチャットメッセージは全クライアントに送信
           console.log('💬 [server] 全クライアントにメッセージ送信');
@@ -549,6 +545,18 @@ io.on('connection', (socket) => {
       userRooms.set(userId, roomId);
       socket.userId = userId; // socket に userId を保存
       socket.roomId = roomId; // socket に roomId を保存
+      socket.nickname = nickname; // socket に nickname を保存
+
+      // Socket.IOのルーム機能を使用
+      if (socket.currentSocketRoom) {
+        socket.leave(socket.currentSocketRoom);
+        console.log(`🚪 [server] Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
+      }
+      
+      const socketRoomName = `room-${roomId}`;
+      socket.join(socketRoomName);
+      socket.currentSocketRoom = socketRoomName;
+      console.log(`🚀 [server] Socket.IO ルーム参加: ${socketRoomName}`);
 
       // 参加成功をクライアントに通知
       socket.emit('room-joined', {
@@ -600,6 +608,13 @@ io.on('connection', (socket) => {
       const room = rooms.get(roomId);
       room.participants.delete(userId);
       userRooms.delete(userId);
+
+      // Socket.IOルームからも退出
+      if (socket.currentSocketRoom) {
+        socket.leave(socket.currentSocketRoom);
+        console.log(`🚪 [server] Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
+        socket.currentSocketRoom = null;
+      }
 
       // 退出成功をクライアントに通知
       socket.emit('room-left', {
@@ -687,6 +702,52 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ルーム履歴取得
+  socket.on('fetch-room-history', async ({ roomId }) => {
+    try {
+      console.log(`📚 [server] ${roomId} の履歴要求`);
+      
+      if (!roomId) {
+        socket.emit('room-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
+        return;
+      }
+
+      // インデックスを活用した高速クエリ
+      const messages = await Post.find({ roomId })
+        .sort({ createdAt: -1 }) // 新しい順
+        .limit(50) // 最新50件
+        .lean(); // Mongoose overhead削減
+      
+      // 古い順に並び替えて送信
+      const sortedMessages = messages.reverse();
+      
+      // メッセージを適切な形式に変換
+      const formattedMessages = sortedMessages.map(msg => ({
+        id: msg._id,
+        nickname: msg.nickname,
+        msg: msg.msg,
+        userId: msg.userId,
+        roomId: msg.roomId,
+        createdAt: msg.createdAt,
+        displayOrder: msg.displayOrder,
+        positive: msg.positive ? msg.positive.length : 0,
+        negative: msg.negative ? msg.negative.length : 0
+      }));
+
+      // 履歴をクライアントに送信
+      socket.emit('room-history', { 
+        roomId, 
+        messages: formattedMessages
+      });
+      
+      console.log(`✅ [server] ${roomId} 履歴送信完了 (${formattedMessages.length}件)`);
+      
+    } catch (error) {
+      console.error('Error fetching room history:', error);
+      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム履歴取得中にエラーが発生しました' });
+    }
+  });
+
   // ロック解除のユーティリティ関数群
   
   // PostIDからロック中の行を特定してロック解除
@@ -734,6 +795,12 @@ io.on('connection', (socket) => {
         const room = rooms.get(roomId);
         room.participants.delete(userId);
         userRooms.delete(userId);
+
+        // Socket.IOルームからも退出
+        if (socket.currentSocketRoom) {
+          socket.leave(socket.currentSocketRoom);
+          console.log(`🚪 [server] 切断時 Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
+        }
 
         // 他の参加者に退出を通知
         room.participants.forEach(participantUserId => {
