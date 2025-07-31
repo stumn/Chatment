@@ -91,9 +91,9 @@ io.on('connection', (socket) => {
       io.emit('heightChange', heightArray); // 他のクライアントに高さを通知
     });
 
-    socket.on('chat-message', async ({ nickname, message, userId }) => { // 🔰userId: undefined
+    socket.on('chat-message', async ({ nickname, message, userId, roomId }) => {
       try {
-        console.log('chat-message:', nickname, message, userId, socket.id);
+        console.log('chat-message:', nickname, message, userId, socket.id, roomId);
 
         // displayOrderを計算
         const displayOrder = await getNextDisplayOrder();

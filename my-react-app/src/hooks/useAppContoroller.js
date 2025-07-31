@@ -150,7 +150,7 @@ export const useAppController = () => {
      * @param {string} handleName - 表示名
      * @param {string} message - メッセージ内容
      */
-    const sendChatMessage = useCallback((handleName, message) => {
+    const sendChatMessage = useCallback((handleName, message, roomId) => {
         try {
             // バリデーション
             if (!message?.trim()) return;
@@ -159,13 +159,14 @@ export const useAppController = () => {
                 message = message.slice(0, 1000);
             }
 
-            emitChatMessage(handleName, message.trim(), userInfo?._id);
+            console.log(`📝 [useAppController] チャットメッセージ送信開始`, handleName, message.trim(), userInfo?._id, roomId);
+            emitChatMessage(handleName, message.trim(), userInfo?._id, roomId);
 
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
                 action: 'chat-send',
-                detail: { handleName, messageLength: message.length }
+                detail: { handleName, messageLength: message.length, roomId }
             });
         } catch (error) {
             console.error('Failed to send chat message:', error);

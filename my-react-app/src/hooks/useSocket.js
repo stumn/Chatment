@@ -60,7 +60,23 @@ export default function useSocket() {
     };
 
     const handleChatMessage = (data) => {
-      // チャットメッセージは新規作成として扱う
+      console.log('💬 [useSocket] チャットメッセージ受信:', data);
+      
+      // ルームメッセージの場合、現在のアクティブルームと一致するかチェック
+      if (data.roomId) {
+        const currentRoomId = useRoomStore.getState().activeRoomId;
+        console.log(`🏠 [useSocket] ルームメッセージ受信 - 送信先: ${data.roomId}, 現在のルーム: ${currentRoomId}`);
+        
+        if (data.roomId !== currentRoomId) {
+          console.log('🚫 [useSocket] 異なるルームのメッセージのため無視');
+          return; // 現在のルームと異なる場合は表示しない
+        }
+        
+        // ルーム別メッセージ履歴に保存
+        useRoomStore.getState().addMessageToRoom(data.roomId, data);
+      }
+      
+      // チャットメッセージとして追加（新規作成として扱う）
       addMessage(data, true);
     };
 
@@ -218,31 +234,6 @@ export default function useSocket() {
       addMessage(systemMessage, true);
     };
 
-    const handleRoomMessage = (data) => {
-      // data: { id, nickname, message, roomId, userId, createdAt }
-      console.log('Room message received:', data);
-      
-      // 現在のアクティブルームと一致する場合のみメッセージを追加
-      const currentRoomId = useRoomStore.getState().activeRoomId;
-      if (data.roomId === currentRoomId) {
-        const messageData = {
-          id: data.id,
-          nickname: data.nickname,
-          msg: data.message,
-          roomId: data.roomId,
-          userId: data.userId,
-          createdAt: data.createdAt || new Date().toISOString(),
-          isRoomMessage: true
-        };
-        
-        // チャットメッセージとして追加
-        addMessage(messageData, true);
-      }
-      
-      // ルーム別メッセージ履歴に保存
-      useRoomStore.getState().addMessageToRoom(data.roomId, data);
-    };
-
     const handleRoomError = (data) => {
       // data: { error, roomId, message }
       console.error('Room error:', data);
@@ -306,7 +297,6 @@ export default function useSocket() {
       'room-left': handleRoomLeft,
       'user-joined': handleUserJoined,
       'user-left': handleUserLeft,
-      'room-message': handleRoomMessage,
       'room-error': handleRoomError,
       'room-list': handleRoomList,
       'room-info': handleRoomInfo,
@@ -349,12 +339,21 @@ export default function useSocket() {
   };
   const emitHeightChange = (height) => socket.emit('heightChange', height);
 
-  const emitChatMessage = (nickname, message, userId) => {
-    socket.emit('chat-message', { nickname, message, userId });
+  const emitChatMessage = (nickname, message, userId, roomId = null) => {
+    const messageData = {
+      nickname,
+      message,
+      userId,
+      ...(roomId && { roomId }) // roomIdがある場合のみ追加
+    };
+    
+    console.log('💬 [useSocket] チャットメッセージ送信:', messageData);
+    socket.emit('chat-message', messageData);
+    
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message }
+      detail: { nickname, message, roomId }
     });
   };
 
@@ -516,29 +515,6 @@ export default function useSocket() {
     });
   };
 
-  const emitRoomMessage = (roomId, nickname, message) => {
-    const { userInfo } = useAppStore.getState();
-    if (!roomId || !message.trim() || !userInfo) return;
-    
-    const messageData = {
-      roomId,
-      nickname,
-      message: message.trim(),
-      userId: userInfo._id,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Sending room message:', messageData);
-    socket.emit('send-room-message', messageData);
-    
-    emitLog({
-      userId: validUserId(userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'send-room-message',
-      detail: { roomId, nickname, messageLength: message.length }
-    });
-  };
-
   const emitGetRoomList = () => {
     const { userInfo } = useAppStore.getState();
     console.log('Requesting room list');
@@ -568,24 +544,31 @@ export default function useSocket() {
   };
 
   return {
+    // 基本
     emitLoginName,
     emitHeightChange,
+    heightArray,
+    socketId: socket.id,
+
+    // chat関連のemit関数
     emitChatMessage,
     emitPositive,
     emitNegative,
-    heightArray,
-    socketId: socket.id,
+
+    // Doc系のemit関数　// roomIdを伝える必要あり
     emitDocAdd,
     emitDemandLock,
-    emitUnlockRow, // ✅ 追加
+    emitUnlockRow,
     emitDocEdit,
     emitDocReorder,
     emitDocDelete,
-    emitLog, // 追加
+
+    // 任意の操作ログをサーバに送信
+    emitLog,
+
     // Room関連の関数
     emitJoinRoom,
     emitLeaveRoom,
-    emitRoomMessage,
     emitGetRoomList,
     emitGetRoomInfo,
   };
