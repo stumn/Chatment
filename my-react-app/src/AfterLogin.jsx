@@ -65,26 +65,17 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                     <div
                         style={{
                             padding: '8px 16px',
-                            backgroundColor: '#f8f9fa',
-                            borderBottom: '1px solid #e9ecef',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center'
                         }}
                     >
-                        <div>
-                            <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#495057' }}>
-                                🏠 {currentRoom.name}
-                            </span>
-                            {currentRoom.description && (
-                                <span style={{ fontSize: '12px', color: '#6c757d', marginLeft: '8px' }}>
-                                    - {currentRoom.description}
-                                </span>
-                            )}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                            🏠 {currentRoom.name}
+                        </span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>
                             {currentRoom.participantCount}人参加中
-                        </div>
+                        </span>
                     </div>
                 )}
 
