@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem'; // MenuItemをインポート
 
 import useSizeStore from './store/sizeStore';
 import useRoomStore from './store/roomStore';
+import useSocket from './hooks/useSocket';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
@@ -21,6 +22,9 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
   // ルーム情報を取得
   const { activeRoomId, rooms } = useRoomStore();
   const currentRoom = rooms.find(room => room.id === activeRoomId);
+  
+  // ソケット通信関数を取得
+  const { emitRoomMessage } = useSocket();
   
   const { chat: { send: sendChatMessage } } = appController;
   
@@ -33,19 +37,45 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     // ❌ 問題: trim()だけでは不十分なバリデーションです
     // ✅ 修正案: 文字数制限やHTMLタグの除去など、より厳密なバリデーションを追加
     if (message.trim()) {
+      console.log(`📝 [InputForm] メッセージ送信開始`);
+      console.log(`🏠 [InputForm] 選択中のルーム: ${activeRoomId} (${currentRoom?.name})`);
+      console.log(`👤 [InputForm] 送信者: ${handleName}`);
+      console.log(`💬 [InputForm] メッセージ: "${message}"`);
+      
       // TODO: XSS対策やメッセージ長制限を追加
       // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
-      sendChatMessage(handleName, message);
+      
+      // ルームが選択されている場合はルームメッセージとして送信
+      if (currentRoom && activeRoomId) {
+        console.log(`🚀 [InputForm] ルームメッセージとして送信中...`);
+        emitRoomMessage(activeRoomId, handleName, message);
+      } else {
+        console.log(`🚀 [InputForm] 通常のチャットメッセージとして送信中...`);
+        // 従来のチャットメッセージとして送信
+        sendChatMessage(handleName, message);
+      }
       
       // 送信後、入力フィールドをクリア
       setMessage('');
+      console.log(`✅ [InputForm] メッセージ送信完了`);
     }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
-      sendChatMessage(handleName, message);
+      console.log(`⌨️ [InputForm] Ctrl+Enter検出 - 送信開始`);
+      
+      // ルームが選択されている場合はルームメッセージとして送信
+      if (currentRoom && activeRoomId) {
+        console.log(`🚀 [InputForm] ルームメッセージとして送信 (Ctrl+Enter)`);
+        emitRoomMessage(activeRoomId, handleName, message);
+      } else {
+        console.log(`🚀 [InputForm] 通常メッセージとして送信 (Ctrl+Enter)`);
+        // 従来のチャットメッセージとして送信
+        sendChatMessage(handleName, message);
+      }
       setMessage('');
+      console.log(`✅ [InputForm] Ctrl+Enter送信完了`);
     }
   };
 

@@ -6,6 +6,7 @@ import { useAppController } from './hooks/useAppContoroller';
 
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
+import useSocket from './hooks/useSocket';
 
 import useResponsiveSize from './useResponsiveSize';
 
@@ -26,6 +27,9 @@ function App() {
   // useAppControllerを使用してSocket通信を一元管理
   const appController = useAppController();
   const { socket: { heightArray }, raw: socketFunctions } = appController;
+  
+  // ルーム関連のソケット関数を取得
+  const { emitGetRoomList, emitJoinRoom } = useSocket();
 
   // ログイン状態を判定する変数を定義
   const isLoggedIn = userInfo.nickname !== undefined;
@@ -33,6 +37,11 @@ function App() {
   useEffect(() => {
     if (!isLoggedIn) return;
     socketFunctions.emitLoginName(userInfo);
+    
+    // ログイン後にルーム一覧を取得し、デフォルトルームに参加
+    emitGetRoomList();
+    emitJoinRoom('room-1'); // デフォルトルームに参加
+    
     setOpen(false);
   }, [userInfo, isLoggedIn]);
 

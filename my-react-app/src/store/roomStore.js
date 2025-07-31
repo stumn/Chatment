@@ -8,27 +8,27 @@ const useRoomStore = create((set, get) => ({
     rooms: [
         {
             id: 'room-1',
-            name: 'ゲーム雑談',
+            name: '発表関連',
             participantCount: 5,
-            description: 'ゲームについて話す部屋'
+            description: '発表に関連した議論をしよう'
         },
         {
             id: 'room-2',
-            name: '技術討論',
+            name: 'general',
             participantCount: 3,
-            description: 'プログラミングや技術の話'
+            description: '全員へのアナウンス'
         },
         {
             id: 'room-3',
-            name: '雑談ルーム',
+            name: 'random',
             participantCount: 8,
-            description: '何でも話せる部屋'
+            description: 'プライベートなTwitter'
         },
         {
             id: 'room-4',
-            name: 'アニメ・漫画',
+            name: '雑談',
             participantCount: 2,
-            description: 'アニメや漫画の話題'
+            description: 'とにかく雑談しよう'
         }
     ],
 
@@ -41,25 +41,37 @@ const useRoomStore = create((set, get) => ({
     },
 
     // アクティブなルームを変更する
-    setActiveRoom: (roomId) => set({ activeRoomId: roomId }),
+    setActiveRoom: (roomId) => {
+        console.log(`🏠 [roomStore] アクティブルーム変更: ${roomId}`);
+        set({ activeRoomId: roomId });
+    },
 
     // ルーム一覧を更新する
-    setRooms: (rooms) => set({ rooms }),
+    setRooms: (rooms) => {
+        console.log('🏠 [roomStore] ルーム一覧更新:', rooms);
+        set({ rooms });
+    },
 
     // 特定のルームの参加者数を更新する
-    updateRoomParticipantCount: (roomId, count) => set((state) => ({
-        rooms: state.rooms.map(room =>
-            room.id === roomId ? { ...room, participantCount: count } : room
-        )
-    })),
+    updateRoomParticipantCount: (roomId, count) => {
+        console.log(`🏠 [roomStore] ${roomId}の参加者数更新: ${count}人`);
+        set((state) => ({
+            rooms: state.rooms.map(room =>
+                room.id === roomId ? { ...room, participantCount: count } : room
+            )
+        }));
+    },
 
     // ルームにメッセージを追加する（将来の実装用）
-    addMessageToRoom: (roomId, message) => set((state) => ({
-        roomMessages: {
-            ...state.roomMessages,
-            [roomId]: [...(state.roomMessages[roomId] || []), message]
-        }
-    }))
+    addMessageToRoom: (roomId, message) => {
+        console.log(`💬 [roomStore] ${roomId}にメッセージ追加:`, message);
+        set((state) => ({
+            roomMessages: {
+                ...state.roomMessages,
+                [roomId]: [...(state.roomMessages[roomId] || []), message]
+            }
+        }));
+    }
 }));
 
 export default useRoomStore;

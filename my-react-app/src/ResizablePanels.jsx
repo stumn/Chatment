@@ -24,6 +24,17 @@ export default function ResizablePanels({ appController }) {
     // ルーム情報を取得
     const { activeRoomId, rooms } = useRoomStore();
     const currentRoom = rooms.find(room => room.id === activeRoomId);
+    
+    // ルーム変更を監視してログ出力
+    useEffect(() => {
+        if (currentRoom) {
+            console.log(`🎨 [ResizablePanels] 表示ルーム変更: ${currentRoom.name} (${currentRoom.id})`);
+            console.log(`👥 [ResizablePanels] 参加者数: ${currentRoom.participantCount}人`);
+            console.log(`📝 [ResizablePanels] 説明: ${currentRoom.description}`);
+        } else {
+            console.log(`⚠️ [ResizablePanels] ルーム情報が見つかりません: ${activeRoomId}`);
+        }
+    }, [activeRoomId, currentRoom]);
 
     const { raw: { emitLog } } = appController;
 

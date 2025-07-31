@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
 import useRoomStore from './store/roomStore';
+import useSocket from './hooks/useSocket';
 import './Toc.css';
 
 const TableOfContents = ({ isOpen, onToggle }) => {
@@ -12,6 +13,9 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     
     // ルーム関連の状態
     const { rooms, activeRoomId, setActiveRoom } = useRoomStore();
+    
+    // ソケット通信関数を取得
+    const { emitJoinRoom, emitLeaveRoom, emitGetRoomList } = useSocket();
     
     // TODO: チャンネル機能は後で実装予定
     const channels = [];
@@ -60,8 +64,23 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     };
 
     const handleRoomClick = (roomId) => {
+        console.log(`🎯 [TableOfContents] ルーム選択開始: ${roomId}`);
+        console.log(`📊 [TableOfContents] 現在のアクティブルーム: ${activeRoomId}`);
+        
+        // 現在のルームから退出（異なるルームの場合のみ）
+        if (activeRoomId && activeRoomId !== roomId) {
+            console.log(`👋 [TableOfContents] 前のルーム ${activeRoomId} から退出中...`);
+            emitLeaveRoom(activeRoomId);
+        }
+        
+        // 新しいルームに参加
+        console.log(`🚀 [TableOfContents] 新しいルーム ${roomId} に参加中...`);
+        emitJoinRoom(roomId);
+        
+        // ローカルストアを更新
         setActiveRoom(roomId);
-        console.log('Room selected:', roomId);
+        
+        console.log(`✅ [TableOfContents] ルーム選択完了: ${roomId}`);
     };
 
     if (!isOpen) {
