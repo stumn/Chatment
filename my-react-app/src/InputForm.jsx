@@ -10,12 +10,17 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem'; // MenuItemをインポート
 
 import useSizeStore from './store/sizeStore';
+import useRoomStore from './store/roomStore';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
   
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
+  
+  // ルーム情報を取得
+  const { activeRoomId, rooms } = useRoomStore();
+  const currentRoom = rooms.find(room => room.id === activeRoomId);
   
   const { chat: { send: sendChatMessage } } = appController;
   
