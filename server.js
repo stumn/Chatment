@@ -26,6 +26,53 @@ const {
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
+// ルーム管理のためのデータ構造
+const rooms = new Map(); // roomId -> { id, name, description, participants: Set(userId), createdAt }
+const userRooms = new Map(); // userId -> roomId (ユーザーが現在参加しているルーム)
+
+// デフォルトルームを初期化
+const initializeDefaultRooms = () => {
+  const defaultRooms = [
+    {
+      id: 'room-1',
+      name: '発表関連',
+      description: '発表に関連した議論をしよう',
+      participants: new Set(),
+      createdAt: new Date()
+    },
+    {
+      id: 'room-2', 
+      name: 'general',
+      description: '全員へのアナウンス',
+      participants: new Set(),
+      createdAt: new Date()
+    },
+    {
+      id: 'room-3',
+      name: 'random',
+      description: 'つぶやき',
+      participants: new Set(),
+      createdAt: new Date()
+    },
+    {
+      id: 'room-4',
+      name: '雑談',
+      description: 'とにかく雑談しよう',
+      participants: new Set(),
+      createdAt: new Date()
+    }
+  ];
+
+  defaultRooms.forEach(room => {
+    rooms.set(room.id, room);
+  });
+
+  console.log('Default rooms initialized:', Array.from(rooms.keys()));
+};
+
+// サーバー起動時にデフォルトルームを初期化
+initializeDefaultRooms();
+
 
 function addHeightMemory(id, height) {
   const index = heightMemory.findIndex(item => item.id === id);
@@ -68,6 +115,10 @@ io.on('connection', (socket) => {
       const newUser = await saveUser(nickname, status, ageGroup, socket.id); // save user to database
       console.log('newUser:', newUser);
 
+      // socketにユーザー情報を保存（ルーム管理で使用）
+      socket.userId = newUser._id.toString();
+      socket.nickname = nickname;
+
       socket.emit('connect OK', newUser); // emit to client
 
     } catch (e) { console.error(e); }
@@ -93,20 +144,44 @@ io.on('connection', (socket) => {
 
     socket.on('chat-message', async ({ nickname, message, userId, roomId }) => {
       try {
-        console.log('chat-message:', nickname, message, userId, socket.id, roomId);
+        console.log('💬 [server] chat-message:', { nickname, message, userId, socketId: socket.id, roomId });
 
         // displayOrderを計算
         const displayOrder = await getNextDisplayOrder();
         console.log('Calculated displayOrder:', displayOrder);
 
-        // チャットメッセージをDBに保存
-        const p = await SaveChatMessage(nickname, message, userId, displayOrder); // userIdも保存
+        // チャットメッセージをDBに保存（ルーム情報も含める）
+        const messageData = {
+          nickname,
+          message,
+          userId,
+          displayOrder,
+          ...(roomId && { roomId }) // roomIdがある場合のみ追加
+        };
 
-        // 全クライアントに新しいメッセージをブロードキャスト
-        io.emit('chat-message', p);
+        const p = await SaveChatMessage(messageData.nickname, messageData.message, messageData.userId, messageData.displayOrder, messageData.roomId);
+
+        // ルームメッセージの場合は、そのルームの参加者のみに送信
+        if (roomId && rooms.has(roomId)) {
+          console.log(`🏠 [server] ルーム ${roomId} の参加者にメッセージ送信`);
+          const room = rooms.get(roomId);
+          
+          // ルームの参加者に送信
+          room.participants.forEach(participantUserId => {
+            const participantSocket = [...io.sockets.sockets.values()]
+              .find(s => s.userId === participantUserId);
+            if (participantSocket) {
+              participantSocket.emit('chat-message', { ...p, roomId });
+            }
+          });
+        } else {
+          // 通常のチャットメッセージは全クライアントに送信
+          console.log('💬 [server] 全クライアントにメッセージ送信');
+          io.emit('chat-message', p);
+        }
 
         // --- ログ記録 ---
-        saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder } });
+        saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId } });
       } catch (e) { console.error(e); }
     });
 
@@ -432,6 +507,186 @@ io.on('connection', (socket) => {
     saveLog(log);
   });
 
+  // --- ルーム関連のイベントハンドラー ---
+  
+  // ルーム参加
+  socket.on('join-room', ({ roomId, userId, nickname, userInfo }) => {
+    try {
+      console.log(`🚀 [server] ルーム参加要求: ${nickname} -> ${roomId}`);
+      
+      // ルームが存在するかチェック
+      if (!rooms.has(roomId)) {
+        socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
+        return;
+      }
+
+      // 現在のルームから退出（もしあれば）
+      const currentRoomId = userRooms.get(userId);
+      if (currentRoomId && rooms.has(currentRoomId)) {
+        const currentRoom = rooms.get(currentRoomId);
+        currentRoom.participants.delete(userId);
+        
+        // 現在のルームの他の参加者に退出を通知
+        currentRoom.participants.forEach(participantUserId => {
+          const participantSocket = [...io.sockets.sockets.values()]
+            .find(s => s.userId === participantUserId);
+          if (participantSocket) {
+            participantSocket.emit('user-left', {
+              roomId: currentRoomId,
+              userId,
+              nickname,
+              participantCount: currentRoom.participants.size
+            });
+          }
+        });
+
+        console.log(`👋 [server] ${nickname} が ${currentRoomId} から退出`);
+      }
+
+      // 新しいルームに参加
+      const room = rooms.get(roomId);
+      room.participants.add(userId);
+      userRooms.set(userId, roomId);
+      socket.userId = userId; // socket に userId を保存
+      socket.roomId = roomId; // socket に roomId を保存
+
+      // 参加成功をクライアントに通知
+      socket.emit('room-joined', {
+        roomId,
+        roomInfo: {
+          name: room.name,
+          description: room.description,
+          participantCount: room.participants.size
+        }
+      });
+
+      // 他の参加者に新規参加を通知
+      room.participants.forEach(participantUserId => {
+        if (participantUserId !== userId) {
+          const participantSocket = [...io.sockets.sockets.values()]
+            .find(s => s.userId === participantUserId);
+          if (participantSocket) {
+            participantSocket.emit('user-joined', {
+              roomId,
+              userId,
+              nickname,
+              participantCount: room.participants.size
+            });
+          }
+        }
+      });
+
+      console.log(`✅ [server] ${nickname} が ${roomId} に参加 (参加者数: ${room.participants.size})`);
+      
+      // ログ記録
+      saveLog({ userId, action: 'join-room', detail: { roomId, nickname, participantCount: room.participants.size } });
+
+    } catch (error) {
+      console.error('Error in join-room:', error);
+      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム参加中にエラーが発生しました' });
+    }
+  });
+
+  // ルーム退出
+  socket.on('leave-room', ({ roomId, userId, nickname }) => {
+    try {
+      console.log(`👋 [server] ルーム退出要求: ${nickname} -> ${roomId}`);
+      
+      if (!rooms.has(roomId)) {
+        socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
+        return;
+      }
+
+      const room = rooms.get(roomId);
+      room.participants.delete(userId);
+      userRooms.delete(userId);
+
+      // 退出成功をクライアントに通知
+      socket.emit('room-left', {
+        roomId,
+        participantCount: room.participants.size
+      });
+
+      // 他の参加者に退出を通知
+      room.participants.forEach(participantUserId => {
+        const participantSocket = [...io.sockets.sockets.values()]
+          .find(s => s.userId === participantUserId);
+        if (participantSocket) {
+          participantSocket.emit('user-left', {
+            roomId,
+            userId,
+            nickname,
+            participantCount: room.participants.size
+          });
+        }
+      });
+
+      console.log(`✅ [server] ${nickname} が ${roomId} から退出 (参加者数: ${room.participants.size})`);
+      
+      // ログ記録
+      saveLog({ userId, action: 'leave-room', detail: { roomId, nickname, participantCount: room.participants.size } });
+
+    } catch (error) {
+      console.error('Error in leave-room:', error);
+      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム退出中にエラーが発生しました' });
+    }
+  });
+
+  // ルーム一覧取得
+  socket.on('get-room-list', () => {
+    try {
+      console.log('📋 [server] ルーム一覧要求');
+      
+      const roomList = Array.from(rooms.values()).map(room => ({
+        id: room.id,
+        name: room.name,
+        description: room.description,
+        participantCount: room.participants.size,
+        createdAt: room.createdAt
+      }));
+
+      socket.emit('room-list', { rooms: roomList });
+      
+      console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)`);
+
+    } catch (error) {
+      console.error('Error in get-room-list:', error);
+      socket.emit('room-error', { error: error.message, message: 'ルーム一覧取得中にエラーが発生しました' });
+    }
+  });
+
+  // ルーム詳細情報取得
+  socket.on('get-room-info', ({ roomId }) => {
+    try {
+      console.log(`📋 [server] ルーム詳細要求: ${roomId}`);
+      
+      if (!rooms.has(roomId)) {
+        socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
+        return;
+      }
+
+      const room = rooms.get(roomId);
+      const participantList = Array.from(room.participants);
+
+      socket.emit('room-info', {
+        roomId,
+        roomInfo: {
+          name: room.name,
+          description: room.description,
+          participantCount: room.participants.size,
+          participants: participantList,
+          createdAt: room.createdAt
+        }
+      });
+
+      console.log(`✅ [server] ルーム詳細送信: ${roomId}`);
+
+    } catch (error) {
+      console.error('Error in get-room-info:', error);
+      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム情報取得中にエラーが発生しました' });
+    }
+  });
+
   // ロック解除のユーティリティ関数群
   
   // PostIDからロック中の行を特定してロック解除
@@ -468,7 +723,35 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('user disconnected:', socket.id);
+
+    // ルームからの自動退出処理
+    if (socket.userId && socket.roomId) {
+      const roomId = socket.roomId;
+      const userId = socket.userId;
+      
+      if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        room.participants.delete(userId);
+        userRooms.delete(userId);
+
+        // 他の参加者に退出を通知
+        room.participants.forEach(participantUserId => {
+          const participantSocket = [...io.sockets.sockets.values()]
+            .find(s => s.userId === participantUserId);
+          if (participantSocket) {
+            participantSocket.emit('user-left', {
+              roomId,
+              userId,
+              nickname: socket.nickname || 'Unknown',
+              participantCount: room.participants.size
+            });
+          }
+        });
+
+        console.log(`👋 [server] 切断により ${userId} が ${roomId} から自動退出 (参加者数: ${room.participants.size})`);
+      }
+    }
 
     // ユーザー切断時に該当ユーザーがロックしていた行を全て解除
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {

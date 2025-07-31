@@ -45,7 +45,7 @@ function organizeCreatedAt(createdAt) {
 }
 
 // データベースにレコードを保存
-async function saveRecord(nickname, msg, userId, displayOrder) {
+async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
     try {
         // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
         let validUserId = userId;
@@ -54,6 +54,7 @@ async function saveRecord(nickname, msg, userId, displayOrder) {
         }
         const npData = { nickname, msg, displayOrder: displayOrder || 0 };
         if (validUserId) npData.userId = validUserId;
+        if (roomId) npData.roomId = roomId; // roomIdがある場合のみ追加
         const newPost = await Post.create(npData);
         return newPost;
     } catch (error) {
@@ -62,9 +63,9 @@ async function saveRecord(nickname, msg, userId, displayOrder) {
 }
 
 // チャットメッセージ受送信
-async function SaveChatMessage(nickname, msg, userId, displayOrder) {
+async function SaveChatMessage(nickname, msg, userId, displayOrder, roomId = null) {
     try {
-        const record = await saveRecord(nickname, msg, userId, displayOrder);
+        const record = await saveRecord(nickname, msg, userId, displayOrder, roomId);
         return organizeLogs(record);
     }
     catch (error) {

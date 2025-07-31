@@ -48,6 +48,9 @@ const postSchema = new mongoose.Schema({
     // --- 投稿者のUser._idを保存するuserIdフィールドを追加 ---
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
+    // --- ルーム機能: メッセージが送信されたルームのID ---
+    roomId: { type: String, default: null },
+
     positive: [{ type: positiveSchema, default: () => ({}) }],
     negative: [{ type: negativeSchema, default: () => ({}) }],
 
