@@ -174,7 +174,7 @@ export default function useSocket() {
       if (cachedMessages.length > 0) {
         console.log(`📋 [useSocket] ${data.roomId}のキャッシュされたメッセージを復元:`, cachedMessages.length, '件');
         // キャッシュされたメッセージを表示用に追加
-        usePostStore.getState().switchToRoom(data.roomId);
+        usePostStore.getState().switchToRoom(data.roomId, cachedMessages);
         cachedMessages.forEach((msg) => {
           addMessage(msg, false); // 履歴データなのでfalse
         });
