@@ -22,12 +22,12 @@ app.get('/plain', (req, res) => { // 変更
 app.get('/api/room-stats', async (req, res) => {
   try {
     console.time('room-stats-api');
-    
+
     const stats = await getAllRoomsWithStats();
     const messageCounts = await getRoomMessageCounts();
-    
+
     console.timeEnd('room-stats-api');
-    
+
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
@@ -48,7 +48,7 @@ app.get('/api/db-performance/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
     const explanation = await explainRoomQuery(roomId);
-    
+
     res.json({
       success: true,
       roomId: roomId,
@@ -91,14 +91,14 @@ app.get('/api/rooms/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
     const room = await getRoomById(roomId);
-    
+
     if (!room) {
       return res.status(404).json({
         success: false,
         error: 'Room not found'
       });
     }
-    
+
     res.json({
       success: true,
       room: room
@@ -116,29 +116,29 @@ app.get('/api/rooms/:roomId', async (req, res) => {
 app.post('/api/rooms', async (req, res) => {
   try {
     const { id, name, description, createdByNickname, settings } = req.body;
-    
+
     if (!id || !name || !createdByNickname) {
       return res.status(400).json({
         success: false,
         error: 'Required fields: id, name, createdByNickname'
       });
     }
-    
+
     const newRoom = await createRoom({
       id,
-      name, 
+      name,
       description,
       createdByNickname,
       settings
     });
-    
+
     if (!newRoom) {
       return res.status(400).json({
         success: false,
         error: 'Failed to create room'
       });
     }
-    
+
     // メモリ内のルーム管理にも追加
     rooms.set(newRoom.id, {
       id: newRoom.id,
@@ -148,12 +148,12 @@ app.post('/api/rooms', async (req, res) => {
       createdAt: newRoom.createdAt,
       dbRoom: newRoom
     });
-    
+
     res.status(201).json({
       success: true,
       room: newRoom
     });
-    
+
   } catch (error) {
     console.error('Create room API error:', error);
     res.status(500).json({
@@ -183,15 +183,15 @@ const userRooms = new Map(); // userId -> roomId (ユーザーが現在参加し
 const initializeRoomsFromDatabase = async () => {
   try {
     console.log('🏠 [server] データベースからルーム初期化開始');
-    
+
     // データベースにデフォルトルームを作成
     await initializeDefaultRooms();
-    
+
     // データベースからアクティブなルームを取得してメモリに読み込み
     const dbRooms = await getActiveRooms();
-    
+
     rooms.clear(); // 既存のメモリデータをクリア
-    
+
     dbRooms.forEach(room => {
       rooms.set(room.id, {
         id: room.id,
@@ -202,9 +202,9 @@ const initializeRoomsFromDatabase = async () => {
         dbRoom: room // データベースの情報も保持
       });
     });
-    
+
     console.log('🏠 [server] ルーム初期化完了:', Array.from(rooms.keys()));
-    
+
   } catch (error) {
     console.error('❌ [server] ルーム初期化エラー:', error);
   }
@@ -304,16 +304,16 @@ io.on('connection', (socket) => {
         // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
         if (roomId && rooms.has(roomId)) {
           console.log(`🏠 [server] Socket.IO ルーム room-${roomId} にメッセージ送信`);
-          
+
           // Socket.IOのルーム機能を使用して、該当ルームの全参加者に即座に送信
           const responseData = { ...p, roomId };
           io.to(`room-${roomId}`).emit('chat-message', responseData);
-          
+
           // ルーム統計をデータベースで更新
           await updateRoomStats(roomId, {
             $inc: { messageCount: 1 } // メッセージ数をインクリメント
           });
-          
+
           console.log(`⚡ [server] Socket.IO ルーム配信完了: room-${roomId}`);
         } else {
           // 通常のチャットメッセージは全クライアントに送信
@@ -498,15 +498,15 @@ io.on('connection', (socket) => {
         console.log('demand-lock received:', data);
 
         if (data.rowElementId && data.nickname) {
-          
+
           // lockedRows に含まれているかどうかをチェック(lockdRows: Id, nickname, userId)
           if (lockedRows.has(data.rowElementId)) {
             console.log('Row is already locked:', data.rowElementId);
             socket.emit('Lock-not-allowed', { id: data.rowElementId, message: 'Row is already locked' });
           } else {
             // ロックを許可
-            lockedRows.set(data.rowElementId, { 
-              nickname: data.nickname, 
+            lockedRows.set(data.rowElementId, {
+              nickname: data.nickname,
               userId: data.userId,
               socketId: socket.id
             });
@@ -582,7 +582,7 @@ io.on('connection', (socket) => {
 
         // 全クライアントに並び替えをブロードキャスト
         const posts = await getPostsByDisplayOrder(movedPostDisplayOrder); // displayOrderでソート済みのpostsを取得
-        
+
         // 並び替え情報に実行者の情報を含めて送信
         io.emit('doc-reorder', {
           posts: posts,
@@ -649,12 +649,12 @@ io.on('connection', (socket) => {
   });
 
   // --- ルーム関連のイベントハンドラー ---
-  
+
   // ルーム参加
   socket.on('join-room', ({ roomId, userId, nickname, userInfo }) => {
     try {
       console.log(`🚀 [server] ルーム参加要求: ${nickname} -> ${roomId}`);
-      
+
       // ルームが存在するかチェック
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
@@ -666,11 +666,10 @@ io.on('connection', (socket) => {
       if (currentRoomId && rooms.has(currentRoomId)) {
         const currentRoom = rooms.get(currentRoomId);
         currentRoom.participants.delete(userId);
-        
+
         // 現在のルームの他の参加者に退出を通知
         currentRoom.participants.forEach(participantUserId => {
-          const participantSocket = [...io.sockets.sockets.values()]
-            .find(s => s.userId === participantUserId);
+          const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
             participantSocket.emit('user-left', {
               roomId: currentRoomId,
@@ -697,7 +696,7 @@ io.on('connection', (socket) => {
         socket.leave(socket.currentSocketRoom);
         console.log(`🚪 [server] Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
       }
-      
+
       const socketRoomName = `room-${roomId}`;
       socket.join(socketRoomName);
       socket.currentSocketRoom = socketRoomName;
@@ -730,7 +729,7 @@ io.on('connection', (socket) => {
       });
 
       console.log(`✅ [server] ${nickname} が ${roomId} に参加 (参加者数: ${room.participants.size})`);
-      
+
       // ログ記録
       saveLog({ userId, action: 'join-room', detail: { roomId, nickname, participantCount: room.participants.size } });
 
@@ -744,7 +743,7 @@ io.on('connection', (socket) => {
   socket.on('leave-room', ({ roomId, userId, nickname }) => {
     try {
       console.log(`👋 [server] ルーム退出要求: ${nickname} -> ${roomId}`);
-      
+
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
         return;
@@ -782,7 +781,7 @@ io.on('connection', (socket) => {
       });
 
       console.log(`✅ [server] ${nickname} が ${roomId} から退出 (参加者数: ${room.participants.size})`);
-      
+
       // ログ記録
       saveLog({ userId, action: 'leave-room', detail: { roomId, nickname, participantCount: room.participants.size } });
 
@@ -796,10 +795,10 @@ io.on('connection', (socket) => {
   socket.on('get-room-list', async () => {
     try {
       console.log('📋 [server] ルーム一覧要求');
-      
+
       // データベースからアクティブなルームを取得
       const dbRooms = await getActiveRooms();
-      
+
       // メモリ内の参加者情報と組み合わせ
       const roomList = dbRooms.map(dbRoom => {
         const memoryRoom = rooms.get(dbRoom.id);
@@ -817,7 +816,7 @@ io.on('connection', (socket) => {
       });
 
       socket.emit('room-list', { rooms: roomList });
-      
+
       console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)`);
 
     } catch (error) {
@@ -830,7 +829,7 @@ io.on('connection', (socket) => {
   socket.on('get-room-info', ({ roomId }) => {
     try {
       console.log(`📋 [server] ルーム詳細要求: ${roomId}`);
-      
+
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
         return;
@@ -862,7 +861,7 @@ io.on('connection', (socket) => {
   socket.on('fetch-room-history', async ({ roomId }) => {
     try {
       console.log(`📚 [server] ${roomId} の履歴要求`);
-      
+
       if (!roomId) {
         socket.emit('room-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
         return;
@@ -870,20 +869,20 @@ io.on('connection', (socket) => {
 
       // 最適化されたデータベース関数を使用
       const messages = await getRoomHistory(roomId, 50);
-      
+
       // 履歴をクライアントに送信
-      socket.emit('room-history', { 
-        roomId, 
+      socket.emit('room-history', {
+        roomId,
         messages: messages
       });
-      
+
       console.log(`✅ [server] ${roomId} 履歴送信完了 (${messages.length}件)`);
-      
+
       // 開発環境でのパフォーマンス測定
       if (process.env.NODE_ENV === 'development') {
         await explainRoomQuery(roomId);
       }
-      
+
     } catch (error) {
       console.error('Error fetching room history:', error);
       socket.emit('room-error', { error: error.message, roomId, message: 'ルーム履歴取得中にエラーが発生しました' });
@@ -891,7 +890,7 @@ io.on('connection', (socket) => {
   });
 
   // ロック解除のユーティリティ関数群
-  
+
   // PostIDからロック中の行を特定してロック解除
   function unlockRowByPostId(postId) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
@@ -899,7 +898,7 @@ io.on('connection', (socket) => {
       if (rowElementId.includes(postId)) {
         console.log('Unlocking row:', rowElementId, 'for post:', postId);
         lockedRows.delete(rowElementId);
-        
+
         // 全クライアントにロック解除をブロードキャスト
         io.emit('row-unlocked', { id: rowElementId, postId });
         break;
@@ -912,13 +911,13 @@ io.on('connection', (socket) => {
     // data: { rowElementId, postId }
     try {
       console.log('unlock-row received:', data);
-      
+
       if (data.rowElementId && lockedRows.has(data.rowElementId)) {
         const lockInfo = lockedRows.get(data.rowElementId);
         console.log('Unlocking row:', data.rowElementId, 'previously locked by:', lockInfo.nickname);
-        
+
         lockedRows.delete(data.rowElementId);
-        
+
         // 全クライアントにロック解除をブロードキャスト
         io.emit('row-unlocked', { id: data.rowElementId, postId: data.postId });
       }
@@ -932,7 +931,7 @@ io.on('connection', (socket) => {
     if (socket.userId && socket.roomId) {
       const roomId = socket.roomId;
       const userId = socket.userId;
-      
+
       if (rooms.has(roomId)) {
         const room = rooms.get(roomId);
         room.participants.delete(userId);
@@ -967,7 +966,7 @@ io.on('connection', (socket) => {
       if (lockInfo.socketId === socket.id) {
         console.log('Unlocking row due to disconnect:', rowElementId);
         lockedRows.delete(rowElementId);
-        
+
         // 全クライアントにロック解除をブロードキャスト
         io.emit('row-unlocked', { id: rowElementId, reason: 'user_disconnected' });
       }
