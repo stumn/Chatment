@@ -56,7 +56,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
-                        {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
+                        {`${nickname} (${status}, ${ageGroup}) さん`}
                     </h6>
                 </div>
 
@@ -70,10 +70,10 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                             alignItems: 'center'
                         }}
                     >
-                        <span style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
                             🏠 {currentRoom.name}
                         </span>
-                        <span style={{ fontSize: '14px', color: '#666' }}>
+                        <span style={{ fontSize: '20px', color: '#666' }}>
                             {currentRoom.participantCount}人参加中
                         </span>
                     </div>
