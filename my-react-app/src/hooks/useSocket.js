@@ -27,19 +27,8 @@ export default function useSocket() {
   const setChangeState = usePostStore((state) => state.setChangeState);
 
   useEffect(() => {
-    // ❌ 問題: Socket接続エラーやネットワーク断線時のエラーハンドリングがありません
-    // ✅ 修正案: エラーハンドリングを追加
-    const handleConnectError = (error) => {
-      console.error('Socket connection error:', error);
-      // TODO: ユーザーにエラーメッセージを表示する仕組みを追加
-    };
-
-    const handleDisconnect = (reason) => {
-      console.warn('Socket disconnected:', reason);
-      // TODO: 再接続の試行やユーザー通知の仕組みを追加
-    };
-
     const handleHeightChange = (data) => setHeightArray(data);
+
     const handleConnectOK = (userInfo) => {
       socket.emit('fetch-history');
       socket.emit('fetch-docs');
@@ -125,9 +114,9 @@ export default function useSocket() {
       usePostStore.getState().unlockRow(payload.id);
     };
 
+    // ロックが許可されなかった場合のハンドラー
     const handleLockNotAllowed = (payload) => {
       console.log('Lock-not-allowed payload:', payload);
-
     }
 
     const handleDocEdit = (payload) => {
@@ -137,18 +126,16 @@ export default function useSocket() {
     const handleDocReorder = (payload) => {
       // サーバーからの新しい形式に対応
       if (payload.posts && payload.reorderInfo) {
+
         // サーバーから渡されたIDと新しいdisplayOrderでstoreを更新
         reorderPost(payload.posts);
 
-        // 追加: 並び替えされた投稿の変更状態を記録（全クライアントで表示）
+        // 並び替えされた投稿の変更状態を記録（全クライアントで表示）
         setChangeState(
           payload.reorderInfo.movedPostId,
           'reordered',
           payload.reorderInfo.executorNickname
         );
-      } else {
-        // 旧形式との互換性維持
-        reorderPost(payload);
       }
     };
 
@@ -174,7 +161,7 @@ export default function useSocket() {
       if (cachedMessages.length > 0) {
         console.log(`📋 [useSocket] ${data.roomId}のキャッシュされたメッセージを復元:`, cachedMessages.length, '件');
         // キャッシュされたメッセージを表示用に追加
-        usePostStore.getState().switchToRoom(data.roomId, cachedMessages);
+        usePostStore.getState().switchToRoom(data.roomId,);
         cachedMessages.forEach((msg) => {
           addMessage(msg, false); // 履歴データなのでfalse
         });
@@ -214,18 +201,12 @@ export default function useSocket() {
       // 参加者数を更新
       useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
 
-      // 通知メッセージをチャットに表示（オプション）
-      const systemMessage = {
-        id: `system-${Date.now()}-${Math.random()}`,
-        nickname: 'システム',
-        msg: `${data.nickname}さんがルームに参加しました`,
-        roomId: data.roomId,
-        isSystemMessage: true,
-        createdAt: new Date().toISOString()
-      };
-
-      // システムメッセージとして追加
-      addMessage(systemMessage, true);
+      emitLog({
+        userId: validUserId(data.userId),
+        userNickname: data.nickname,
+        action: 'user-joined',
+        detail: { roomId: data.roomId, participantCount: data.participantCount }
+      });
     };
 
     const handleUserLeft = (data) => {
@@ -247,7 +228,7 @@ export default function useSocket() {
       // data: { error, roomId, message }
       console.error('Room error:', data);
 
-      // エラーメッセージを表示
+      // エラーメッセージをユーザーに通知する仕組みを追加
       const errorMessage = {
         id: `error-${Date.now()}-${Math.random()}`,
         nickname: 'エラー',
@@ -328,9 +309,11 @@ export default function useSocket() {
       'connect OK': handleConnectOK,
       'history': handleHistory,
       'docs': handleDocsHistory,
+      // チャット関連のイベント
       'chat-message': handleChatMessage,
       'positive': handlePositive,
       'negative': handleNegative,
+      // Doc系のイベント
       'doc-add': handleDocAdd,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
@@ -613,6 +596,16 @@ export default function useSocket() {
       action: 'fetch-room-history',
       detail: { roomId, startTime }
     });
+  };
+
+  const handleConnectError = (error) => {
+    console.error('Socket connection error:', error);
+    // TODO: ユーザーにエラーメッセージを表示する仕組みを追加
+  };
+
+  const handleDisconnect = (reason) => {
+    console.warn('Socket disconnected:', reason);
+    // TODO: 再接続の試行やユーザー通知の仕組みを追加
   };
 
   return {
