@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+const DEFAULT_ROOM_ID = 'room-1'; // デフォルトのルームID
 
 const useRoomStore = create((set, get) => ({
     // 現在アクティブなルームID
-    activeRoomId: 'room-1', // デフォルトでルーム1を選択
+    activeRoomId: DEFAULT_ROOM_ID,
 
     // ルーム一覧データ
     rooms: [],
