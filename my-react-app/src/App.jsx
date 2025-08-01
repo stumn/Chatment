@@ -13,6 +13,8 @@ import useResponsiveSize from './useResponsiveSize';
 import BeforeLogin from "./BeforeLogin";
 const AfterLogin = lazy(() => import('./AfterLogin'));
 
+const DEFAULT_ROOM_ID = 'room-1';
+
 function App() {
   // --- 状態管理フックを先に記述 ---
   const [open, setOpen] = useState(true);
@@ -40,8 +42,8 @@ function App() {
     
     // ログイン後にルーム一覧を取得し、デフォルトルームに参加
     emitGetRoomList();
-    emitJoinRoom('room-1'); // デフォルトルームに参加
-    
+    emitJoinRoom(DEFAULT_ROOM_ID); // デフォルトルームに参加
+
     setOpen(false);
   }, [userInfo, isLoggedIn]);
 
