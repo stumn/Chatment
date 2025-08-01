@@ -10,7 +10,7 @@ const useRoomStore = create((set, get) => ({
             id: 'room-1',
             name: '発表関連',
             participantCount: 5,
-            description: '発表に関連した議論をしよう'
+            description: '議論をしよう'
         },
         {
             id: 'room-2',
@@ -22,7 +22,7 @@ const useRoomStore = create((set, get) => ({
             id: 'room-3',
             name: 'random',
             participantCount: 8,
-            description: 'プライベートなTwitter'
+            description: 'つぶやきを投下するところ'
         },
         {
             id: 'room-4',
