@@ -298,7 +298,8 @@ io.on('connection', (socket) => {
           ...(roomId && { roomId }) // roomIdがある場合のみ追加
         };
 
-        const p = await SaveChatMessage(messageData.nickname, messageData.message, messageData.userId, messageData.displayOrder, messageData.roomId);
+        console.log('Saving chat message:', messageData);
+        const p = await SaveChatMessage(messageData);
 
         // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
         if (roomId && rooms.has(roomId)) {

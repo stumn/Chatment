@@ -63,12 +63,12 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
 }
 
 // チャットメッセージ受送信
-async function SaveChatMessage(nickname, msg, userId, displayOrder, roomId = null) {
+async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, roomId = null }) {
     try {
-        const record = await saveRecord(nickname, msg, userId, displayOrder, roomId);
+        console.log('Saving chat message:', { nickname, message, userId, displayOrder, roomId });
+        const record = await saveRecord(nickname, message, userId, displayOrder, roomId);
         return organizeLogs(record);
-    }
-    catch (error) {
+    } catch (error) {
         handleErrors(error, 'チャット受送信中にエラーが発生しました');
     }
 }
