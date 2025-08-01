@@ -3,11 +3,19 @@
 import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
+import useRoomStore from './store/roomStore';
+import useSocket from './hooks/useSocket';
 import './Toc.css';
 
 const TableOfContents = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+
+    // ルーム関連の状態
+    const { rooms, activeRoomId, setActiveRoom, switchingRoom, setSwitchingRoom } = useRoomStore();
+
+    // ソケット通信関数を取得
+    const { emitJoinRoom, emitLeaveRoom, emitGetRoomList, emitFetchRoomHistory } = useSocket();
 
     // 目次データを生成
     const tocData = useMemo(() => {
@@ -25,7 +33,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                     comments: []
                 };
                 result.push(currentSection);
-            } 
+            }
             // 注目のコメント（リアクション数が10以上）の場合、現在のセクションに追加
             else if ((post.positive + post.negative) >= 10 && post.msg && post.msg.trim() !== '') {
                 if (currentSection) {
@@ -50,6 +58,43 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     const handleItemClick = (postId) => {
         // 後で実装予定：該当の投稿位置にスクロール
         console.log('TOC item clicked:', postId);
+    };
+
+    const handleRoomClick = (roomId) => {
+        console.log(`🎯 [TableOfContents] ルーム選択開始: ${roomId}`);
+        console.log(`📊 [TableOfContents] 現在のアクティブルーム: ${activeRoomId}`);
+
+        // 同じルームの場合は何もしない
+        if (activeRoomId === roomId) {
+            console.log(`✅ [TableOfContents] 既に ${roomId} にいるため処理スキップ`);
+            return;
+        }
+
+        // 切り替え中の状態を設定
+        setSwitchingRoom(true);
+
+        // 現在のルームから退出（異なるルームの場合のみ）
+        if (activeRoomId && activeRoomId !== roomId) {
+            console.log(`👋 [TableOfContents] 前のルーム ${activeRoomId} から退出中...`);
+            emitLeaveRoom(activeRoomId);
+        }
+
+        // ローカルストアを先に更新（UI反応の高速化）
+        setActiveRoom(roomId);
+
+        // 新しいルームに参加
+        console.log(`🚀 [TableOfContents] 新しいルーム ${roomId} に参加中...`);
+        emitJoinRoom(roomId);
+
+        // ルーム履歴を事前に取得（キャッシュされていない場合のみ）
+        emitFetchRoomHistory(roomId);
+
+        // 少し待ってから切り替え状態をクリア
+        setTimeout(() => {
+            setSwitchingRoom(false);
+        }, 1000);
+
+        console.log(`✅ [TableOfContents] ルーム選択完了: ${roomId}`);
     };
 
     if (!isOpen) {
@@ -110,14 +155,6 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                                     <div className="toc-comment-text">
                                                         {comment.msg}
                                                     </div>
-                                                    <div className="toc-comment-reactions">
-                                                        <span className={`toc-reaction-positive ${isColorfulMode ? 'colorful-mode' : ''}`}>
-                                                            ⬆ {comment.positive}
-                                                        </span>
-                                                        <span className={`toc-reaction-negative ${isColorfulMode ? 'colorful-mode' : ''}`}>
-                                                            ⬇ {comment.negative}
-                                                        </span>
-                                                    </div>
                                                 </button>
                                             </li>
                                         ))}
@@ -128,6 +165,35 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                     </ul>
                 )}
             </div>
+
+            {/* ルーム一覧 */}
+            <div className="toc-rooms">
+                <h4 className="toc-room-title">🏠 ルーム一覧</h4>
+                <ul className="toc-room-list">
+                    {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
+                        <li key={room.id} className="toc-room-item">
+                            <button
+                                onClick={() => handleRoomClick(room.id)}
+                                className={`toc-room-button ${activeRoomId === room.id ? 'active' : ''
+                                    } ${isColorfulMode ? 'colorful-mode' : ''} ${switchingRoom ? 'switching' : ''
+                                    }`}
+                                disabled={switchingRoom}
+                            >
+                                <div className="toc-room-info">
+                                    <span className="toc-room-name">{room.name}</span>
+                                    <span className="toc-room-participants">
+                                        ({room.participantCount}人)
+                                    </span>
+                                    {switchingRoom && activeRoomId === room.id && (
+                                        <span className="toc-room-switching">⟳</span>
+                                    )}
+                                </div>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
         </div>
     );
 };

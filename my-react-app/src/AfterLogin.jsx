@@ -7,10 +7,15 @@ import TableOfContents from './TableOfContents';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
+import useRoomStore from "./store/roomStore";
 
 export default function AfterLogin({ heightArray, appController, userInfo }) {
     // userInfoをpropsから受け取る
     const { nickname, status, ageGroup, userId } = userInfo;
+
+    // ルーム情報を取得
+    const { activeRoomId, rooms } = useRoomStore();
+    const currentRoom = rooms.find(room => room.id === activeRoomId);
 
     // カラフルモードの状態管理
     const { isColorfulMode, toggleColorfulMode, isTocOpen, toggleToc } = useAppStore();
@@ -32,8 +37,8 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
     return (
         <div
             id="after-login-container"
-            style={{ 
-                width: `${CONTAINER_1_WIDTH}px`, 
+            style={{
+                width: `${CONTAINER_1_WIDTH}px`,
                 height: `${CONTAINER_1_HEIGHT}px`,
                 marginLeft: `${tocOffset}px`, // 目次が開いている場合は右にシフト
                 transition: 'margin-left 0.3s ease' // スムーズな移動
@@ -42,32 +47,51 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             {/* 目次コンポーネント */}
             <TableOfContents isOpen={isTocOpen} onToggle={toggleToc} />
 
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 marginTop: '24px',
-                marginBottom: '12px', 
+                marginBottom: '12px',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <h6 style={{ fontSize: '20px', margin: '0', textAlign: 'left' }}>
-                        {`Logged in as  ${nickname} (${status}, ${ageGroup})`}
+                        {`${nickname} (${status}, ${ageGroup}) さん`}
                     </h6>
                 </div>
-                
-                <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px' 
+
+                {/* ルーム情報ヘッダー */}
+                {currentRoom && (
+                    <div
+                        style={{
+                            padding: '8px 16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}
+                    >
+                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                            🏠 {currentRoom.name}
+                        </span>
+                        <span style={{ fontSize: '20px', color: '#666' }}>
+                            {currentRoom.participantCount}人参加中
+                        </span>
+                    </div>
+                )}
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
                 }}>
                     <span style={{ fontSize: '14px', color: '#666' }}>
                         カラフルモード
                     </span>
-                    <label style={{ 
-                        position: 'relative', 
-                        display: 'inline-block', 
-                        width: '50px', 
-                        height: '24px' 
+                    <label style={{
+                        position: 'relative',
+                        display: 'inline-block',
+                        width: '50px',
+                        height: '24px'
                     }}>
                         <input
                             type="checkbox"
