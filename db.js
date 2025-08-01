@@ -45,6 +45,41 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// 🏠Room スキーマ / モデル
+const roomSchema = new mongoose.Schema({
+    id: { type: String, unique: true, required: true }, // ルームID（room-1, room-2など）
+    name: { type: String, required: true }, // ルーム名
+    description: { type: String, default: '' }, // ルーム説明
+    
+    // ルームの設定
+    isActive: { type: Boolean, default: true }, // アクティブ状態
+    isPrivate: { type: Boolean, default: false }, // プライベートルーム
+    maxParticipants: { type: Number, default: 100 }, // 最大参加者数
+    
+    // 作成者情報
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdByNickname: { type: String, required: true },
+    
+    // 統計情報（パフォーマンス向上のため）
+    messageCount: { type: Number, default: 0 }, // メッセージ数
+    participantCount: { type: Number, default: 0 }, // 現在の参加者数
+    lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
+    
+    // ルーム固有の設定
+    settings: {
+        autoDeleteMessages: { type: Boolean, default: false }, // メッセージ自動削除
+        messageRetentionDays: { type: Number, default: 30 }, // メッセージ保持日数
+        allowAnonymous: { type: Boolean, default: true } // 匿名参加許可
+    }
+}, options);
+
+// Roomコレクション用のインデックス
+roomSchema.index({ id: 1 }, { unique: true }); // ルームID検索用
+roomSchema.index({ isActive: 1, createdAt: -1 }); // アクティブルーム一覧用
+roomSchema.index({ lastActivity: -1 }); // アクティビティ順ソート用
+
+const Room = mongoose.model("Room", roomSchema);
+
 // 🌟positive/negative スキーマ（Post 内部）
 const positiveSchema = new mongoose.Schema({
     userSocketId: String,
@@ -101,4 +136,4 @@ const Log = mongoose.model("Log", logSchema);
 // TODO: PostのuserIdがフロントで利用されていない場合、今後のユーザー管理・紐付けに注意
 // TODO: positive/negativeの構造がフロントのstoreと一致しているか要確認
 
-module.exports = { mongoose, User, Post, Log };
+module.exports = { mongoose, User, Room, Post, Log };

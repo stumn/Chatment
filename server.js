@@ -11,7 +11,7 @@ const io = new Server(server, {
 
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
-const { mongoose, User, Post } = require('./db');
+const { mongoose, User, Post, Room } = require('./db');
 
 app.use(express.static('my-react-app/dist')); // 追加
 app.get('/plain', (req, res) => { // 変更
@@ -68,63 +68,167 @@ app.get('/api/db-performance/:roomId', async (req, res) => {
   }
 });
 
+// ルーム管理API
+app.get('/api/rooms', async (req, res) => {
+  try {
+    const rooms = await getActiveRooms();
+    res.json({
+      success: true,
+      rooms: rooms,
+      count: rooms.length
+    });
+  } catch (error) {
+    console.error('Rooms API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 特定ルーム情報取得API
+app.get('/api/rooms/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const room = await getRoomById(roomId);
+    
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        error: 'Room not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      room: room
+    });
+  } catch (error) {
+    console.error('Room info API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 新しいルーム作成API
+app.post('/api/rooms', async (req, res) => {
+  try {
+    const { id, name, description, createdByNickname, settings } = req.body;
+    
+    if (!id || !name || !createdByNickname) {
+      return res.status(400).json({
+        success: false,
+        error: 'Required fields: id, name, createdByNickname'
+      });
+    }
+    
+    const newRoom = await createRoom({
+      id,
+      name, 
+      description,
+      createdByNickname,
+      settings
+    });
+    
+    if (!newRoom) {
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to create room'
+      });
+    }
+    
+    // メモリ内のルーム管理にも追加
+    rooms.set(newRoom.id, {
+      id: newRoom.id,
+      name: newRoom.name,
+      description: newRoom.description,
+      participants: new Set(),
+      createdAt: newRoom.createdAt,
+      dbRoom: newRoom
+    });
+    
+    res.status(201).json({
+      success: true,
+      room: newRoom
+    });
+    
+  } catch (error) {
+    console.error('Create room API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
   saveLog, deleteDocRow, // 追加
   // ルーム機能用の最適化された関数
-  getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery
+  getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery,
+  // ルーム管理用の関数
+  initializeDefaultRooms, getActiveRooms, getRoomById, updateRoomStats, createRoom
 } = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
 
-// ルーム管理のためのデータ構造
+// ルーム管理のためのデータ構造（メモリ内での参加者管理用）
 const rooms = new Map(); // roomId -> { id, name, description, participants: Set(userId), createdAt }
 const userRooms = new Map(); // userId -> roomId (ユーザーが現在参加しているルーム)
 
-// デフォルトルームを初期化
-const initializeDefaultRooms = () => {
-  const defaultRooms = [
-    {
-      id: 'room-1',
-      name: '発表関連',
-      description: '発表に関連した議論をしよう',
-      participants: new Set(),
-      createdAt: new Date()
-    },
-    {
-      id: 'room-2', 
-      name: 'general',
-      description: '全員へのアナウンス',
-      participants: new Set(),
-      createdAt: new Date()
-    },
-    {
-      id: 'room-3',
-      name: 'random',
-      description: 'つぶやき',
-      participants: new Set(),
-      createdAt: new Date()
-    },
-    {
-      id: 'room-4',
-      name: '雑談',
-      description: 'とにかく雑談しよう',
-      participants: new Set(),
-      createdAt: new Date()
-    }
-  ];
-
-  defaultRooms.forEach(room => {
-    rooms.set(room.id, room);
-  });
-
-  console.log('Default rooms initialized:', Array.from(rooms.keys()));
+// サーバー起動時にデフォルトルームを初期化（DB経由）
+const initializeRoomsFromDatabase = async () => {
+  try {
+    console.log('🏠 [server] データベースからルーム初期化開始');
+    
+    // データベースにデフォルトルームを作成
+    await initializeDefaultRooms();
+    
+    // データベースからアクティブなルームを取得してメモリに読み込み
+    const dbRooms = await getActiveRooms();
+    
+    rooms.clear(); // 既存のメモリデータをクリア
+    
+    dbRooms.forEach(room => {
+      rooms.set(room.id, {
+        id: room.id,
+        name: room.name,
+        description: room.description,
+        participants: new Set(), // 参加者は新規でスタート
+        createdAt: room.createdAt,
+        dbRoom: room // データベースの情報も保持
+      });
+    });
+    
+    console.log('🏠 [server] ルーム初期化完了:', Array.from(rooms.keys()));
+    
+  } catch (error) {
+    console.error('❌ [server] ルーム初期化エラー:', error);
+    
+    // フォールバック：古い方式でメモリ内ルームを作成
+    console.log('🔄 [server] フォールバック: メモリ内ルーム作成');
+    const fallbackRooms = [
+      { id: 'room-1', name: '発表関連', description: '発表に関連した議論をしよう' },
+      { id: 'room-2', name: 'general', description: '全員へのアナウンス' },
+      { id: 'room-3', name: 'random', description: 'つぶやき' },
+      { id: 'room-4', name: '雑談', description: 'とにかく雑談しよう' }
+    ];
+    
+    fallbackRooms.forEach(room => {
+      rooms.set(room.id, {
+        ...room,
+        participants: new Set(),
+        createdAt: new Date()
+      });
+    });
+  }
 };
 
-// サーバー起動時にデフォルトルームを初期化
-initializeDefaultRooms();
-
+// サーバー起動時にルーム初期化を実行
+initializeRoomsFromDatabase();
 
 function addHeightMemory(id, height) {
   const index = heightMemory.findIndex(item => item.id === id);
@@ -220,6 +324,11 @@ io.on('connection', (socket) => {
           // Socket.IOのルーム機能を使用して、該当ルームの全参加者に即座に送信
           const responseData = { ...p, roomId };
           io.to(`room-${roomId}`).emit('chat-message', responseData);
+          
+          // ルーム統計をデータベースで更新
+          await updateRoomStats(roomId, {
+            $inc: { messageCount: 1 } // メッセージ数をインクリメント
+          });
           
           console.log(`⚡ [server] Socket.IO ルーム配信完了: room-${roomId}`);
         } else {
@@ -699,18 +808,29 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ルーム一覧取得
-  socket.on('get-room-list', () => {
+  // ルーム一覧取得（データベース経由）
+  socket.on('get-room-list', async () => {
     try {
       console.log('📋 [server] ルーム一覧要求');
       
-      const roomList = Array.from(rooms.values()).map(room => ({
-        id: room.id,
-        name: room.name,
-        description: room.description,
-        participantCount: room.participants.size,
-        createdAt: room.createdAt
-      }));
+      // データベースからアクティブなルームを取得
+      const dbRooms = await getActiveRooms();
+      
+      // メモリ内の参加者情報と組み合わせ
+      const roomList = dbRooms.map(dbRoom => {
+        const memoryRoom = rooms.get(dbRoom.id);
+        return {
+          id: dbRoom.id,
+          name: dbRoom.name,
+          description: dbRoom.description,
+          participantCount: memoryRoom ? memoryRoom.participants.size : 0, // メモリ内の参加者数
+          messageCount: dbRoom.messageCount || 0,
+          lastActivity: dbRoom.lastActivity,
+          createdAt: dbRoom.createdAt,
+          isPrivate: dbRoom.isPrivate,
+          settings: dbRoom.settings
+        };
+      });
 
       socket.emit('room-list', { rooms: roomList });
       
