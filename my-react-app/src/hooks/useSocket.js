@@ -61,21 +61,21 @@ export default function useSocket() {
 
     const handleChatMessage = (data) => {
       console.log('💬 [useSocket] チャットメッセージ受信:', data);
-      
+
       // ルームメッセージの場合、現在のアクティブルームと一致するかチェック
       if (data.roomId) {
         const currentRoomId = useRoomStore.getState().activeRoomId;
         console.log(`🏠 [useSocket] ルームメッセージ受信 - 送信先: ${data.roomId}, 現在のルーム: ${currentRoomId}`);
-        
+
         if (data.roomId !== currentRoomId) {
           console.log('🚫 [useSocket] 異なるルームのメッセージのため無視');
           return; // 現在のルームと異なる場合は表示しない
         }
-        
+
         // ルーム別メッセージ履歴に保存
         useRoomStore.getState().addMessageToRoom(data.roomId, data);
       }
-      
+
       // チャットメッセージとして追加（新規作成として扱う）
       addMessage(data, true);
     };
@@ -160,15 +160,15 @@ export default function useSocket() {
     const handleRoomJoined = (data) => {
       // data: { roomId, roomInfo, participants }
       console.log('Room joined:', data);
-      
+
       // 参加者数を更新
       if (data.roomInfo && data.roomInfo.participantCount) {
         useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.roomInfo.participantCount);
       }
-      
+
       // 現在のルームを更新
       useRoomStore.getState().setActiveRoom(data.roomId);
-      
+
       // postStoreの表示をルーム用に切り替え（キャッシュから復元）
       const cachedMessages = useRoomStore.getState().getRoomMessages(data.roomId);
       if (cachedMessages.length > 0) {
@@ -183,7 +183,7 @@ export default function useSocket() {
         console.log(`📚 [useSocket] ${data.roomId}のキャッシュがないため履歴を要求`);
         emitFetchRoomHistory(data.roomId);
       }
-      
+
       emitLog({
         userId: validUserId(userInfo && userInfo._id),
         userNickname: userInfo && userInfo.nickname,
@@ -195,12 +195,12 @@ export default function useSocket() {
     const handleRoomLeft = (data) => {
       // data: { roomId, participantCount }
       console.log('Room left:', data);
-      
+
       // 参加者数を更新
       useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-      
+
       emitLog({
-        userId: validUserId(userInfo && userInfo._id), 
+        userId: validUserId(userInfo && userInfo._id),
         userNickname: userInfo && userInfo.nickname,
         action: 'room-left',
         detail: { roomId: data.roomId, participantCount: data.participantCount }
@@ -210,10 +210,10 @@ export default function useSocket() {
     const handleUserJoined = (data) => {
       // data: { roomId, userId, nickname, participantCount }
       console.log('User joined room:', data);
-      
+
       // 参加者数を更新
       useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-      
+
       // 通知メッセージをチャットに表示（オプション）
       const systemMessage = {
         id: `system-${Date.now()}-${Math.random()}`,
@@ -223,7 +223,7 @@ export default function useSocket() {
         isSystemMessage: true,
         createdAt: new Date().toISOString()
       };
-      
+
       // システムメッセージとして追加
       addMessage(systemMessage, true);
     };
@@ -231,29 +231,22 @@ export default function useSocket() {
     const handleUserLeft = (data) => {
       // data: { roomId, userId, nickname, participantCount }
       console.log('User left room:', data);
-      
+
       // 参加者数を更新
       useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-      
-      // 通知メッセージをチャットに表示（オプション）
-      const systemMessage = {
-        id: `system-${Date.now()}-${Math.random()}`,
-        nickname: 'システム',
-        msg: `${data.nickname}さんがルームから退出しました`,
-        roomId: data.roomId,
-        isSystemMessage: true,
-        createdAt: new Date().toISOString()
-      };
-      
-      // システムメッセージとして追加
-      // addMessage(systemMessage, true);
-      console.log('User left room:', systemMessage);
+
+      emitLog({
+        userId: validUserId(data.userId),
+        userNickname: data.nickname,
+        action: 'room-left',
+        detail: { roomId: data.roomId, participantCount: data.participantCount }
+      });
     };
 
     const handleRoomError = (data) => {
       // data: { error, roomId, message }
       console.error('Room error:', data);
-      
+
       // エラーメッセージを表示
       const errorMessage = {
         id: `error-${Date.now()}-${Math.random()}`,
@@ -264,14 +257,14 @@ export default function useSocket() {
         isError: true,
         createdAt: new Date().toISOString()
       };
-      
+
       addMessage(errorMessage, true);
     };
 
     const handleRoomList = (data) => {
       // data: { rooms: [{ id, name, description, participantCount }] }
       console.log('Room list received:', data);
-      
+
       if (data.rooms && Array.isArray(data.rooms)) {
         useRoomStore.getState().setRooms(data.rooms);
       }
@@ -280,11 +273,11 @@ export default function useSocket() {
     const handleRoomInfo = (data) => {
       // data: { roomId, roomInfo: { name, description, participantCount, participants } }
       console.log('Room info received:', data);
-      
+
       if (data.roomInfo) {
         // 特定のルームの情報を更新
         const currentRooms = useRoomStore.getState().rooms;
-        const updatedRooms = currentRooms.map(room => 
+        const updatedRooms = currentRooms.map(room =>
           room.id === data.roomId ? { ...room, ...data.roomInfo } : room
         );
         useRoomStore.getState().setRooms(updatedRooms);
@@ -296,17 +289,17 @@ export default function useSocket() {
       // data: { roomId, messages: [...], startTime? }
       const endTime = performance.now();
       const loadTime = data.startTime ? endTime - data.startTime : 0;
-      
+
       console.log(`📚 [useSocket] ${data.roomId}の履歴を受信:`, data.messages.length, '件');
       if (loadTime > 0) {
         console.log(`⏱️ [useSocket] 履歴読み込み時間: ${loadTime.toFixed(2)}ms`);
       }
-      
+
       if (data.roomId && data.messages && Array.isArray(data.messages)) {
         // ルームストアに履歴を設定
         useRoomStore.getState().setRoomMessages(data.roomId, data.messages);
         useRoomStore.getState().setRoomHistoryLoaded(data.roomId, true);
-        
+
         // 現在のアクティブルームの履歴の場合、postStoreにも追加
         const currentRoomId = useRoomStore.getState().activeRoomId;
         if (data.roomId === currentRoomId) {
@@ -314,16 +307,16 @@ export default function useSocket() {
             addMessage(msg, false); // 履歴データなのでfalse
           });
         }
-        
+
         // パフォーマンスログ
         emitLog({
           userId: validUserId(useAppStore.getState().userInfo?._id),
           userNickname: useAppStore.getState().userInfo?.nickname,
           action: 'room-history-loaded',
-          detail: { 
-            roomId: data.roomId, 
+          detail: {
+            roomId: data.roomId,
             messageCount: data.messages.length,
-            loadTimeMs: loadTime 
+            loadTimeMs: loadTime
           }
         });
       }
@@ -401,10 +394,10 @@ export default function useSocket() {
       userId,
       ...(roomId && { roomId }) // roomIdがある場合のみ追加
     };
-    
+
     console.log('💬 [useSocket] チャットメッセージ送信:', messageData);
     socket.emit('chat-message', messageData);
-    
+
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
@@ -530,17 +523,17 @@ export default function useSocket() {
   const emitJoinRoom = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId || !userInfo) return;
-    
+
     const joinData = {
       roomId,
       userId: userInfo._id,
       nickname: userInfo.nickname,
       userInfo: userInfo
     };
-    
+
     console.log('Joining room:', joinData);
     socket.emit('join-room', joinData);
-    
+
     emitLog({
       userId: validUserId(userInfo._id),
       userNickname: userInfo.nickname,
@@ -552,16 +545,16 @@ export default function useSocket() {
   const emitLeaveRoom = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId || !userInfo) return;
-    
+
     const leaveData = {
       roomId,
       userId: userInfo._id,
       nickname: userInfo.nickname
     };
-    
+
     console.log('Leaving room:', leaveData);
     socket.emit('leave-room', leaveData);
-    
+
     emitLog({
       userId: validUserId(userInfo._id),
       userNickname: userInfo.nickname,
@@ -574,7 +567,7 @@ export default function useSocket() {
     const { userInfo } = useAppStore.getState();
     console.log('Requesting room list');
     socket.emit('get-room-list');
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
@@ -586,10 +579,10 @@ export default function useSocket() {
   const emitGetRoomInfo = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId) return;
-    
+
     console.log('Requesting room info for:', roomId);
     socket.emit('get-room-info', { roomId });
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
@@ -602,18 +595,18 @@ export default function useSocket() {
   const emitFetchRoomHistory = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId) return;
-    
+
     // 既に履歴が読み込み済みの場合はスキップ
     if (useRoomStore.getState().isRoomHistoryLoaded(roomId)) {
       console.log(`📚 [useSocket] ${roomId}の履歴は既に読み込み済み`);
       return;
     }
-    
+
     console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
     const startTime = performance.now(); // パフォーマンス測定開始
-    
+
     socket.emit('fetch-room-history', { roomId, startTime });
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
