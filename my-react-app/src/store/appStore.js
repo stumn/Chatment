@@ -17,7 +17,7 @@ const useAppStore = create((set) => ({
   isColorfulMode: true,
 
   // 目次の開閉状態
-  isTocOpen: false,
+  isTocOpen: true,
 
   // アクション: ユーザー情報を設定する
   setUserInfo: ({ nickname, status, ageGroup, userId }) => set((state) => ({
