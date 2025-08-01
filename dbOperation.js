@@ -302,7 +302,7 @@ async function initializeDefaultRooms() {
             {
                 id: 'room-1',
                 name: '発表関連',
-                description: '発表に関連した議論をしよう',
+                description: '議論をしよう',
                 createdByNickname: 'システム',
                 settings: {
                     autoDeleteMessages: false,
@@ -369,7 +369,7 @@ async function getActiveRooms() {
         console.time('getActiveRooms');
         
         const rooms = await Room.find({ isActive: true })
-            .sort({ lastActivity: -1 })
+            .sort({ id: 1 }) // roomIdの昇順でソート（room-1, room-2, room-3, room-4）
             .lean()
             .exec();
         

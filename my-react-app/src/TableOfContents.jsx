@@ -181,7 +181,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
             <div className="toc-rooms">
                 <h4 className="toc-room-title">🏠 ルーム一覧</h4>
                 <ul className="toc-room-list">
-                    {rooms.map(room => (
+                    {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
                         <li key={room.id} className="toc-room-item">
                             <button
                                 onClick={() => handleRoomClick(room.id)}

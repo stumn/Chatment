@@ -5,40 +5,10 @@ const useRoomStore = create((set, get) => ({
     activeRoomId: 'room-1', // デフォルトでルーム1を選択
 
     // ルーム一覧データ
-    rooms: [
-        {
-            id: 'room-1',
-            name: '発表関連',
-            participantCount: 5,
-            description: '議論をしよう'
-        },
-        {
-            id: 'room-2',
-            name: 'general',
-            participantCount: 3,
-            description: '全員へのアナウンス'
-        },
-        {
-            id: 'room-3',
-            name: 'random',
-            participantCount: 8,
-            description: 'つぶやきを投下するところ'
-        },
-        {
-            id: 'room-4',
-            name: '雑談',
-            participantCount: 2,
-            description: 'とにかく雑談しよう'
-        }
-    ],
+    rooms: [],
 
     // ルームごとのメッセージ履歴（メモリキャッシュ）
-    roomMessages: {
-        'room-1': [],
-        'room-2': [],
-        'room-3': [],
-        'room-4': []
-    },
+    roomMessages: {},
 
     // ルーム履歴読み込み状態（最適化用）
     roomHistoryLoaded: {

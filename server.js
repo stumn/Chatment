@@ -207,23 +207,6 @@ const initializeRoomsFromDatabase = async () => {
     
   } catch (error) {
     console.error('❌ [server] ルーム初期化エラー:', error);
-    
-    // フォールバック：古い方式でメモリ内ルームを作成
-    console.log('🔄 [server] フォールバック: メモリ内ルーム作成');
-    const fallbackRooms = [
-      { id: 'room-1', name: '発表関連', description: '発表に関連した議論をしよう' },
-      { id: 'room-2', name: 'general', description: '全員へのアナウンス' },
-      { id: 'room-3', name: 'random', description: 'つぶやき' },
-      { id: 'room-4', name: '雑談', description: 'とにかく雑談しよう' }
-    ];
-    
-    fallbackRooms.forEach(room => {
-      rooms.set(room.id, {
-        ...room,
-        participants: new Set(),
-        createdAt: new Date()
-      });
-    });
   }
 };
 
