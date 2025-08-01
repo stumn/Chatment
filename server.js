@@ -178,6 +178,7 @@ const heightMemory = []; // 高さを記憶するためのオブジェクト
 // ルーム管理のためのデータ構造（メモリ内での参加者管理用）
 const rooms = new Map(); // roomId -> { id, name, description, participants: Set(userId), createdAt }
 const userRooms = new Map(); // userId -> roomId (ユーザーが現在参加しているルーム)
+const userSockets = new Map(); // userId -> socket (ユーザーのソケット情報)
 
 // サーバー起動時にデフォルトルームを初期化（DB経由）
 const initializeRoomsFromDatabase = async () => {
@@ -257,6 +258,9 @@ io.on('connection', (socket) => {
       // socketにユーザー情報を保存（ルーム管理で使用）
       socket.userId = newUser._id.toString();
       socket.nickname = nickname;
+
+      // userId-to-socket マッピングに追加
+      userSockets.set(socket.userId, socket);
 
       socket.emit('connect OK', newUser); // emit to client
 
@@ -667,7 +671,7 @@ io.on('connection', (socket) => {
         const currentRoom = rooms.get(currentRoomId);
         currentRoom.participants.delete(userId);
 
-        // 現在のルームの他の参加者に退出を通知
+        // 効率的なソケット取得を使用
         currentRoom.participants.forEach(participantUserId => {
           const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
@@ -715,8 +719,7 @@ io.on('connection', (socket) => {
       // 他の参加者に新規参加を通知
       room.participants.forEach(participantUserId => {
         if (participantUserId !== userId) {
-          const participantSocket = [...io.sockets.sockets.values()]
-            .find(s => s.userId === participantUserId);
+          const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
             participantSocket.emit('user-joined', {
               roomId,
@@ -768,8 +771,7 @@ io.on('connection', (socket) => {
 
       // 他の参加者に退出を通知
       room.participants.forEach(participantUserId => {
-        const participantSocket = [...io.sockets.sockets.values()]
-          .find(s => s.userId === participantUserId);
+        const participantSocket = userSockets.get(participantUserId);
         if (participantSocket) {
           participantSocket.emit('user-left', {
             roomId,
@@ -927,6 +929,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected:', socket.id);
 
+    // userId-to-socket マッピングから削除
+    if (socket.userId) {
+      userSockets.delete(socket.userId);
+    }
+
     // ルームからの自動退出処理
     if (socket.userId && socket.roomId) {
       const roomId = socket.roomId;
@@ -943,10 +950,9 @@ io.on('connection', (socket) => {
           console.log(`🚪 [server] 切断時 Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
         }
 
-        // 他の参加者に退出を通知
+        // 効率的なソケット取得を使用
         room.participants.forEach(participantUserId => {
-          const participantSocket = [...io.sockets.sockets.values()]
-            .find(s => s.userId === participantUserId);
+          const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
             participantSocket.emit('user-left', {
               roomId,
