@@ -52,9 +52,13 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
         if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.match(/^[a-fA-F0-9]{24}$/)) {
             validUserId = undefined;
         }
-        const npData = { nickname, msg, displayOrder: displayOrder || 0 };
-        if (validUserId) npData.userId = validUserId;
-        if (roomId) npData.roomId = roomId; // roomIdがある場合のみ追加
+        const npData = {
+            nickname,
+            msg,
+            displayOrder: displayOrder || 0,
+            ...(validUserId && { userId: validUserId }),
+            ...(roomId && { roomId })
+        };
         const newPost = await Post.create(npData);
         return newPost;
     } catch (error) {
@@ -153,7 +157,7 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
 
         post.displayOrder = newDisplayOrder;
         const newPost = await post.save();
-        
+
         console.log('Updated post:', newPost);
         return organizeLogs(newPost);
     } catch (error) {
@@ -187,15 +191,15 @@ async function deleteDocRow(id) {
 async function getRoomHistory(roomId, limit = 50) {
     try {
         console.log(`📚 [dbOperation] ルーム履歴取得開始: ${roomId}, 上限: ${limit}件`);
-        
+
         const posts = await Post.find({ roomId })
             .sort({ createdAt: -1 }) // 新しい順
             .limit(limit)
             .lean() // パフォーマンス向上のためleanクエリ使用
             .exec();
-        
+
         console.log(`📚 [dbOperation] ${roomId}の履歴取得完了: ${posts.length}件`);
-        
+
         // 時系列順に並び替えて返す（古い順）
         const sortedPosts = posts.reverse();
         return await processXlogs(sortedPosts);
@@ -209,7 +213,7 @@ async function getRoomHistory(roomId, limit = 50) {
 async function getAllRoomsWithStats() {
     try {
         console.time('getRoomsStats');
-        
+
         // ルーム別の投稿数と最新投稿時刻を集計
         const roomStats = await Post.aggregate([
             {
@@ -232,10 +236,10 @@ async function getAllRoomsWithStats() {
                 }
             }
         ]);
-        
+
         console.timeEnd('getRoomsStats');
         console.log(`📊 [dbOperation] ルーム統計取得完了: ${roomStats.length}ルーム`);
-        
+
         return roomStats;
     } catch (error) {
         handleErrors(error, 'ルーム統計取得中にエラーが発生しました');
@@ -247,7 +251,7 @@ async function getAllRoomsWithStats() {
 async function getRoomMessageCounts() {
     try {
         console.time('getRoomMessageCounts');
-        
+
         const counts = await Post.aggregate([
             {
                 $group: {
@@ -259,10 +263,10 @@ async function getRoomMessageCounts() {
                 $sort: { count: -1 }
             }
         ]);
-        
+
         console.timeEnd('getRoomMessageCounts');
         console.log('📈 [dbOperation] ルーム別メッセージ数:', counts);
-        
+
         return counts;
     } catch (error) {
         handleErrors(error, 'ルーム別メッセージ数取得中にエラーが発生しました');
@@ -277,14 +281,14 @@ async function explainRoomQuery(roomId) {
             .sort({ createdAt: -1 })
             .limit(50)
             .explain('executionStats');
-        
+
         console.log('🔍 [dbOperation] クエリ実行計画:', {
             executionTimeMillis: explanation.executionStats.executionTimeMillis,
             totalDocsExamined: explanation.executionStats.totalDocsExamined,
             totalDocsReturned: explanation.executionStats.totalDocsReturned,
             indexUsed: explanation.executionStats.executionStages.indexName || 'No index used'
         });
-        
+
         return explanation;
     } catch (error) {
         handleErrors(error, 'クエリ実行計画の取得中にエラーが発生しました');
@@ -297,7 +301,7 @@ async function explainRoomQuery(roomId) {
 async function initializeDefaultRooms() {
     try {
         console.log('🏠 [dbOperation] デフォルトルーム初期化開始');
-        
+
         const defaultRooms = [
             {
                 id: 'room-1',
@@ -355,9 +359,9 @@ async function initializeDefaultRooms() {
                 console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
             }
         }
-        
+
         console.log('🏠 [dbOperation] デフォルトルーム初期化完了');
-        
+
     } catch (error) {
         handleErrors(error, 'デフォルトルーム初期化中にエラーが発生しました');
     }
@@ -367,17 +371,17 @@ async function initializeDefaultRooms() {
 async function getActiveRooms() {
     try {
         console.time('getActiveRooms');
-        
+
         const rooms = await Room.find({ isActive: true })
             .sort({ id: 1 }) // roomIdの昇順でソート（room-1, room-2, room-3, room-4）
             .lean()
             .exec();
-        
+
         console.timeEnd('getActiveRooms');
         console.log(`🏠 [dbOperation] アクティブルーム取得: ${rooms.length}件`);
-        
+
         return rooms;
-        
+
     } catch (error) {
         handleErrors(error, 'アクティブルーム取得中にエラーが発生しました');
         return [];
@@ -392,10 +396,10 @@ async function getRoomById(roomId) {
             console.warn(`⚠️ [dbOperation] ルームが見つかりません: ${roomId}`);
             return null;
         }
-        
+
         console.log(`🏠 [dbOperation] ルーム情報取得: ${room.name} (${roomId})`);
         return room;
-        
+
     } catch (error) {
         handleErrors(error, `ルーム情報取得中にエラーが発生しました: ${roomId}`);
         return null;
@@ -409,19 +413,19 @@ async function updateRoomStats(roomId, updates = {}) {
             lastActivity: new Date(),
             ...updates
         };
-        
+
         const updatedRoom = await Room.findOneAndUpdate(
             { id: roomId },
             { $set: updateData },
             { new: true, lean: true }
         );
-        
+
         if (updatedRoom) {
             console.log(`📊 [dbOperation] ルーム統計更新: ${roomId}`, updates);
         }
-        
+
         return updatedRoom;
-        
+
     } catch (error) {
         handleErrors(error, `ルーム統計更新中にエラーが発生しました: ${roomId}`);
         return null;
@@ -432,13 +436,13 @@ async function updateRoomStats(roomId, updates = {}) {
 async function createRoom(roomData) {
     try {
         const { id, name, description, createdByNickname, createdBy, settings = {} } = roomData;
-        
+
         // 重複チェック
         const existingRoom = await Room.findOne({ id });
         if (existingRoom) {
             throw new Error(`ルームID ${id} は既に存在します`);
         }
-        
+
         const newRoom = await Room.create({
             id,
             name,
@@ -451,10 +455,10 @@ async function createRoom(roomData) {
                 allowAnonymous: settings.allowAnonymous !== false // デフォルトはtrue
             }
         });
-        
+
         console.log(`🏠 [dbOperation] 新しいルーム作成: ${name} (${id})`);
         return newRoom.toObject();
-        
+
     } catch (error) {
         handleErrors(error, 'ルーム作成中にエラーが発生しました');
         return null;
