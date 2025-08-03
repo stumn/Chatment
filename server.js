@@ -319,10 +319,6 @@ io.on('connection', (socket) => {
           });
 
           console.log(`⚡ [server] Socket.IO ルーム配信完了: room-${roomId}`);
-        } else {
-          // 通常のチャットメッセージは全クライアントに送信
-          console.log('💬 [server] 全クライアントにメッセージ送信');
-          io.emit('chat-message', p);
         }
 
         // --- ログ記録 ---
@@ -350,19 +346,19 @@ io.on('connection', (socket) => {
       try {
         const post = await Post.findById(postId);
         if (!post) return;
+
         const idx = post.positive.findIndex(p => p.userSocketId === userSocketId);
-        if (idx !== -1) {
-          post.positive.splice(idx, 1);
-        } else {
-          post.positive.push({ userSocketId, nickname });
-        }
+        idx !== -1
+          ? post.positive.splice(idx, 1)
+          : post.positive.push({ userSocketId, nickname });
+
         await post.save();
         io.emit('positive', {
           id: post.id,
           positive: post.positive.length,
           isPositive: post.positive.some(p => p.userSocketId === userSocketId),
         });
-        // --- ログ記録 ---
+
         saveLog({ userId: post.userId, action: 'positive', detail: { postId, userSocketId, nickname } });
       } catch (e) { console.error(e); }
     });
@@ -372,19 +368,19 @@ io.on('connection', (socket) => {
       try {
         const post = await Post.findById(postId);
         if (!post) return;
+
         const idx = post.negative.findIndex(n => n.userSocketId === userSocketId);
-        if (idx !== -1) {
-          post.negative.splice(idx, 1);
-        } else {
-          post.negative.push({ userSocketId, nickname });
-        }
+        idx !== -1
+          ? post.negative.splice(idx, 1)
+          : post.negative.push({ userSocketId, nickname });
+
         await post.save();
         io.emit('negative', {
           id: post.id,
           negative: post.negative.length,
           isNegative: post.negative.some(n => n.userSocketId === userSocketId),
         });
-        // --- ログ記録 ---
+
         saveLog({ userId: post.userId, action: 'negative', detail: { postId, userSocketId, nickname } });
       } catch (e) { console.error(e); }
     });
@@ -392,46 +388,14 @@ io.on('connection', (socket) => {
     // --- Doc系: 行追加 ---
     socket.on('doc-add', async (payload) => {
       try {
-        console.log('🐟doc-add(これは1つ上のメッセージ情報):', payload);
+        console.log('doc-add(これは1つ上のメッセージ情報):', payload);
 
         let displayOrder = payload.displayOrder;
         const posts = await getPostsByDisplayOrder(); // displayOrderでソート済みのpostsを取得
 
         // payload.displayOrderが指定されている場合はそれを優先
         if (displayOrder === undefined || !Number.isFinite(displayOrder)) {
-          console.log('displayOrderが未指定または不正な値:', displayOrder);
-
-          // displayOrderが未指定の場合、挿入位置に基づいて計算
-          if (posts.length === 0) {
-            displayOrder = 1; // 投稿が一つもない場合は1
-            console.log('postsが空なのでdisplayOrderを1に設定');
-          }
-          else if (payload.insertAfterId) { // 特定のIDの後に挿入する場合
-            const targetPostIndex = posts.findIndex(p => p.id === payload.insertAfterId);
-            console.log('insertAfterIdが指定されている:', payload.insertAfterId, 'targetPostIndex:', targetPostIndex);
-
-            if (targetPostIndex !== -1) {
-              const prev = posts[targetPostIndex];
-              const next = posts[targetPostIndex + 1];
-              console.log('prev:', prev, 'next:', next);
-
-              if (next) {
-                displayOrder = (prev.displayOrder + next.displayOrder) / 2;
-                console.log('次の投稿があるので、displayOrderを平均値に設定:', displayOrder);
-              }
-              else {
-                displayOrder = prev.displayOrder + 1;
-                console.log('次の投稿がないので、displayOrderを前の投稿の次に設定:', displayOrder);
-              }
-            } else {
-              // 対象IDが見つからない場合は末尾に追加
-              displayOrder = posts[posts.length - 1].displayOrder + 1;
-              console.log('insertAfterIdが見つからないので、末尾に追加:', displayOrder);
-            }
-          } else { // insertAfterIdが指定されていない場合は末尾に追加
-            displayOrder = posts[posts.length - 1].displayOrder + 1;
-            console.log('insertAfterIdが指定されていないので、末尾に追加:', displayOrder);
-          }
+          displayOrder = calculateInsertOrder(displayOrder, posts, payload);
         }
 
         // 最終チェック: NaNや不正値なら最大+1または1
@@ -464,9 +428,8 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
-    // 関数: displayOrderの計算
+    // 関数: displayOrderの計算(浮動小数点数)
     function calculateDisplayOrder(displayOrder, posts) {
-      // 前後の投稿の浮動小数点数を求める
 
       // displayOrderが今回挿入したい新規行の1つ上
       const prev = displayOrder;
@@ -476,20 +439,14 @@ io.on('connection', (socket) => {
 
       console.log('calculateDisplayOrder:', { displayOrder, prev, next });
 
-      if (prev && next) {
-        // 前後の投稿が存在する場合、平均値を取る
-        return (prev + next.displayOrder) / 2;
-      }
+      // 前後の投稿が存在する場合、平均値を取る
+      if (prev && next) { return (prev + next.displayOrder) / 2; }
 
       // 前の投稿が存在する場合、次の投稿の前に挿入
-      if (prev) {
-        return prev + 1;
-      }
+      if (prev) { return prev + 1; }
 
       // 次の投稿が存在する場合、次の投稿の前に挿入
-      if (next) {
-        return next.displayOrder - 1;
-      }
+      if (next) { return next.displayOrder - 1; }
 
       // どちらも存在しない場合は1を返す
       return 1;
@@ -533,21 +490,23 @@ io.on('connection', (socket) => {
       try {
         console.log('doc-edit:', payload);
 
-        if (payload.id) {
-          const updateObj = { msg: payload.newMsg };
-          if (payload.nickname) updateObj.nickname = payload.nickname;
-          updateObj.updatedAt = new Date();
-
-          const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
-
-          // updatedAtをpayloadに追加してemit
-          io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
-
-          // 編集完了時にロック解除
-          unlockRowByPostId(payload.id);
-        } else {
+        if (!payload.id) {
           io.emit('doc-edit', payload);
+          return;
         }
+
+        const updateObj = { msg: payload.newMsg };
+        if (payload.nickname) updateObj.nickname = payload.nickname;
+        updateObj.updatedAt = new Date();
+
+        const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
+
+        // updatedAtをpayloadに追加してemit
+        io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+
+        // 編集完了時にロック解除
+        unlockRowByPostId(payload.id);
+
         // --- ログ記録 ---
         saveLog({ userId: null, action: 'doc-edit', detail: payload });
       } catch (e) { console.error(e); }
@@ -609,11 +568,14 @@ io.on('connection', (socket) => {
       // payload: { id }
       try {
         console.log('doc-delete:', payload);
+        
         const deleted = await deleteDocRow(payload.id);
+        
         if (deleted) {
           io.emit('doc-delete', { id: payload.id });
           saveLog({ userId: null, action: 'doc-delete', detail: payload });
         }
+        
       } catch (e) { console.error(e); }
     });
   });
@@ -896,6 +858,7 @@ io.on('connection', (socket) => {
   // PostIDからロック中の行を特定してロック解除
   function unlockRowByPostId(postId) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
+      
       // rowElementIdにpostIdが含まれているかチェック
       if (rowElementId.includes(postId)) {
         console.log('Unlocking row:', rowElementId, 'for post:', postId);
@@ -989,4 +952,41 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log('listening on PORT:' + PORT);
 });
+
+function calculateInsertOrder(displayOrder, posts, payload) {
+  console.log('displayOrderが未指定または不正な値:', displayOrder);
+
+  // displayOrderが未指定の場合、挿入位置に基づいて計算
+  if (posts.length === 0) {
+    displayOrder = 1; // 投稿が一つもない場合は1
+    console.log('postsが空なのでdisplayOrderを1に設定');
+  }
+  else if (payload.insertAfterId) { // 特定のIDの後に挿入する場合
+    const targetPostIndex = posts.findIndex(p => p.id === payload.insertAfterId);
+    console.log('insertAfterIdが指定されている:', payload.insertAfterId, 'targetPostIndex:', targetPostIndex);
+
+    if (targetPostIndex !== -1) {
+      const prev = posts[targetPostIndex];
+      const next = posts[targetPostIndex + 1];
+      console.log('prev:', prev, 'next:', next);
+
+      if (next) {
+        displayOrder = (prev.displayOrder + next.displayOrder) / 2;
+        console.log('次の投稿があるので、displayOrderを平均値に設定:', displayOrder);
+      }
+      else {
+        displayOrder = prev.displayOrder + 1;
+        console.log('次の投稿がないので、displayOrderを前の投稿の次に設定:', displayOrder);
+      }
+    } else {
+      // 対象IDが見つからない場合は末尾に追加
+      displayOrder = posts[posts.length - 1].displayOrder + 1;
+      console.log('insertAfterIdが見つからないので、末尾に追加:', displayOrder);
+    }
+  } else { // insertAfterIdが指定されていない場合は末尾に追加
+    displayOrder = posts[posts.length - 1].displayOrder + 1;
+    console.log('insertAfterIdが指定されていないので、末尾に追加:', displayOrder);
+  }
+  return displayOrder;
+}
 

@@ -117,6 +117,10 @@ export default function useSocket() {
     // ロックが許可されなかった場合のハンドラー
     const handleLockNotAllowed = (payload) => {
       console.log('Lock-not-allowed payload:', payload);
+
+      // ロックが許可されなかった場合、しばらくお待ち下さいと表示する
+      alert(`ロックが許可されませんでした。しばらくお待ちください。`);
+
     }
 
     const handleDocEdit = (payload) => {
