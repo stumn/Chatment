@@ -55,7 +55,7 @@ const DocRow = ({ data, index, style }) => {
 
     // 変更状態が変わったときのフェードアウトタイマー設定
     useEffect(() => {
-        if (changeState && !isFadingOut) {
+        if (changeState && !isFadingOut && !isEditing) { // 編集中はタイマーを設定しない
             // 既存のタイマーをクリア
             if (fadeTimeoutRef.current) {
                 clearTimeout(fadeTimeoutRef.current);
@@ -63,7 +63,7 @@ const DocRow = ({ data, index, style }) => {
 
             // 5秒後にフェードアウト開始
             fadeTimeoutRef.current = setTimeout(() => {
-                if (!isHovering) { // ホバー中でなければフェードアウト
+                if (!isHovering && !isEditing) { // ホバー中または編集中でなければフェードアウト
                     setIsFadingOut(true);
 
                     // フェードアウト完了後に変更状態をクリア（2秒後）
@@ -75,21 +75,46 @@ const DocRow = ({ data, index, style }) => {
             }, 15000); // 15秒でフェードアウト（合計約17秒程度）
         }
 
+        // 編集モードが変わったときにタイマーをクリア
+        if (isEditing && fadeTimeoutRef.current) {
+            clearTimeout(fadeTimeoutRef.current);
+            setIsFadingOut(false); // 編集開始時はフェードアウトを停止
+        }
+
         // クリーンアップ
         return () => {
             if (fadeTimeoutRef.current) {
                 clearTimeout(fadeTimeoutRef.current);
             }
         };
-    }, [changeState, isHovering, message?.id, clearChangeState]);
+    }, [changeState, isHovering, isEditing, message?.id, clearChangeState]);
 
     // ホバー状態が変わったときの処理
     useEffect(() => {
         if (isHovering && isFadingOut) {
             // ホバー中はフェードアウトを停止
             setIsFadingOut(false);
-        } else if (!isHovering && changeState) {
+        } else if (!isHovering && changeState && !isEditing) { // 編集中でない場合のみタイマー再開
             // ホバーが終了したらフェードアウトタイマーを再開
+            if (fadeTimeoutRef.current) {
+                clearTimeout(fadeTimeoutRef.current);
+            }
+            fadeTimeoutRef.current = setTimeout(() => {
+                if (!isEditing) { // 再度編集状態をチェック
+                    setIsFadingOut(true);
+                    setTimeout(() => {
+                        clearChangeState(message?.id);
+                        setIsFadingOut(false);
+                    }, 2000);
+                }
+            }, 5000); // ホバー終了後5秒でフェードアウト開始
+        }
+    }, [isHovering, changeState, isEditing, message?.id, clearChangeState]);
+
+    // 編集モード終了時の変更バーフェードアウトタイマー再開
+    useEffect(() => {
+        if (!isEditing && changeState && !isFadingOut && !isHovering) {
+            // 編集モード終了後、変更バーのフェードアウトタイマーを再開
             if (fadeTimeoutRef.current) {
                 clearTimeout(fadeTimeoutRef.current);
             }
@@ -99,9 +124,9 @@ const DocRow = ({ data, index, style }) => {
                     clearChangeState(message?.id);
                     setIsFadingOut(false);
                 }, 2000);
-            }, 5000); // ホバー終了後5秒でフェードアウト開始
+            }, 15000); // 15秒でフェードアウト開始
         }
-    }, [isHovering, changeState, message?.id, clearChangeState]);
+    }, [isEditing, changeState, isFadingOut, isHovering, message?.id, clearChangeState]);
 
     // 変更バーのスタイルクラスを決定
     const getChangeBarClass = () => {
