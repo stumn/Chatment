@@ -220,6 +220,14 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
+    // Ctrl+Enterで編集完了
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && e.ctrlKey && isEditing) {
+            e.preventDefault(); // デフォルトの改行動作を防ぐ
+            handleCompleteEdit();
+        }
+    };
+
     // 編集完了ボタンのハンドラー
     const handleCompleteEdit = () => {
         if (contentRef.current) {
@@ -371,6 +379,7 @@ const DocRow = ({ data, index, style }) => {
                         ref={contentRef}
                         onBlur={handleBlur}
                         onInput={handleInput}
+                        onKeyDown={handleKeyDown} // Ctrl+Enter対応
                         tabIndex={0}
                         spellCheck={true}
                         style={getContentStyle()} // 見出しスタイルとハイライトを統合
@@ -390,7 +399,7 @@ const DocRow = ({ data, index, style }) => {
                                 // 編集中の場合は編集完了ボタンのみ表示
                                 <button
                                     className="complete-edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
-                                    title="編集完了"
+                                    title="編集完了 (Ctrl+Enter)"
                                     onClick={handleCompleteEdit}
                                     tabIndex={-1}
                                     type="button"
