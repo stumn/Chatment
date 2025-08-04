@@ -99,8 +99,12 @@ const usePostStore = create((set, get) => ({
         };
     }),
 
-    // ルーム用: 特定ルームのメッセージのみ取得
+    // ----- 特定ルームのメッセージのみ取得 -----
     getRoomMessages: (roomId) => {
+        if (roomId === 'room-0') {
+            return [...get().posts];
+        }
+
         return [...get().posts]
             .filter(post => post.roomId === roomId)
             .sort((a, b) => {
@@ -109,16 +113,6 @@ const usePostStore = create((set, get) => ({
                 return aTime - bTime;
             });
     },
-
-    // ルーム切り替え用: 表示中メッセージをクリアして新しいルームのメッセージを設定
-    switchToRoom: (roomId) => set((state) => {
-        // 現在表示中のメッセージをすべてクリア
-        // 新しいルームのメッセージは handleRoomHistory で追加される
-        console.log(`🔄 [postStore] ルーム切り替え: ${roomId}`);
-        return {
-            posts: state.posts.filter(post => post.roomId === roomId || !post.roomId)
-        };
-    }),
 
     // Positive
     updatePositive: (id, positive, isPositive) => set((state) => ({
@@ -159,7 +153,7 @@ const usePostStore = create((set, get) => ({
         const state = get();
         return state.lockedRows.get(rowElementId);
     },
-    
+
     // ------ 変更状態を管理するためのマップ ------
     changeStates: new Map(), // postId -> { type: 'added'|'modified'|'deleted'|'reordered', timestamp: Date, userNickname: string }
 
@@ -206,7 +200,7 @@ export default usePostStore;
 
 // 新規作成時の変更状態を追加するヘルパー関数
 function addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated = false) {
-    
+
     // 新規作成ではない場合は変更状態を記録しない
     if (!isNewlyCreated) {
         console.log('新規作成ではないため、変更状態は記録しない');
@@ -240,6 +234,6 @@ function addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated = false) {
             userNickname: post.nickname || 'Unknown'
         });
     }
-    
+
     return newChangeStates;
 }

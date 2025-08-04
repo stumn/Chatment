@@ -23,6 +23,7 @@ export default function useSocket() {
   const addMessage = usePostStore((state) => state.addPost);
   const updatePost = usePostStore((state) => state.updatePost);
   const reorderPost = usePostStore((state) => state.reorderPost);
+  const getRoomMessages = usePostStore((state) => state.getRoomMessages);
 
   const setChangeState = usePostStore((state) => state.setChangeState);
 
@@ -157,18 +158,9 @@ export default function useSocket() {
       useRoomStore.getState().setActiveRoom(data.roomId);
 
       // postStoreの表示をルーム用に切り替え（キャッシュから復元）
-      const cachedMessages = useRoomStore.getState().getRoomMessages(data.roomId);
-      if (cachedMessages.length > 0) {
-        console.log(`📋 [useSocket] ${data.roomId}のキャッシュされたメッセージを復元:`, cachedMessages.length, '件');
-        // キャッシュされたメッセージを表示用に追加
-        usePostStore.getState().switchToRoom(data.roomId);
-        cachedMessages.forEach((msg) => {
-          addMessage(msg, false); // 履歴データなのでfalse
-        });
-      } else {
-        // キャッシュがない場合は履歴を要求
-        console.log(`📚 [useSocket] ${data.roomId}のキャッシュがないため履歴を要求`);
-        emitFetchRoomHistory(data.roomId);
+      const cachedMessages = getRoomMessages(data.roomId);
+      if (cachedMessages) {
+        usePostStore.getState().setPosts(cachedMessages);
       }
 
       emitLog({
@@ -278,8 +270,7 @@ export default function useSocket() {
 
       if (data.roomId && data.messages && Array.isArray(data.messages)) {
         // ルームストアに履歴を設定
-        useRoomStore.getState().setRoomMessages(data.roomId, data.messages);
-        useRoomStore.getState().setRoomHistoryLoaded(data.roomId, true);
+        getRoomMessages(data.roomId, data.messages);
 
         // 現在のアクティブルームの履歴の場合、postStoreにも追加
         const currentRoomId = useRoomStore.getState().activeRoomId;

@@ -13,7 +13,7 @@ import useResponsiveSize from './useResponsiveSize';
 import BeforeLogin from "./BeforeLogin";
 const AfterLogin = lazy(() => import('./AfterLogin'));
 
-const DEFAULT_ROOM_ID = 'room-1';
+const DEFAULT_ROOM_ID = 'room-0';
 
 function App() {
   // --- 状態管理フックを先に記述 ---

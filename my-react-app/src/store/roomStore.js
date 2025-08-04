@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-const DEFAULT_ROOM_ID = 'room-1'; // デフォルトのルームID
+const DEFAULT_ROOM_ID = 'room-0'; // デフォルトのルームID
 
 const useRoomStore = create((set, get) => ({
     // 現在アクティブなルームID
@@ -13,25 +13,15 @@ const useRoomStore = create((set, get) => ({
 
     // ルーム履歴読み込み状態（最適化用）
     roomHistoryLoaded: {
+        'room-0': true, // 全体ルームは常に読み込み済み
         'room-1': false,
         'room-2': false,
         'room-3': false,
-        'room-4': false
+        'room-4': false,
     },
 
     // ルーム切り替え中の状態
     switchingRoom: false,
-    
-    // ルーム履歴の読み込みを開始/完了
-    setRoomHistoryLoaded: (roomId, loaded) => {
-        console.log(`📚 [roomStore] ${roomId}の履歴読み込み状態: ${loaded}`);
-        set((state) => ({
-            roomHistoryLoaded: {
-                ...state.roomHistoryLoaded,
-                [roomId]: loaded
-            }
-        }));
-    },
 
     // ルーム切り替え中の状態を設定
     setSwitchingRoom: (switching) => {
@@ -59,49 +49,6 @@ const useRoomStore = create((set, get) => ({
                 room.id === roomId ? { ...room, participantCount: count } : room
             )
         }));
-    },
-
-    // ルームにメッセージを追加する（キャッシュ機能付き）
-    addMessageToRoom: (roomId, message) => {
-        console.log(`💬 [roomStore] ${roomId}にメッセージ追加:`, message);
-        set((state) => ({
-            roomMessages: {
-                ...state.roomMessages,
-                [roomId]: [...(state.roomMessages[roomId] || []), message]
-            }
-        }));
-    },
-
-    // ルームのメッセージ履歴をクリア
-    clearRoomMessages: (roomId) => {
-        console.log(`🗑️ [roomStore] ${roomId}のメッセージ履歴をクリア`);
-        set((state) => ({
-            roomMessages: {
-                ...state.roomMessages,
-                [roomId]: []
-            },
-            roomHistoryLoaded: {
-                ...state.roomHistoryLoaded,
-                [roomId]: false
-            }
-        }));
-    },
-
-    // ルームのメッセージ履歴を設定（一括設定）
-    setRoomMessages: (roomId, messages) => {
-        console.log(`📋 [roomStore] ${roomId}のメッセージ履歴を設定:`, messages.length, '件');
-        set((state) => ({
-            roomMessages: {
-                ...state.roomMessages,
-                [roomId]: messages
-            }
-        }));
-    },
-
-    // 特定ルームのメッセージを取得
-    getRoomMessages: (roomId) => {
-        const state = get();
-        return state.roomMessages[roomId] || [];
     },
 
     // ルーム履歴が読み込み済みかチェック

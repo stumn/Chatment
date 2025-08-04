@@ -131,7 +131,7 @@ async function updateDisplayOrder(postId, newDisplayOrder) {
     try {
         const post = await Post.findById(postId);
         if (!post) throw new Error(`Post not found: ${postId}`);
-        
+
         post.displayOrder = newDisplayOrder;
         const newPost = await post.save();
 
@@ -279,6 +279,17 @@ async function initializeDefaultRooms() {
         console.log('🏠 [dbOperation] デフォルトルーム初期化開始');
 
         const defaultRooms = [
+            {
+                id: 'room-0',
+                name: '全体',
+                description: '全ての投稿を表示',
+                createdByNickname: 'システム',
+                settings: {
+                    autoDeleteMessages: false,
+                    messageRetentionDays: 30,
+                    allowAnonymous: true
+                }
+            },
             {
                 id: 'room-1',
                 name: '発表関連',
