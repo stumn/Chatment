@@ -166,7 +166,7 @@ app.post('/api/rooms', async (req, res) => {
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
-  saveLog, deleteDocRow, // 追加
+  saveLog, deleteDocRow,
   // ルーム機能用の最適化された関数
   getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery,
   // ルーム管理用の関数
@@ -266,17 +266,17 @@ io.on('connection', (socket) => {
 
     } catch (e) { console.error(e); }
 
-    socket.on('fetch-history', async () => {
+    socket.on('fetch-history', async () => { // roomごとになっていない
       try {
-        const messages = await getPastLogs(nickname); // fetch posts from database
-        socket.emit('history', messages); // emit to client
+        const messages = await getPastLogs(nickname);
+        socket.emit('history', messages);
       } catch (e) { console.error(e); }
     });
 
     socket.on('fetch-docs', async () => {
       try {
-        const docs = await getPostsByDisplayOrder(); // fetch posts by display order
-        socket.emit('docs', docs); // emit to client
+        const docs = await getPostsByDisplayOrder();
+        socket.emit('docs', docs);
       } catch (e) { console.error(e); }
     });
 
@@ -287,10 +287,10 @@ io.on('connection', (socket) => {
 
     socket.on('chat-message', async ({ nickname, message, userId, roomId }) => {
       try {
-        
+
         // displayOrderを計算
         const displayOrder = await getNextDisplayOrder();
-        
+
         // チャットメッセージをDBに保存（ルーム情報も含める）
         const messageData = {
           nickname,
@@ -329,7 +329,7 @@ io.on('connection', (socket) => {
           const posts = await getPostsByDisplayOrder();
           const lastPost = posts[posts.length - 1];
           const nextOrder = lastPost ? lastPost.displayOrder + 1 : 1;
-          resolve(nextOrder);
+          resolve(nextOrder); // resolveって何
         } catch (error) {
           reject(error);
         }
@@ -422,26 +422,15 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
-    // 関数: displayOrderの計算(浮動小数点数)
+    // 関数: displayOrderの計算(浮動小数点数) - 既存の関数をラッパーとして維持
     function calculateDisplayOrder(displayOrder, posts) {
-
       // displayOrderが今回挿入したい新規行の1つ上
       const prev = displayOrder;
 
       // displayOrderが今回挿入したい新規行の1つ下
       const next = posts.find(p => p.displayOrder > displayOrder);
 
-      // 前後の投稿が存在する場合、平均値を取る
-      if (prev && next) { return (prev + next.displayOrder) / 2; }
-
-      // 前の投稿が存在する場合、次の投稿の前に挿入
-      if (prev) { return prev + 1; }
-
-      // 次の投稿が存在する場合、次の投稿の前に挿入
-      if (next) { return next.displayOrder - 1; }
-
-      // どちらも存在しない場合は1を返す
-      return 1;
+      return calculateDisplayOrderBetween(prev, next ? next.displayOrder : null);
     }
 
     // --- Doc 系；ロック要求の受け取り---
@@ -563,24 +552,8 @@ io.on('connection', (socket) => {
   });
 
   function calculateNewDisplayOrder(movedDisplayOrder, beforePostDisplayOrder, afterPostDisplayOrder) {
-
-    // 前後の投稿が存在する場合、平均値を取る
-    if (beforePostDisplayOrder && afterPostDisplayOrder) {
-      return (beforePostDisplayOrder + afterPostDisplayOrder) / 2;
-    }
-
-    // 前の投稿が存在する場合、次の投稿の前に挿入
-    if (beforePostDisplayOrder) {
-      return beforePostDisplayOrder + 1;
-    }
-
-    // 次の投稿が存在する場合、次の投稿の前に挿入
-    if (afterPostDisplayOrder) {
-      return afterPostDisplayOrder - 1;
-    }
-
-    // どちらも存在しない場合は1を返す
-    return 1;
+    // 共通関数を使用
+    return calculateDisplayOrderBetween(beforePostDisplayOrder, afterPostDisplayOrder);
   }
 
   // --- クライアントからの任意操作ログを受信して保存 ---
@@ -941,12 +914,11 @@ function calculateInsertOrder(displayOrder, posts, payload) {
       const prev = posts[targetPostIndex];
       const next = posts[targetPostIndex + 1];
 
-      if (next) {
-        displayOrder = (prev.displayOrder + next.displayOrder) / 2;
-      }
-      else {
-        displayOrder = prev.displayOrder + 1;
-      }
+      // 共通関数を使用
+      displayOrder = calculateDisplayOrderBetween(
+        prev.displayOrder,
+        next ? next.displayOrder : null
+      );
     } else {
       // 対象IDが見つからない場合は末尾に追加
       displayOrder = posts[posts.length - 1].displayOrder + 1;
@@ -958,3 +930,23 @@ function calculateInsertOrder(displayOrder, posts, payload) {
   return displayOrder;
 }
 
+// 共通関数: displayOrderの計算(浮動小数点数)
+function calculateDisplayOrderBetween(prevOrder, nextOrder) {
+  // 前後の投稿が存在する場合、平均値を取る
+  if (prevOrder !== null && prevOrder !== undefined && nextOrder !== null && nextOrder !== undefined) {
+    return (prevOrder + nextOrder) / 2;
+  }
+
+  // 前の投稿が存在する場合、次の投稿の前に挿入
+  if (prevOrder !== null && prevOrder !== undefined) {
+    return prevOrder + 1;
+  }
+
+  // 次の投稿が存在する場合、次の投稿の前に挿入
+  if (nextOrder !== null && nextOrder !== undefined) {
+    return nextOrder - 1;
+  }
+
+  // どちらも存在しない場合は1を返す
+  return 1;
+}
