@@ -35,17 +35,14 @@ export default function useSocket() {
     };
 
     const handleHistory = (historyArray) => {
-      historyArray.forEach((msg) => {
-        // 履歴データは新規作成ではないのでfalse
-        addMessage(msg, false);
-      });
+      usePostStore.getState().setPosts(historyArray);
+      console.log('History received:', historyArray.length, 'posts');
     };
 
     const handleDocsHistory = (docs) => {
-      docs.forEach((doc) => {
-        // 履歴データは新規作成ではないのでfalse
-        addMessage(doc, false);
-      });
+      // docsはdisplayOrder順でソートされている前提
+      usePostStore.getState().setPosts(docs);
+      console.log('Docs history received:', docs.length, 'posts');
     };
 
     const handleChatMessage = (data) => {
@@ -164,7 +161,7 @@ export default function useSocket() {
       if (cachedMessages.length > 0) {
         console.log(`📋 [useSocket] ${data.roomId}のキャッシュされたメッセージを復元:`, cachedMessages.length, '件');
         // キャッシュされたメッセージを表示用に追加
-        usePostStore.getState().switchToRoom(data.roomId,);
+        usePostStore.getState().switchToRoom(data.roomId);
         cachedMessages.forEach((msg) => {
           addMessage(msg, false); // 履歴データなのでfalse
         });

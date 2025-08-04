@@ -7,11 +7,10 @@ const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み�
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);
-    // const chatMessages = usePostStore((state) => state.getChatMessages(Math.ceil(lines.num)));
     const posts = usePostStore((state) => state.posts);
 
     const chatMessages = useMemo(() => {
-        // getChatMessagesのロジックをここに移植
+        
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
             const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
