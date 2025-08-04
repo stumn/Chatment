@@ -189,8 +189,10 @@
 }
 
 .doc-comment-item.locked .doc-comment-content {
-  pointer-events: none;
-  user-select: none;
+  pointer-events: none !important;
+  user-select: none !important;
+  cursor: not-allowed !important;
+  background-color: rgba(255, 243, 205, 0.5) !important;
 }
 
 .doc-comment-item.locked .edit-button,
