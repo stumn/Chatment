@@ -103,25 +103,6 @@ async function getPostsByDisplayOrder() {
     }
 }
 
-// --- displayOrderを指定して空白行を追加 ---
-// async function addDocRow({ nickname, msg = '', displayOrder }) {
-//     try {
-//         // displayOrderが未指定または0なら最大値+1
-//         let order = displayOrder;
-//         if (!Number.isFinite(order) || order === 0) {
-//             const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
-//             order = maxOrderPost && Number.isFinite(maxOrderPost.displayOrder) ? maxOrderPost.displayOrder + 1 : 1;
-//         }
-//         const newPost = await Post.create({
-//             nickname,
-//             msg,
-//             displayOrder: order
-//         });
-//         return organizeLogs(newPost);
-//     } catch (error) {
-//         handleErrors(error, 'addDocRow 新規行追加時にエラーが発生しました');
-//     }
-// }
 async function addDocRow({ nickname, msg = '', displayOrder }) {
     try {
         let order = displayOrder;
