@@ -49,7 +49,6 @@ export default function useSocket() {
     };
 
     const handleChatMessage = (data) => {
-      console.log('💬 [useSocket] チャットメッセージ受信:', data);
 
       // ルームメッセージの場合、現在のアクティブルームと一致するかチェック
       if (data.roomId) {
@@ -382,7 +381,6 @@ export default function useSocket() {
       ...(roomId && { roomId }) // roomIdがある場合のみ追加
     };
 
-    console.log('💬 [useSocket] チャットメッセージ送信:', messageData);
     socket.emit('chat-message', messageData);
 
     emitLog({

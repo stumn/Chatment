@@ -69,7 +69,6 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
 // チャットメッセージ受送信
 async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, roomId = null }) {
     try {
-        console.log('Saving chat message:', { nickname, message, userId, displayOrder, roomId });
         const record = await saveRecord(nickname, message, userId, displayOrder, roomId);
         return organizeLogs(record);
     } catch (error) {
@@ -149,16 +148,12 @@ async function addDocRow({ nickname, msg = '', displayOrder }) {
 // --- 並び替え(doc-reorder)に合わせて、displayOrderを更新 ---
 async function updateDisplayOrder(postId, newDisplayOrder) {
     try {
-        console.log('updateDisplayOrder:', { postId, newDisplayOrder });
-
         const post = await Post.findById(postId);
         if (!post) throw new Error(`Post not found: ${postId}`);
-        console.log('Found post:', post);
-
+        
         post.displayOrder = newDisplayOrder;
         const newPost = await post.save();
 
-        console.log('Updated post:', newPost);
         return organizeLogs(newPost);
     } catch (error) {
         handleErrors(error, 'displayOrder更新中にエラーが発生しました');

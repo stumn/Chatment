@@ -34,10 +34,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     // ❌ 問題: trim()だけでは不十分なバリデーションです
     // ✅ 修正案: 文字数制限やHTMLタグの除去など、より厳密なバリデーションを追加
     if (message.trim()) {
-      console.log(`📝 [InputForm] メッセージ送信開始`);
-      console.log(`🏠 [InputForm] 選択中のルーム: ${activeRoomId} (${currentRoom?.name})`);
-      console.log(`👤 [InputForm] 送信者: ${handleName}`);
-      console.log(`💬 [InputForm] メッセージ: "${message}"`);
+      console.log(`📝 [InputForm] メッセージ送信開始 ルーム: ${activeRoomId} (${currentRoom?.name})`);
+      console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"`);
 
       // TODO: XSS対策やメッセージ長制限を追加
       // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
@@ -51,12 +49,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
-      console.log(`⌨️ [InputForm] Ctrl+Enter検出 - 送信開始`);
-
       sendChatMessage(handleName, message, activeRoomId);
-
       setMessage('');
-      console.log(`✅ [InputForm] Ctrl+Enter送信完了`);
     }
   };
 

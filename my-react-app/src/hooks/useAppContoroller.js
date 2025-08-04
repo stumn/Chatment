@@ -159,7 +159,6 @@ export const useAppController = () => {
                 message = message.slice(0, 1000);
             }
 
-            console.log(`📝 [useAppController] チャットメッセージ送信開始`, handleName, message.trim(), userInfo?._id, roomId);
             emitChatMessage(handleName, message.trim(), userInfo?._id, roomId);
 
             // ログ記録

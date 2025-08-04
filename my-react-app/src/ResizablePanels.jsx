@@ -83,7 +83,6 @@ export default function ResizablePanels({ appController }) {
                 user: userInfo && userInfo.nickname
             }
         };
-        console.log("emitLog:", data);
         emitLog(data);
 
     }, [bottomHeight, messages]);
@@ -136,7 +135,6 @@ export default function ResizablePanels({ appController }) {
                     user: userInfo && userInfo.nickname
                 }
             };
-            console.log("emitLog:", data);
             emitLog(data);
 
         };
