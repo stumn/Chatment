@@ -4,11 +4,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import Tooltip from '@mui/material/Tooltip';
 
-// ❌ 問題: useSocketを直接インポートすると、propsで受け取ったemitFunctionsと重複してsocket接続が複数作られる可能性があります
-// import useSocket from './hooks/useSocket'; // 削除：propsからemitFunctionsを使用する
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
-import './Doc.css'; // Assuming you have a CSS file for styling
+import useFadeOut from './hooks/useFadeOut';
+import './Doc.css';
 
 const DocRow = ({ data, index, style }) => {
     const { docMessages, userInfo, documentFunctions, setShouldScroll, listRef } = data;
@@ -48,85 +47,13 @@ const DocRow = ({ data, index, style }) => {
     // この行の変更状態を取得
     const changeState = getChangeState(message?.id);
 
-    // フェードアウト状態の管理
-    const [isFadingOut, setIsFadingOut] = useState(false);
-    const [isHovering, setIsHovering] = useState(false);
-    const fadeTimeoutRef = useRef(null);
-
-    // 変更状態が変わったときのフェードアウトタイマー設定
-    useEffect(() => {
-        if (changeState && !isFadingOut && !isEditing) { // 編集中はタイマーを設定しない
-            // 既存のタイマーをクリア
-            if (fadeTimeoutRef.current) {
-                clearTimeout(fadeTimeoutRef.current);
-            }
-
-            // 5秒後にフェードアウト開始
-            fadeTimeoutRef.current = setTimeout(() => {
-                if (!isHovering && !isEditing) { // ホバー中または編集中でなければフェードアウト
-                    setIsFadingOut(true);
-
-                    // フェードアウト完了後に変更状態をクリア（2秒後）
-                    setTimeout(() => {
-                        clearChangeState(message?.id);
-                        setIsFadingOut(false);
-                    }, 2000);
-                }
-            }, 15000); // 15秒でフェードアウト（合計約17秒程度）
-        }
-
-        // 編集モードが変わったときにタイマーをクリア
-        if (isEditing && fadeTimeoutRef.current) {
-            clearTimeout(fadeTimeoutRef.current);
-            setIsFadingOut(false); // 編集開始時はフェードアウトを停止
-        }
-
-        // クリーンアップ
-        return () => {
-            if (fadeTimeoutRef.current) {
-                clearTimeout(fadeTimeoutRef.current);
-            }
-        };
-    }, [changeState, isHovering, isEditing, message?.id, clearChangeState]);
-
-    // ホバー状態が変わったときの処理
-    useEffect(() => {
-        if (isHovering && isFadingOut) {
-            // ホバー中はフェードアウトを停止
-            setIsFadingOut(false);
-        } else if (!isHovering && changeState && !isEditing) { // 編集中でない場合のみタイマー再開
-            // ホバーが終了したらフェードアウトタイマーを再開
-            if (fadeTimeoutRef.current) {
-                clearTimeout(fadeTimeoutRef.current);
-            }
-            fadeTimeoutRef.current = setTimeout(() => {
-                if (!isEditing) { // 再度編集状態をチェック
-                    setIsFadingOut(true);
-                    setTimeout(() => {
-                        clearChangeState(message?.id);
-                        setIsFadingOut(false);
-                    }, 2000);
-                }
-            }, 5000); // ホバー終了後5秒でフェードアウト開始
-        }
-    }, [isHovering, changeState, isEditing, message?.id, clearChangeState]);
-
-    // 編集モード終了時の変更バーフェードアウトタイマー再開
-    useEffect(() => {
-        if (!isEditing && changeState && !isFadingOut && !isHovering) {
-            // 編集モード終了後、変更バーのフェードアウトタイマーを再開
-            if (fadeTimeoutRef.current) {
-                clearTimeout(fadeTimeoutRef.current);
-            }
-            fadeTimeoutRef.current = setTimeout(() => {
-                setIsFadingOut(true);
-                setTimeout(() => {
-                    clearChangeState(message?.id);
-                    setIsFadingOut(false);
-                }, 2000);
-            }, 15000); // 15秒でフェードアウト開始
-        }
-    }, [isEditing, changeState, isFadingOut, isHovering, message?.id, clearChangeState]);
+    // カスタムフックでフェードアウト管理
+    const { isFadingOut, handleMouseEnter, handleMouseLeave } = useFadeOut(
+        changeState,
+        isEditing,
+        message?.id,
+        clearChangeState
+    );
 
     // 変更バーのスタイルクラスを決定
     const getChangeBarClass = () => {
@@ -364,8 +291,8 @@ const DocRow = ({ data, index, style }) => {
                     >
                         <div
                             className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
-                            onMouseEnter={() => setIsHovering(true)}
-                            onMouseLeave={() => setIsHovering(false)}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
                             style={{ cursor: 'pointer' }}
                         />
                     </Tooltip>
