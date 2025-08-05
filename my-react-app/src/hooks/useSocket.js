@@ -68,11 +68,11 @@ export default function useSocket() {
 
     // --- positive/negativeイベントを受信しstoreを更新 ---
     const handlePositive = (data) => {
-      usePostStore.getState().updatePositive(data.id, data.positive, data.isPositive);
+      usePostStore.getState().updatePositive(data.id, data.positive, data.userHasVotedPositive);
     };
 
     const handleNegative = (data) => {
-      usePostStore.getState().updateNegative(data.id, data.negative, data.isNegative);
+      usePostStore.getState().updateNegative(data.id, data.negative, data.userHasVotedNegative);
     };
 
     // --- Doc系イベント受信 ---

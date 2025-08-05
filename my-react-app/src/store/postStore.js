@@ -120,16 +120,16 @@ const usePostStore = create((set, get) => ({
     },
 
     // Positive
-    updatePositive: (id, positive, isPositive) => set((state) => ({
+    updatePositive: (id, positive, userHasVotedPositive) => set((state) => ({
         posts: state.posts.map((msg) =>
-            (msg.id === id || msg.id === String(id)) ? { ...msg, positive, isPositive } : msg
+            (msg.id === id || msg.id === String(id)) ? { ...msg, positive, userHasVotedPositive } : msg
         ),
     })),
 
     // Negative
-    updateNegative: (id, negative, isNegative) => set((state) => ({
+    updateNegative: (id, negative, userHasVotedNegative) => set((state) => ({
         posts: state.posts.map((msg) =>
-            (msg.id === id || msg.id === String(id)) ? { ...msg, negative, isNegative } : msg
+            (msg.id === id || msg.id === String(id)) ? { ...msg, negative, userHasVotedNegative } : msg
         ),
     })),
 
