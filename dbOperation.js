@@ -472,10 +472,20 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
     };
 }
 
+//  --- Doc 行編集 ---
+async function updatePostData(payload) {
+    const updateObj = { msg: payload.newMsg };
+    if (payload.nickname) updateObj.nickname = payload.nickname;
+    updateObj.updatedAt = new Date();
+
+    const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
+    return updatedPost;
+}
+
 module.exports = {
     saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage,
     getPostsByDisplayOrder, addDocRow, updateDisplayOrder,
-    saveLog, deleteDocRow, processPostReaction,
+    saveLog, deleteDocRow, processPostReaction, updatePostData,
     // ルーム機能用の関数
     getRoomHistory,
     getAllRoomsWithStats,

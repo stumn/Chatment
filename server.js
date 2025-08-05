@@ -11,7 +11,6 @@ const io = new Server(server, {
 
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
-const { mongoose, User, Post, Room } = require('./db');
 
 app.use(express.static('my-react-app/dist')); // 追加
 app.get('/plain', (req, res) => { // 変更
@@ -166,7 +165,7 @@ app.post('/api/rooms', async (req, res) => {
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
-  saveLog, deleteDocRow, processPostReaction,
+  saveLog, deleteDocRow, processPostReaction, updatePostData,
   // ルーム機能用の最適化された関数
   getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery,
   // ルーム管理用の関数
@@ -321,8 +320,6 @@ io.on('connection', (socket) => {
       }
     }
 
-    // --- fav関連のsocketイベント・ロジックは削除 ---
-
     // --- positive/negative共通ハンドラー ---
     const handleReaction = async (reactionType, { postId, userSocketId, nickname }) => {
       try {
@@ -445,11 +442,7 @@ io.on('connection', (socket) => {
           return;
         }
 
-        const updateObj = { msg: payload.newMsg };
-        if (payload.nickname) updateObj.nickname = payload.nickname;
-        updateObj.updatedAt = new Date();
-
-        const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
+        const updatedPost = await updatePostData(payload);
 
         // updatedAtをpayloadに追加してemit
         io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
