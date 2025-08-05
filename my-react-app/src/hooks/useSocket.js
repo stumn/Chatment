@@ -59,7 +59,7 @@ export default function useSocket() {
         }
 
         // ルーム別メッセージ履歴に保存
-        useRoomStore.getState().addMessageToRoom(data.roomId, data);
+        usePostStore.getState().addPost(data, true, data.roomId);
       }
 
       // チャットメッセージとして追加（新規作成として扱う）
@@ -578,8 +578,10 @@ export default function useSocket() {
     console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
     const startTime = performance.now(); // パフォーマンス測定開始
 
-    socket.emit('fetch-room-history', { roomId, startTime });
-
+    roomId === 'room-0'
+      ? socket.emit('fetch-history', { roomId, startTime })
+      : socket.emit('fetch-room-history', { roomId, startTime });
+    
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,

@@ -1,5 +1,6 @@
 // 投稿に関連するストア
 import { create } from 'zustand';
+const DEFAULT_ROOM_ID = 'room-0';
 
 const usePostStore = create((set, get) => ({
 
@@ -9,9 +10,10 @@ const usePostStore = create((set, get) => ({
     //　history, docs用: 全件取得
     setPosts: (posts) => set({ posts: [...posts], }),
 
-    // 1件追加（仮IDは使わず、サーバ返却値のみ）
-    addPost: (post, isNewlyCreated = false) =>
+    // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
+    addPost: (post, isNewlyCreated = false, roomId = null) =>
         set((state) => {
+            console.log(`💬 [postStore] ${roomId}にメッセージ追加:`, post);
 
             // 受け取ったpostはサーバーからの完全なデータであることを前提とする
             // post.idが存在しない場合はエラー
@@ -28,12 +30,15 @@ const usePostStore = create((set, get) => ({
                 return { posts: state.posts };
             }
 
+            // roomIdが指定されている場合は、postにroomIdを設定
+            const postWithRoom = roomId ? { ...post, roomId } : post;
+
             // 新規作成の場合のみ変更状態を記録
             let newChangeStates = new Map(state.changeStates);
-            newChangeStates = addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated);
+            newChangeStates = addChangeStateIfNeeded(newChangeStates, postWithRoom, isNewlyCreated);
 
             return {
-                posts: [...state.posts, post].sort((a, b) => a.displayOrder - b.displayOrder),
+                posts: [...state.posts, postWithRoom].sort((a, b) => a.displayOrder - b.displayOrder),
                 changeStates: newChangeStates
             };
         }),

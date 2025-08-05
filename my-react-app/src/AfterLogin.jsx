@@ -7,7 +7,7 @@ import TableOfContents from './TableOfContents';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
-import useRoomStore from "./store/roomStore";
+import useRoomStore from './store/roomStore';
 
 export default function AfterLogin({ heightArray, appController, userInfo }) {
     // userInfoをpropsから受け取る

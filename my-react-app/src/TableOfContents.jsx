@@ -92,7 +92,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
         // 少し待ってから切り替え状態をクリア
         setTimeout(() => {
             setSwitchingRoom(false);
-        }, 1000);
+        }, 2000);
 
         console.log(`✅ [TableOfContents] ルーム選択完了: ${roomId}`);
     };

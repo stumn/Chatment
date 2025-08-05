@@ -13,7 +13,7 @@ const useRoomStore = create((set, get) => ({
 
     // ルーム履歴読み込み状態（最適化用）
     roomHistoryLoaded: {
-        'room-0': true, // 全体ルームは常に読み込み済み
+        'room-0': false,
         'room-1': false,
         'room-2': false,
         'room-3': false,
