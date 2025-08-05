@@ -85,8 +85,8 @@ function organizeLogs(post, mySocketId = null) {
         userId: post.userId,
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
-        isPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
-        isNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
+        userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
+        userHasVotedNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
         displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
         previousData: post.previousData || null
     };
@@ -452,11 +452,30 @@ async function createRoom(roomData) {
     }
 }
 
+//  --- positive, negative 用の関数 ---
+async function processPostReaction(postId, userSocketId = null, nickname = '', reactionType) {
+
+    const post = await Post.findById(postId);
+    if (!post) return;
+
+    const idx = post[reactionType].findIndex(p => p.userSocketId === userSocketId);
+    idx !== -1
+        ? post[reactionType].splice(idx, 1)
+        : post[reactionType].push({ userSocketId, nickname });
+
+    await post.save();
+
+    return {
+        id: post.id,
+        reaction: post[reactionType].length,
+        userHasReacted: post[reactionType].some(p => p.userSocketId === userSocketId),
+    };
+}
+
 module.exports = {
     saveUser, getPastLogs, organizeCreatedAt, SaveChatMessage,
     getPostsByDisplayOrder, addDocRow, updateDisplayOrder,
-    saveLog, // 追加
-    deleteDocRow, // 追加
+    saveLog, deleteDocRow, processPostReaction,
     // ルーム機能用の関数
     getRoomHistory,
     getAllRoomsWithStats,

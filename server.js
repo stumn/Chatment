@@ -166,11 +166,11 @@ app.post('/api/rooms', async (req, res) => {
 const {
   saveUser, SaveChatMessage, getPastLogs,
   addDocRow, getPostsByDisplayOrder, updateDisplayOrder,
-  saveLog, deleteDocRow,
+  saveLog, deleteDocRow, processPostReaction,
   // ルーム機能用の最適化された関数
   getRoomHistory, getAllRoomsWithStats, getRoomMessageCounts, explainRoomQuery,
   // ルーム管理用の関数
-  initializeDefaultRooms, getActiveRooms, getRoomById, updateRoomStats, createRoom
+  initializeDefaultRooms, getActiveRooms, getRoomById, updateRoomStats, createRoom,
 } = require('./dbOperation');
 
 const heightMemory = []; // 高さを記憶するためのオブジェクト
@@ -323,49 +323,33 @@ io.on('connection', (socket) => {
 
     // --- fav関連のsocketイベント・ロジックは削除 ---
 
-    // --- positiveトグルイベント ---
-    socket.on('positive', async ({ postId, userSocketId, nickname }) => {
+    // --- positive/negative共通ハンドラー ---
+    const handleReaction = async (reactionType, { postId, userSocketId, nickname }) => {
       try {
-        const post = await Post.findById(postId);
-        if (!post) return;
 
-        const idx = post.positive.findIndex(p => p.userSocketId === userSocketId);
-        idx !== -1
-          ? post.positive.splice(idx, 1)
-          : post.positive.push({ userSocketId, nickname });
+        console.log(`→${reactionType} reaction received:`, { postId, userSocketId, nickname });
 
-        await post.save();
-        io.emit('positive', {
-          id: post.id,
-          positive: post.positive.length,
-          isPositive: post.positive.some(p => p.userSocketId === userSocketId),
-        });
+        // 反応を処理(dbOperation.jsの関数を使用)
+        const processedData = await processPostReaction(postId, userSocketId, nickname, reactionType);
+        console.log(`←${reactionType} reaction processed:`, processedData);
 
-        saveLog({ userId: post.userId, action: 'positive', detail: { postId, userSocketId, nickname } });
+        // 全クライアントに該当イベントをブロードキャスト
+        const broadcastData =
+          reactionType === 'positive'
+            ? { id: processedData.id, positive: processedData.reaction, userHasVotedPositive: processedData.userHasReacted }
+            : { id: processedData.id, negative: processedData.reaction, userHasVotedNegative: processedData.userHasReacted };
+
+        io.emit(reactionType, broadcastData);
+
+        // --- ログ記録 ---
+        saveLog({ userId: processedData.userId, action: reactionType, detail: { postId, userSocketId, nickname } });
+
       } catch (e) { console.error(e); }
-    });
+    };
 
-    // --- negativeトグルイベント ---
-    socket.on('negative', async ({ postId, userSocketId, nickname }) => {
-      try {
-        const post = await Post.findById(postId);
-        if (!post) return;
-
-        const idx = post.negative.findIndex(n => n.userSocketId === userSocketId);
-        idx !== -1
-          ? post.negative.splice(idx, 1)
-          : post.negative.push({ userSocketId, nickname });
-
-        await post.save();
-        io.emit('negative', {
-          id: post.id,
-          negative: post.negative.length,
-          isNegative: post.negative.some(n => n.userSocketId === userSocketId),
-        });
-
-        saveLog({ userId: post.userId, action: 'negative', detail: { postId, userSocketId, nickname } });
-      } catch (e) { console.error(e); }
-    });
+    // 複数のイベントに同じハンドラーを割り当て
+    socket.on('positive', (payload) => handleReaction('positive', payload));
+    socket.on('negative', (payload) => handleReaction('negative', payload));
 
     // --- Doc系: 行追加 ---
     socket.on('doc-add', async (payload) => {
@@ -917,6 +901,7 @@ function calculateInsertOrder(displayOrder, posts, payload) {
 
 // 共通関数: displayOrderの計算(浮動小数点数)
 function calculateDisplayOrderBetween(prevOrder, nextOrder) {
+
   // 前後の投稿が存在する場合、平均値を取る
   if (prevOrder !== null && prevOrder !== undefined && nextOrder !== null && nextOrder !== undefined) {
     return (prevOrder + nextOrder) / 2;
