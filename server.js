@@ -226,18 +226,6 @@ function addHeightMemory(id, height) {
 const lockedRows = new Map(); // 行IDとユーザ情報(nickname, userId)のマップ
 console.log(lockedRows);
 
-// const FADE_OUT_TIME = 10000; // 10秒後に削除
-// function removeHeightMemory(id) {
-
-//   setTimeout(() => {  
-//     const index = heightMemory.findIndex(item => item.id === id);
-//     if (index !== -1) heightMemory.splice(index, 1);
-
-//     return heightMemory.map(item => item.height); // 高さを全て返す
-
-//   }, FADE_OUT_TIME); // 10秒後に削除  
-// }
-
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
@@ -323,17 +311,14 @@ io.on('connection', (socket) => {
       } catch (e) { console.error(e); }
     });
 
-    function getNextDisplayOrder() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          const posts = await getPostsByDisplayOrder();
-          const lastPost = posts[posts.length - 1];
-          const nextOrder = lastPost ? lastPost.displayOrder + 1 : 1;
-          resolve(nextOrder); // resolveって何
-        } catch (error) {
-          reject(error);
-        }
-      });
+    async function getNextDisplayOrder() {
+      try {
+        const posts = await getPostsByDisplayOrder();
+        const lastPost = posts[posts.length - 1];
+        return lastPost ? lastPost.displayOrder + 1 : 1;
+      } catch (error) {
+        throw error;
+      }
     }
 
     // --- fav関連のsocketイベント・ロジックは削除 ---
