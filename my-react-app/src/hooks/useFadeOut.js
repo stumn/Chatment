@@ -1,16 +1,18 @@
 // File: my-react-app/src/hooks/useFadeOut.js
 
 import { useState, useRef, useEffect } from 'react';
+import usePostStore from './../store/postStore';
 
 /**
  * 変更バーのフェードアウト管理を行うカスタムフック
  * @param {Object} changeState - 変更状態オブジェクト
  * @param {boolean} isEditing - 編集中かどうか
  * @param {string} messageId - メッセージID
- * @param {Function} clearChangeState - 変更状態をクリアする関数
  * @returns {Object} フェードアウト関連の状態とハンドラー
  */
-const useFadeOut = (changeState, isEditing, messageId, clearChangeState) => {
+const useFadeOut = (changeState, isEditing, messageId) => {
+    const clearChangeState = usePostStore((state) => state.clearChangeState);
+
     // フェードアウト状態とホバー状態を管理
     const [isFadingOut, setIsFadingOut] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
@@ -41,7 +43,7 @@ const useFadeOut = (changeState, isEditing, messageId, clearChangeState) => {
             // 編集中やホバー中でなければフェードアウト開始
             if (!isEditing && !isHovering) {
                 setIsFadingOut(true);
-                
+
                 // フェードアウト完了後に変更状態をクリア
                 setTimeout(() => {
                     clearChangeState(messageId);
