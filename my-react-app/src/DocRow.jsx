@@ -8,6 +8,7 @@ import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
 import useFadeOut from './hooks/useFadeOut';
 import ActionButtons from './components/ActionButtons';
+import ChangeBar from './components/ChangeBar';
 import './Doc.css';
 
 const DocRow = ({ data, index, style }) => {
@@ -55,24 +56,6 @@ const DocRow = ({ data, index, style }) => {
         message?.id,
         clearChangeState
     );
-
-    // 変更バーのスタイルクラスを決定
-    const getChangeBarClass = () => {
-        if (!changeState) return 'bar-none';
-
-        switch (changeState.type) {
-            case 'added':
-                return 'bar-added';
-            case 'modified':
-                return 'bar-modified';
-            case 'deleted':
-                return 'bar-deleted';
-            case 'reordered':
-                return 'bar-reordered';
-            default:
-                return 'bar-none';
-        }
-    };
 
     // 新規行追加
     const handleAddBelow = () => {
@@ -263,40 +246,12 @@ const DocRow = ({ data, index, style }) => {
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                 // ロック管理用のdata属性
                 >
-                    <Tooltip
-                        title={
-                            changeState
-                                ? (
-                                    <>
-                                        【{{
-                                            added: '空行追加',
-                                            modified: '内容編集',
-                                            deleted: '削除',
-                                            reordered: '順序変更'
-                                        }[changeState.type] || ''}】<br />
-                                        実行者: {changeState.userNickname}<br />
-                                        時刻: {changeState.timestamp.toLocaleString()}
-                                    </>
-                                )
-                                : 'この行には、最近の編集履歴がありません'
-                        }
-                        arrow
-                        placement="left"
-                        enterDelay={300}
-                        leaveDelay={100}
-                        componentsProps={{
-                            tooltip: {
-                                sx: { whiteSpace: 'pre-line', fontSize: '0.85em' }
-                            }
-                        }}
-                    >
-                        <div
-                            className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            style={{ cursor: 'pointer' }}
-                        />
-                    </Tooltip>
+                    <ChangeBar
+                        changeState={changeState}
+                        isFadingOut={isFadingOut}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    />
 
                     <span {...provided.dragHandleProps} className='dot' />
                     <div
