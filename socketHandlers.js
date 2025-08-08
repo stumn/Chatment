@@ -21,7 +21,6 @@ const {
   calculateInsertOrder,
   addHeightMemory,
   unlockRowByPostId,
-  calculateNewDisplayOrder
 } = require('./socketUtils');
 
 const { SOCKET_EVENTS } = require('./constants');
@@ -237,7 +236,7 @@ function setupDocHandlers(socket, io) {
       } = payload;
 
       // beforeとafter から新しいdisplayOrderを計算
-      const newDisplayOrder = calculateNewDisplayOrder(
+      const newDisplayOrder = calculateDisplayOrderBetween(
         beforePostDisplayOrder,
         afterPostDisplayOrder
       );
