@@ -74,7 +74,7 @@ const roomSchema = new mongoose.Schema({
 }, options);
 
 // Roomコレクション用のインデックス
-roomSchema.index({ id: 1 }, { unique: true }); // ルームID検索用
+// id フィールドはスキーマで unique: true が設定されているため、明示的なインデックス定義は不要
 roomSchema.index({ isActive: 1, createdAt: -1 }); // アクティブルーム一覧用
 roomSchema.index({ lastActivity: -1 }); // アクティビティ順ソート用
 
