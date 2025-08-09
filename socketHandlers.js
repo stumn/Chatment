@@ -31,17 +31,20 @@ const rooms = new Map();
 const userRooms = new Map();
 const heightMemory = [];
 
+// --- Socket.IOの初期化 ---
 function initializeSocketHandlers(io) {
   io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
+
     console.log('a user connected', socket.id);
 
     // ログインハンドラー
     socket.on(SOCKET_EVENTS.LOGIN, async (userInfo) => {
-      await handleLogin(socket, userInfo, io);
+      await handleLogin(socket, userInfo);
     });
 
     // その他のイベントハンドラー
     setupChatHandlers(socket, io);
+    setupUIHandlers(socket, io);
     setupReactionHandlers(socket, io);
     setupDocHandlers(socket, io);
     setupRoomHandlers(socket, io);
@@ -50,26 +53,31 @@ function initializeSocketHandlers(io) {
   });
 }
 
-async function handleLogin(socket, userInfo, io) {
+// --- ログインハンドラー ---
+async function handleLogin(socket, userInfo) {
   const { nickname, status, ageGroup } = userInfo;
-  console.log('login:', nickname, status, ageGroup, socket.id);
+  console.log('🙋login:', nickname, status, ageGroup, socket.id);
 
   try {
+
+    // nickname, status, ageGroupが必須
     if (!nickname || !status || !ageGroup) {
       console.error('Invalid user info:', userInfo);
       return;
     }
 
+    // ユーザをDBへ保存（TODO: nickname, status, ageGroupが全く同じ場合、同じユーザとして扱うためのロジックを追加）
     const newUser = await saveUser(nickname, status, ageGroup, socket.id);
-    console.log('newUser:', newUser);
 
+    // TODO: ちゃんと確認する
     socket.userId = newUser._id.toString();
     socket.nickname = nickname;
     userSockets.set(socket.userId, socket);
 
+    // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
 
-    // 履歴取得ハンドラー
+    // チャット履歴取得ハンドラー（過去チャットログ 但し、ルーム機能を使うときは使われない）
     socket.on(SOCKET_EVENTS.FETCH_HISTORY, async () => {
       try {
         const messages = await getPastLogs(nickname);
@@ -77,6 +85,7 @@ async function handleLogin(socket, userInfo, io) {
       } catch (e) { console.error(e); }
     });
 
+    // ドキュメント用取得ハンドラー
     socket.on(SOCKET_EVENTS.FETCH_DOCS, async () => {
       try {
         const docs = await getPostsByDisplayOrder();
@@ -87,13 +96,15 @@ async function handleLogin(socket, userInfo, io) {
   } catch (e) { console.error(e); }
 }
 
+// --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
+
   socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId }) => {
     try {
-      // displayOrderを計算
-      const displayOrder = await getNextDisplayOrder();
+      // displayOrderの最後尾を取得
+      const displayOrder = await getLastDisplayOrder();
 
-      // チャットメッセージをDBに保存（ルーム情報も含める）
+      // チャットメッセージデータ（ルーム情報も含める）
       const messageData = {
         nickname,
         message,
@@ -102,82 +113,97 @@ function setupChatHandlers(socket, io) {
         ...(roomId && { roomId })
       };
 
+      // DBにデータ保存
       const p = await SaveChatMessage(messageData);
 
       // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
       if (roomId && rooms.has(roomId)) {
+
         console.log(`🏠 [server] Socket.IO ルーム room-${roomId} にメッセージ送信`);
 
-        // Socket.IOのルーム機能を使用して、該当ルームの全参加者に即座に送信
+        // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
         const responseData = { ...p, roomId };
         io.to(`room-${roomId}`).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
 
         // ルーム統計をデータベースで更新
-        await updateRoomStats(roomId, {
-          $inc: { messageCount: 1 }
-        });
-
-        console.log(`⚡ [server] Socket.IO ルーム配信完了: room-${roomId}`);
+        await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
       }
 
-      // --- ログ記録 ---
+      // ログ記録
       saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId } });
-    } catch (e) { console.error(e); }
-  });
 
-  socket.on(SOCKET_EVENTS.HEIGHT_CHANGE, (height) => {
-    const heightArray = addHeightMemory(heightMemory, socket.id, height);
-    io.emit(SOCKET_EVENTS.HEIGHT_CHANGE, heightArray);
+    } catch (e) { console.error(e); }
   });
 }
 
-async function getNextDisplayOrder() {
+// --- UIハンドラーのセットアップ ---
+function setupUIHandlers(socket, io) {
+
+  socket.on(SOCKET_EVENTS.HEIGHT_CHANGE, (height) => {
+
+    // 高さメモリに追加
+    const heightArray = addHeightMemory(heightMemory, socket.id, height);
+
+    // 高さメモリを全クライアントにブロードキャスト(TODO: 同じルームにいる人にだけ送信するのか検討)
+    io.emit(SOCKET_EVENTS.HEIGHT_CHANGE, heightArray);
+
+  });
+}
+
+// --- displayOrderの最後尾を取得（ヘルパー） ---
+async function getLastDisplayOrder() {
   try {
+
     const posts = await getPostsByDisplayOrder();
     const lastPost = posts[posts.length - 1];
     return lastPost ? lastPost.displayOrder + 1 : 1;
-  } catch (error) {
-    throw error;
-  }
+
+  } catch (error) { throw error; }
 }
 
+// --- positive/negativeリアクションの共通ハンドラー ---
 function setupReactionHandlers(socket, io) {
-  // positive/negativeリアクションの共通ハンドラー
+
   const reactionTypes = [SOCKET_EVENTS.POSITIVE, SOCKET_EVENTS.NEGATIVE];
 
   reactionTypes.forEach(reactionType => {
+
     socket.on(reactionType, async ({ postId, userSocketId, nickname }) => {
       try {
-        console.log(`→${reactionType} reaction received:`, { postId, userSocketId, nickname });
 
-        const processedData = await processPostReaction(postId, userSocketId, nickname, reactionType);
-        console.log(`←${reactionType} reaction processed:`, processedData);
+        // リアクション処理
+        const reactionResult = await processPostReaction(postId, userSocketId, nickname, reactionType);
 
+        // ブロードキャスト用データの作成
         const broadcastData =
           reactionType === SOCKET_EVENTS.POSITIVE
-            ? { id: processedData.id, positive: processedData.reaction, userHasVotedPositive: processedData.userHasReacted }
-            : { id: processedData.id, negative: processedData.reaction, userHasVotedNegative: processedData.userHasReacted };
+            ? { id: reactionResult.id, positive: reactionResult.reaction, userHasVotedPositive: reactionResult.userHasReacted }
+            : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
+        // ブロードキャスト
         io.emit(reactionType, broadcastData);
 
-        saveLog({ userId: processedData.userId, action: reactionType, detail: { postId, userSocketId, nickname } });
+        // ログ記録
+        saveLog({ userId: reactionResult.userId, action: reactionType, detail: { postId, userSocketId, nickname } });
 
       } catch (e) { console.error(e); }
     });
   });
 }
 
+// --- ドキュメントハンドラーのセットアップ ---
 function setupDocHandlers(socket, io) {
+
   socket.on(SOCKET_EVENTS.DOC_ADD, async (payload) => {
     try {
-      let prevDisplayOrder = payload.prevDisplayOrder;
-      console.log('🌟doc-add:', payload);
-      const posts = await getPostsByDisplayOrder();
 
-      // payload.prevDisplayOrderが指定されていない場合は行追加を拒否
+      // prevDisplayOrder(行追加する1つ前の行)を取得
+      let prevDisplayOrder = payload.prevDisplayOrder;
+
+      // prevDisplayOrderが指定されていない場合は行追加を拒否
       if (prevDisplayOrder === undefined || !Number.isFinite(prevDisplayOrder)) {
         console.warn('❌ DOC_ADD拒否: prevDisplayOrderが未指定または不正', payload);
-        socket.emit('doc-add-error', { 
+        socket.emit('doc-edit-error', {
           error: 'INVALID_DISPLAY_ORDER',
           message: '行の追加位置が指定されていません。再度お試しください。',
           payload: payload
@@ -185,7 +211,8 @@ function setupDocHandlers(socket, io) {
         return;
       }
 
-      console.log('🌟1:', prevDisplayOrder);
+      // 現在の行の並び順を取得(TODO: DB関連の処理が多いので、docOperationへの移行を検討)
+      const posts = await getPostsByDisplayOrder();
 
       // DB保存
       const newPost = await addDocRow({
@@ -194,9 +221,7 @@ function setupDocHandlers(socket, io) {
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
       });
 
-      console.log('🌟2', newPost.displayOrder);
-
-      // 全クライアントに新規行追加をブロードキャスト
+      // 新規行追加の結果を整形
       const data = {
         id: newPost.id,
         nickname: newPost.nickname,
@@ -204,20 +229,30 @@ function setupDocHandlers(socket, io) {
         displayOrder: newPost.displayOrder
       };
 
+      // 新規行追加を全クライアントにブロードキャスト
       io.emit(SOCKET_EVENTS.DOC_ADD, data);
+
+      // ログ記録
       saveLog({ userId: newPost.userId, action: 'doc-add', detail: data });
+
     } catch (e) { console.error(e); }
   });
 
   socket.on(SOCKET_EVENTS.DOC_EDIT, async (payload) => {
     try {
-      console.log('doc-edit:', payload);
 
+      // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
-        io.emit(SOCKET_EVENTS.DOC_EDIT, payload);
+        console.warn('❌ DOC_EDIT拒否: idが未指定または不正', payload);
+        socket.emit('doc-edit-error', {
+          error: 'INVALID_ID',
+          message: '申し訳ございません。行編集でエラーが発生しました。',
+          payload: payload
+        });
         return;
       }
 
+      // DBに編集を保存
       const updatedPost = await updatePostData(payload);
 
       // updatedAtをpayloadに追加してemit
@@ -226,25 +261,26 @@ function setupDocHandlers(socket, io) {
       // 編集完了時にロック解除
       unlockRowByPostId(lockedRows, io, payload.id);
 
+      // ログ記録
       saveLog({ userId: null, action: 'doc-edit', detail: payload });
+
     } catch (e) { console.error(e); }
   });
 
   socket.on(SOCKET_EVENTS.DOC_REORDER, async (payload) => {
     try {
+
+      // 受信データをデストラクション
       const {
         nickname,
         movedPostId,
         movedPostDisplayOrder,
-        beforePostDisplayOrder,
-        afterPostDisplayOrder
+        prev,
+        next
       } = payload;
 
-      // beforeとafter から新しいdisplayOrderを計算
-      const newDisplayOrder = calculateDisplayOrder(
-        beforePostDisplayOrder,
-        afterPostDisplayOrder
-      );
+      // prevとnext から新しいdisplayOrderを計算
+      const newDisplayOrder = calculateDisplayOrder(prev, next);
 
       // DB更新
       await updateDisplayOrder(movedPostId, newDisplayOrder);
@@ -264,16 +300,24 @@ function setupDocHandlers(socket, io) {
       // 並び替え完了時にロック解除
       unlockRowByPostId(lockedRows, io, movedPostId);
 
+      // ログ記録
       saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
+
     } catch (e) { console.error(e); }
   });
 
   socket.on(SOCKET_EVENTS.DOC_DELETE, async (payload) => {
     try {
+
+      // 行削除処理
       const deleted = await deleteDocRow(payload.id);
 
+      // 削除結果を全クライアントにブロードキャスト
       if (deleted) {
+        
         io.emit(SOCKET_EVENTS.DOC_DELETE, { id: payload.id });
+
+        // ログ記録
         saveLog({ userId: null, action: 'doc-delete', detail: payload });
       }
 

@@ -24,11 +24,7 @@ const usePostStore = create((set, get) => ({
 
             // IDの重複チェック
             const postIdMap = new Map(state.posts.map(p => [p.id, true]));
-
-            if (postIdMap.has(post.id)) {
-                console.log('重複した投稿IDが検出なので無視します:', post.id);
-                return { posts: state.posts };
-            }
+            if (postIdMap.has(post.id)) { return { posts: state.posts }; }
 
             // roomIdが指定されている場合は、postにroomIdを設定
             const postWithRoom = roomId ? { ...post, roomId } : post;
@@ -207,10 +203,7 @@ export default usePostStore;
 function addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated = false) {
 
     // 新規作成ではない場合は変更状態を記録しない
-    if (!isNewlyCreated) {
-        console.log('新規作成ではないため、変更状態は記録しない');
-        return newChangeStates;
-    }
+    if (!isNewlyCreated) { return newChangeStates; }
 
     // isNewlyCreated=trueの場合は必ず変更状態を記録
     let shouldAddChangeState = true;
@@ -220,8 +213,6 @@ function addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated = false) {
         const postCreatedAt = new Date(post.createdAt || post.timestamp);
         const now = new Date();
         const timeDiffSeconds = (now - postCreatedAt) / 1000;
-
-        console.log('Time diff check:', { postCreatedAt, now, timeDiffSeconds });
 
         // 極端に古い場合（1分以上）のみ除外
         if (timeDiffSeconds > 60) {

@@ -5,8 +5,6 @@ const { handleErrors } = require('../utils');
 // --- デフォルトルームを初期化 ---
 async function initializeDefaultRooms() {
     try {
-        console.log('🏠 [dbOperation] デフォルトルーム初期化開始');
-
         const defaultRooms = [
             {
                 id: 'room-0',
@@ -70,15 +68,13 @@ async function initializeDefaultRooms() {
             // 既存のルームがあるかチェック
             const existingRoom = await Room.findOne({ id: roomData.id });
 
-            if (!existingRoom) {
+            if (existingRoom) {
+                console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
+            } else {
                 await Room.create(roomData);
                 console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
-            } else {
-                console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
             }
         }
-
-        console.log('🏠 [dbOperation] デフォルトルーム初期化完了');
 
     } catch (error) {
         handleErrors(error, 'デフォルトルーム初期化中にエラーが発生しました');
@@ -117,7 +113,6 @@ async function getRoomById(roomId) {
             return null;
         }
 
-        console.log(`🏠 [dbOperation] ルーム情報取得: ${room.name} (${roomId})`);
         return room;
 
     } catch (error) {
@@ -179,7 +174,7 @@ async function createRoom(roomData) {
         });
 
         console.log(`🏠 [dbOperation] 新しいルーム作成: ${name} (${id})`);
-        
+
         return newRoom.toObject();
 
     } catch (error) {

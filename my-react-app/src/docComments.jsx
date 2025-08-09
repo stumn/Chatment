@@ -10,6 +10,7 @@ import DocRow from './DocRow';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 import usePostStore from './store/postStore';
+import { preconnect } from 'react-dom';
 
 const DocComments = ({ lines, documentFunctions }) => {
 
@@ -118,10 +119,11 @@ const DocComments = ({ lines, documentFunctions }) => {
             nickname: userInfo.nickname + `(${userInfo.status}+${userInfo.ageGroup})` || 'Unknown',
             movedPostId: docMessages[source.index].id,
             movedPostDisplayOrder: movedPostDisplayOrder,
-            beforePostDisplayOrder: beforePostDisplayOrder,
-            afterPostDisplayOrder: afterPostDisplayOrder
+            prev: beforePostDisplayOrder,
+            next: afterPostDisplayOrder
         }
         console.log('onDragEnd data:', data)
+
 
         // サーバーに並び替えを通知
         reorder && reorder(data);

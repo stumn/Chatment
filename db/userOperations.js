@@ -2,8 +2,8 @@
 const { User, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
-// --- ユーザーモデルに保存 ---
-async function saveUser(nickname, status, ageGroup, socketId) { // socketId: Array<string>
+// --- ユーザーモデルに保存(socketId: Array<string>) ---
+async function saveUser(nickname, status, ageGroup, socketId) {
     try {
 
         const userData = { nickname, status, ageGroup, socketId };

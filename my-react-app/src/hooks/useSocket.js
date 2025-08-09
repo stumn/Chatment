@@ -326,7 +326,7 @@ export default function useSocket() {
       'negative': handleNegative,
       // Doc系のイベント
       'doc-add': handleDocAdd,
-      'doc-add-error': handleDocAddError,
+      'doc-edit-error': handleDocEditError,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
       'row-unlocked': handleRowUnlocked,
@@ -491,9 +491,12 @@ export default function useSocket() {
   };
 
   const emitDocReorder = (payload) => {
+    
     const { userInfo } = useAppStore.getState();
     console.log('emitDocReorder', payload);
+    
     socket.emit('doc-reorder', payload);
+    
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
