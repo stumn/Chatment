@@ -38,7 +38,7 @@ async function processXlogs(xLogs) {
 function organizeCreatedAt(createdAt) {
     const UTCdate = new Date(createdAt);
     if (isNaN(UTCdate.getTime())) {
-        console.error("無効な日時:", createdAt);
+        handleErrors("無効な日時:", createdAt);
         return "Invalid Date";
     }
     return UTCdate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
@@ -147,7 +147,7 @@ async function saveLog({ userId, userNickname = '', action, detail }) {
         await Log.create({ userId, userNickname, action, detail, timestamp: new Date() });
     } catch (e) {
         // ログ記録失敗時も他機能に影響しない
-        console.error('ログ記録失敗:', e);
+        handleErrors(e, 'ログ記録失敗:');
     }
 }
 
