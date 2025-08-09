@@ -2,49 +2,46 @@
 const { User, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
-// ユーザーモデルに保存
-async function saveUser(nickname, status, ageGroup, socketId) { // socketId は配列で保存
+// --- ユーザーモデルに保存 ---
+async function saveUser(nickname, status, ageGroup, socketId) { // socketId: Array<string>
     try {
+
         const userData = { nickname, status, ageGroup, socketId };
+
         const newUser = await User.create(userData);
+
         return newUser;
+
     } catch (error) {
         handleErrors(error, 'ユーザー保存時にエラーが発生しました');
     }
 }
 
-// ログイン時・過去ログをDBから取得
+// --- ログイン時・過去ログをDBから取得（ルーム機能を使うときは使われない） ---
 async function getPastLogs(nickname) {
     try {
+
+        // 過去ログを取得
         let posts = await Post.find({});
+
+        // 過去ログを整形
         const pastLogs = await processXlogs(posts);
+
         return pastLogs;
+
     } catch (error) {
         handleErrors(error, 'getPastLogs 過去ログ取得中にエラーが発生しました');
     }
 }
 
+// --- ログを整形（mapのほうが簡潔ということで変更）---
 async function processXlogs(xLogs) {
-    // const xLogs = await Promise.all(xLogs.map(organizeLogs));
-    const result = [];
-    xLogs.forEach(e => {
-        e.createdAt = e.createdAt;
-        e = organizeLogs(e);
-        result.push(e);
-    });
-    return result;
+    return xLogs.map(post => organizeLogs(post));
 }
 
-function organizeCreatedAt(createdAt) {
-    const UTCdate = new Date(createdAt);
-    if (isNaN(UTCdate.getTime())) {
-        handleErrors("無効な日時:", createdAt);
-        return "Invalid Date";
-    }
-    return UTCdate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
-}
-
+// --- ログを整形 ---
 function organizeLogs(post, mySocketId = null) {
+
     const data = {
         id: post._id || post.id, // _idがなければidを使う
         createdAt: post.createdAt,
@@ -59,6 +56,22 @@ function organizeLogs(post, mySocketId = null) {
         previousData: post.previousData || null
     };
     return data;
+}
+
+// --- createdAtを整形 ---
+function organizeCreatedAt(createdAt) {
+
+    // createdAtが文字列の場合、Dateオブジェクトに変換
+    const UTCdate = new Date(createdAt);
+
+    // UTCdateが無効な場合のエラーハンドリング
+    if (isNaN(UTCdate.getTime())) {
+        handleErrors("無効な日時:", createdAt);
+        return "Invalid Date";
+    }
+
+    // UTCdateを日本時間に変換
+    return UTCdate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 }
 
 module.exports = {

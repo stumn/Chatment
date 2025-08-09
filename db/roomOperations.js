@@ -10,17 +10,16 @@ async function getRoomHistory(roomId, limit = 50) {
     try {
         console.log(`📚 [dbOperation] ルーム履歴取得開始: ${roomId}, 上限: ${limit}件`);
 
-        const posts = await Post.find({ roomId })
-            .sort({ createdAt: -1 }) // 新しい順
-            .limit(limit)
-            .lean() // パフォーマンス向上のためleanクエリ使用
-            .exec();
+        // ルームの投稿を取得（新しい順・パフォーマンス向上のためleanクエリ）
+        const posts = await Post.find({ roomId }).sort({ createdAt: -1 }).limit(limit).lean().exec();
 
         console.log(`📚 [dbOperation] ${roomId}の履歴取得完了: ${posts.length}件`);
 
         // 時系列順に並び替えて返す（古い順）
         const sortedPosts = posts.reverse();
+
         return await processXlogs(sortedPosts);
+        
     } catch (error) {
         handleErrors(error, `ルーム履歴取得中にエラーが発生しました: ${roomId}`);
         return [];

@@ -13,6 +13,7 @@ async function getPostsByDisplayOrder() {
     }
 }
 
+// --- 新規行追加 ---
 async function addDocRow({ nickname, msg = '', displayOrder }) {
     try {
         let order = displayOrder;

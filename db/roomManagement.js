@@ -2,8 +2,6 @@
 const { Room } = require('../db');
 const { handleErrors } = require('../utils');
 
-// ルーム管理用のデータベース操作関数
-
 // --- デフォルトルームを初期化 ---
 async function initializeDefaultRooms() {
     try {
@@ -68,8 +66,10 @@ async function initializeDefaultRooms() {
         ];
 
         for (const roomData of defaultRooms) {
+
             // 既存のルームがあるかチェック
             const existingRoom = await Room.findOne({ id: roomData.id });
+
             if (!existingRoom) {
                 await Room.create(roomData);
                 console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
@@ -88,14 +88,15 @@ async function initializeDefaultRooms() {
 // --- アクティブなルーム一覧を取得 ---
 async function getActiveRooms() {
     try {
+
+        // 処理時間の計測開始（timeで開始 → timeEndで終了・結果出力）
         console.time('getActiveRooms');
 
-        const rooms = await Room.find({ isActive: true })
-            .sort({ id: 1 }) // roomIdの昇順でソート（room-1, room-2, room-3, room-4）
-            .lean()
-            .exec();
+        // アクティブなルームを取得（roomIdの昇順でソート）
+        const rooms = await Room.find({ isActive: true }).sort({ id: 1 }).lean().exec();
 
         console.timeEnd('getActiveRooms');
+
         console.log(`🏠 [dbOperation] アクティブルーム取得: ${rooms.length}件`);
 
         return rooms;
@@ -109,6 +110,7 @@ async function getActiveRooms() {
 // --- ルーム情報を取得 ---
 async function getRoomById(roomId) {
     try {
+        // 受信したroomIdでRoomを取得
         const room = await Room.findOne({ id: roomId }).lean().exec();
         if (!room) {
             console.warn(`⚠️ [dbOperation] ルームが見つかりません: ${roomId}`);
@@ -127,20 +129,22 @@ async function getRoomById(roomId) {
 // --- ルームの統計情報を更新 ---
 async function updateRoomStats(roomId, updates = {}) {
     try {
+
+        // 更新日時を設定
         const updateData = {
             lastActivity: new Date(),
             ...updates
         };
 
+        // 更新処理を実行
         const updatedRoom = await Room.findOneAndUpdate(
             { id: roomId },
             { $set: updateData },
             { new: true, lean: true }
         );
 
-        if (updatedRoom) {
-            console.log(`📊 [dbOperation] ルーム統計更新: ${roomId}`, updates);
-        }
+        // 更新結果のログ出力
+        if (updatedRoom) { console.log(`📊 [dbOperation] ルーム統計更新: ${roomId}`, updates); }
 
         return updatedRoom;
 
@@ -153,14 +157,14 @@ async function updateRoomStats(roomId, updates = {}) {
 // --- 新しいルームを作成 ---
 async function createRoom(roomData) {
     try {
+        // roomDataのデストラクション
         const { id, name, description, createdByNickname, createdBy, settings = {} } = roomData;
 
         // 重複チェック
         const existingRoom = await Room.findOne({ id });
-        if (existingRoom) {
-            throw new Error(`ルームID ${id} は既に存在します`);
-        }
+        if (existingRoom) { throw new Error(`ルームID ${id} は既に存在します`); }
 
+        // 新しいルームを作成
         const newRoom = await Room.create({
             id,
             name,
@@ -175,6 +179,7 @@ async function createRoom(roomData) {
         });
 
         console.log(`🏠 [dbOperation] 新しいルーム作成: ${name} (${id})`);
+        
         return newRoom.toObject();
 
     } catch (error) {
