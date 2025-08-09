@@ -234,24 +234,12 @@ export default function useSocket() {
       addMessage(errorMessage, true);
     };
 
-    const handleDocAddError = (data) => {
-      // data: { error, message, payload }
-      console.error('Doc add error:', data);
+    const handleDocError = (data) => {
+      // data: { error, message }
+      console.error('Doc error:', data);
 
-      // エラーメッセージをユーザーに通知
-      const errorMessage = {
-        id: `error-${Date.now()}-${Math.random()}`,
-        nickname: 'システム',
-        msg: `❌ 行追加エラー: ${data.message || '不明なエラーが発生しました'}`,
-        isSystemMessage: true,
-        isError: true,
-        createdAt: new Date().toISOString()
-      };
-
-      addMessage(errorMessage, true);
-      
       // ユーザーに分かりやすいアラートも表示
-      alert(`行追加ができませんでした: ${data.message || '不明なエラーが発生しました'}`);
+      alert(`❌ ${data.message || 'ドキュメント編集中にエラーが発生しました'}`);
     };
 
     const handleRoomList = (data) => {
@@ -326,7 +314,7 @@ export default function useSocket() {
       'negative': handleNegative,
       // Doc系のイベント
       'doc-add': handleDocAdd,
-      'doc-edit-error': handleDocEditError,
+      'doc-error': handleDocError,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
       'row-unlocked': handleRowUnlocked,

@@ -203,10 +203,9 @@ function setupDocHandlers(socket, io) {
       // prevDisplayOrderが指定されていない場合は行追加を拒否
       if (prevDisplayOrder === undefined || !Number.isFinite(prevDisplayOrder)) {
         console.warn('❌ DOC_ADD拒否: prevDisplayOrderが未指定または不正', payload);
-        socket.emit('doc-edit-error', {
-          error: 'INVALID_DISPLAY_ORDER',
-          message: '行の追加位置が指定されていません。再度お試しください。',
-          payload: payload
+        socket.emit('doc-error', {
+          error: 'DOC_ADD',
+          message: '行の追加位置が指定されていません。再度お試しください。'
         });
         return;
       }
@@ -244,10 +243,9 @@ function setupDocHandlers(socket, io) {
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
         console.warn('❌ DOC_EDIT拒否: idが未指定または不正', payload);
-        socket.emit('doc-edit-error', {
-          error: 'INVALID_ID',
-          message: '申し訳ございません。行編集でエラーが発生しました。',
-          payload: payload
+        socket.emit('doc-error', {
+          error: 'DOC_EDIT',
+          message: '申し訳ございません。行編集でエラーが発生しました。'
         });
         return;
       }
