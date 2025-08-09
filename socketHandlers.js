@@ -1,6 +1,6 @@
-const { 
-  saveUser, 
-  getPastLogs, 
+const {
+  saveUser,
+  getPastLogs,
   getPostsByDisplayOrder,
   SaveChatMessage,
   processPostReaction,
@@ -15,10 +15,9 @@ const {
   saveLog
 } = require('./dbOperation');
 
-const { 
-  calculateDisplayOrderBetween,
+const {
   calculateDisplayOrder,
-  calculateInsertOrder,
+  detectInsertPosition,
   addHeightMemory,
   unlockRowByPostId,
 } = require('./socketUtils');
@@ -145,7 +144,7 @@ async function getNextDisplayOrder() {
 function setupReactionHandlers(socket, io) {
   // positive/negativeリアクションの共通ハンドラー
   const reactionTypes = [SOCKET_EVENTS.POSITIVE, SOCKET_EVENTS.NEGATIVE];
-  
+
   reactionTypes.forEach(reactionType => {
     socket.on(reactionType, async ({ postId, userSocketId, nickname }) => {
       try {
@@ -154,7 +153,7 @@ function setupReactionHandlers(socket, io) {
         const processedData = await processPostReaction(postId, userSocketId, nickname, reactionType);
         console.log(`←${reactionType} reaction processed:`, processedData);
 
-        const broadcastData = 
+        const broadcastData =
           reactionType === SOCKET_EVENTS.POSITIVE
             ? { id: processedData.id, positive: processedData.reaction, userHasVotedPositive: processedData.userHasReacted }
             : { id: processedData.id, negative: processedData.reaction, userHasVotedNegative: processedData.userHasReacted };
@@ -171,25 +170,31 @@ function setupReactionHandlers(socket, io) {
 function setupDocHandlers(socket, io) {
   socket.on(SOCKET_EVENTS.DOC_ADD, async (payload) => {
     try {
-      let displayOrder = payload.displayOrder;
+      let prevDisplayOrder = payload.prevDisplayOrder;
+      console.log('🌟doc-add:', payload);
       const posts = await getPostsByDisplayOrder();
 
-      // payload.displayOrderが指定されている場合はそれを優先
-      if (displayOrder === undefined || !Number.isFinite(displayOrder)) {
-        displayOrder = calculateInsertOrder(displayOrder, posts, payload);
+      // payload.prevDisplayOrderが指定されていない場合は行追加を拒否
+      if (prevDisplayOrder === undefined || !Number.isFinite(prevDisplayOrder)) {
+        console.warn('❌ DOC_ADD拒否: prevDisplayOrderが未指定または不正', payload);
+        socket.emit('doc-add-error', { 
+          error: 'INVALID_DISPLAY_ORDER',
+          message: '行の追加位置が指定されていません。再度お試しください。',
+          payload: payload
+        });
+        return;
       }
 
-      // 最終チェック: NaNや不正値なら最大+1または1
-      if (!Number.isFinite(displayOrder)) {
-        displayOrder = posts.length > 0 ? posts[posts.length - 1].displayOrder + 1 : 1;
-      }
+      console.log('🌟1:', prevDisplayOrder);
 
       // DB保存
       const newPost = await addDocRow({
         nickname: payload.nickname,
         msg: payload.msg || '',
-        displayOrder: calculateDisplayOrder(displayOrder, posts),
+        displayOrder: detectInsertPosition(prevDisplayOrder, posts),
       });
+
+      console.log('🌟2', newPost.displayOrder);
 
       // 全クライアントに新規行追加をブロードキャスト
       const data = {
@@ -236,7 +241,7 @@ function setupDocHandlers(socket, io) {
       } = payload;
 
       // beforeとafter から新しいdisplayOrderを計算
-      const newDisplayOrder = calculateDisplayOrderBetween(
+      const newDisplayOrder = calculateDisplayOrder(
         beforePostDisplayOrder,
         afterPostDisplayOrder
       );

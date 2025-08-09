@@ -55,13 +55,13 @@ const DocRow = ({ data, index, style }) => {
     const handleAddBelow = () => {
         if (setShouldScroll) setShouldScroll(false);
 
-        console.log('handleAddBelow displayOrder:', message.displayOrder);
+        console.log('handleAddBelow displayOrder:', message.displayOrder + message.msg);
 
         const data = {
             nickname: userInfo.id || 'Undefined', // userInfo.nicknameも考慮
             msg: '',
             insertAfterId: message.id, // このメッセージの後に挿入したいという意図を伝える
-            displayOrder: message.displayOrder, // ここでdisplayOrderを指定
+            prevDisplayOrder: message.displayOrder, // ここでdisplayOrderを指定
             datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
         };
 
@@ -152,78 +152,78 @@ const DocRow = ({ data, index, style }) => {
     };
 
     return (
-    // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
-    <Draggable
-        draggableId={String(message?.id ?? index)}
-        index={index}
-        key={message?.id ?? index}
-        isDragDisabled={locked} // ロック中はドラッグ無効化
-    >
-        {(provided, snapshot) => (
-            <div
-                ref={provided.innerRef}
-                {...provided.draggableProps}
-                {...provided.dragHandleProps}
-                className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
-                style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
-            // ロック管理用のdata属性
-            >
-                <ChangeBar
-                    changeState={changeState}
-                    isFadingOut={isFadingOut}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                />
-
-                <span {...provided.dragHandleProps} className='dot' />
+        // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
+        <Draggable
+            draggableId={String(message?.id ?? index)}
+            index={index}
+            key={message?.id ?? index}
+            isDragDisabled={locked} // ロック中はドラッグ無効化
+        >
+            {(provided, snapshot) => (
                 <div
-                    id={rowElementId}
-                    className='doc-comment-content'
-                    contentEditable={isEditing && !locked} // ロック中は編集不可
-                    suppressContentEditableWarning={true}
-                    ref={contentRef}
-                    onBlur={handleBlur}
-                    onInput={handleInput}
-                    onKeyDown={handleKeyDown} // Ctrl+Enter対応
-                    tabIndex={0}
-                    spellCheck={true}
-                    style={getContentStyle()} // 見出しスタイルとハイライトを統合
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
+                    style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
+                // ロック管理用のdata属性
                 >
-                    {(message?.msg || '').split('\n').map((line, i, arr) => (
-                        <React.Fragment key={i}>
-                            {line}
-                            {i < arr.length - 1 && <br />}
-                        </React.Fragment>
-                    ))}
-                </div>
-
-                {/* ロック中は操作ボタンを非表示 */}
-                {!locked && (
-                    <ActionButtons
-                        isEditing={isEditing}
-                        isBlank={isBlank}
-                        onEdit={handleEdit}
-                        onCompleteEdit={handleCompleteEdit}
-                        onDelete={handleDelete}
-                        onAddBelow={handleAddBelow}
+                    <ChangeBar
+                        changeState={changeState}
+                        isFadingOut={isFadingOut}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
                     />
-                )}
 
-                {locked && (
-                    <div className="lock-info" style={{
-                        position: 'absolute',
-                        top: '2px',
-                        right: '8px',
-                        fontSize: '11px',
-                        color: '#856404'
-                    }}>
-                        🔒他のユーザが編集中です
+                    <span {...provided.dragHandleProps} className='dot' />
+                    <div
+                        id={rowElementId}
+                        className='doc-comment-content'
+                        contentEditable={isEditing && !locked} // ロック中は編集不可
+                        suppressContentEditableWarning={true}
+                        ref={contentRef}
+                        onBlur={handleBlur}
+                        onInput={handleInput}
+                        onKeyDown={handleKeyDown} // Ctrl+Enter対応
+                        tabIndex={0}
+                        spellCheck={true}
+                        style={getContentStyle()} // 見出しスタイルとハイライトを統合
+                    >
+                        {(message?.msg || '').split('\n').map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                                {line}
+                                {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                        ))}
                     </div>
-                )}
-            </div>
-        )}
-    </Draggable>
-);
+
+                    {/* ロック中は操作ボタンを非表示 */}
+                    {!locked && (
+                        <ActionButtons
+                            isEditing={isEditing}
+                            isBlank={isBlank}
+                            onEdit={handleEdit}
+                            onCompleteEdit={handleCompleteEdit}
+                            onDelete={handleDelete}
+                            onAddBelow={handleAddBelow}
+                        />
+                    )}
+
+                    {locked && (
+                        <div className="lock-info" style={{
+                            position: 'absolute',
+                            top: '2px',
+                            right: '8px',
+                            fontSize: '11px',
+                            color: '#856404'
+                        }}>
+                            🔒他のユーザが編集中です
+                        </div>
+                    )}
+                </div>
+            )}
+        </Draggable>
+    );
 };
 
 export default React.memo(DocRow);

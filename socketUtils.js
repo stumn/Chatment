@@ -1,17 +1,17 @@
-// displayOrder計算用のヘルパー関数
-function calculateDisplayOrder(displayOrder, posts) {
+// 挿入・並び替え時の前後投稿のdisplayOrderを特定する
+function detectInsertPosition(prevDisplayOrder, posts) {
 
     // displayOrderが今回挿入したい新規行の1つ上
-    const prev = displayOrder;
+    const prev = prevDisplayOrder;
 
     // displayOrderが今回挿入したい新規行の1つ下
-    const next = posts.find(p => p.displayOrder > displayOrder);
+    const next = posts.find(p => p.displayOrder > prevDisplayOrder);
 
-    return calculateDisplayOrderBetween(prev, next ? next.displayOrder : null);
+    return calculateDisplayOrder(prev, next ? next.displayOrder : null);
 }
 
-// displayOrder計算関連の関数
-function calculateDisplayOrderBetween(prevOrder, nextOrder) {
+// prev, next から displayOrder 計算
+function calculateDisplayOrder(prevOrder, nextOrder) {
 
     // 前後の投稿が存在する場合、平均値を取る
     if (prevOrder !== null && prevOrder !== undefined && nextOrder !== null && nextOrder !== undefined) {
@@ -30,36 +30,6 @@ function calculateDisplayOrderBetween(prevOrder, nextOrder) {
 
     // どちらも存在しない場合は1を返す
     return 1;
-}
-
-// 挿入用displayOrder計算
-function calculateInsertOrder(displayOrder, posts, payload) {
-    // displayOrderが未指定の場合、挿入位置に基づいて計算
-    if (posts.length === 0) {
-        displayOrder = 1; // 投稿が一つもない場合は1
-    }
-    else if (payload.insertAfterId) { // 特定のIDの後に挿入する場合
-        const targetPostIndex = posts.findIndex(p => p.id === payload.insertAfterId);
-
-        if (targetPostIndex !== -1) {
-            const prev = posts[targetPostIndex];
-            const next = posts[targetPostIndex + 1];
-
-            // 共通関数を使用
-            displayOrder = calculateDisplayOrderBetween(
-                prev.displayOrder,
-                next ? next.displayOrder : null
-            );
-            
-        } else {
-            // 対象IDが見つからない場合は末尾に追加
-            displayOrder = posts[posts.length - 1].displayOrder + 1;
-        }
-    } else { // insertAfterIdが指定されていない場合は末尾に追加
-        displayOrder = posts[posts.length - 1].displayOrder + 1;
-        console.log('insertAfterIdが指定されていないので、末尾に追加:', displayOrder);
-    }
-    return displayOrder;
 }
 
 // 高さメモリ管理
@@ -87,9 +57,8 @@ function unlockRowByPostId(lockedRows, io, postId) {
 }
 
 module.exports = {
-    calculateDisplayOrderBetween,
-    calculateInsertOrder,
     calculateDisplayOrder,
+    detectInsertPosition,
     addHeightMemory,
     unlockRowByPostId
 };

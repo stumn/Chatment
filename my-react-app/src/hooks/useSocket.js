@@ -234,6 +234,26 @@ export default function useSocket() {
       addMessage(errorMessage, true);
     };
 
+    const handleDocAddError = (data) => {
+      // data: { error, message, payload }
+      console.error('Doc add error:', data);
+
+      // エラーメッセージをユーザーに通知
+      const errorMessage = {
+        id: `error-${Date.now()}-${Math.random()}`,
+        nickname: 'システム',
+        msg: `❌ 行追加エラー: ${data.message || '不明なエラーが発生しました'}`,
+        isSystemMessage: true,
+        isError: true,
+        createdAt: new Date().toISOString()
+      };
+
+      addMessage(errorMessage, true);
+      
+      // ユーザーに分かりやすいアラートも表示
+      alert(`行追加ができませんでした: ${data.message || '不明なエラーが発生しました'}`);
+    };
+
     const handleRoomList = (data) => {
       // data: { rooms: [{ id, name, description, participantCount }] }
       console.log('Room list received:', data);
@@ -306,6 +326,7 @@ export default function useSocket() {
       'negative': handleNegative,
       // Doc系のイベント
       'doc-add': handleDocAdd,
+      'doc-add-error': handleDocAddError,
       'Lock-permitted': handleLockPermitted,
       'row-locked': handleRowLocked,
       'row-unlocked': handleRowUnlocked,
