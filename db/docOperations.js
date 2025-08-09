@@ -1,5 +1,5 @@
 // docOperations.js
-const { mongoose, User, Post, Log, Room } = require('../db');
+const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs, processXlogs } = require('./userOperations');
 

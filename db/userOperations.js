@@ -1,5 +1,5 @@
 // userOperations.js
-const { mongoose, User, Post, Log, Room } = require('../db');
+const { User, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
 // ユーザーモデルに保存

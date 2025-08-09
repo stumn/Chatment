@@ -1,5 +1,5 @@
 // logOperations.js
-const { mongoose, User, Post, Log, Room } = require('../db');
+const { Log } = require('../db');
 const { handleErrors } = require('../utils');
 
 // ログを保存

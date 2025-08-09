@@ -1,5 +1,5 @@
 // roomManagement.js
-const { mongoose, User, Post, Log, Room } = require('../db');
+const { Room } = require('../db');
 const { handleErrors } = require('../utils');
 
 // ルーム管理用のデータベース操作関数
