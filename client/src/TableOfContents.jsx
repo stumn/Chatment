@@ -1,4 +1,4 @@
-// File: my-react-app/src/TableOfContents.jsx
+// File: client/src/TableOfContents.jsx
 
 import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';

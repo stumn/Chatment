@@ -1,4 +1,4 @@
-// // File: my-react-app/src/docComments.jsx
+// // File: client/src/docComments.jsx
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';

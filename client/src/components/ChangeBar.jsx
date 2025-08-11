@@ -1,4 +1,4 @@
-// File: my-react-app/src/components/ChangeBar.jsx
+// File: client/src/components/ChangeBar.jsx
 
 import React from 'react';
 import Tooltip from '@mui/material/Tooltip';

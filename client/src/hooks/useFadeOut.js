@@ -1,4 +1,4 @@
-// File: my-react-app/src/hooks/useFadeOut.js
+// File: client/src/hooks/useFadeOut.js
 
 import { useState, useRef, useEffect } from 'react';
 import usePostStore from './../store/postStore';

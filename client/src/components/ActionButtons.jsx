@@ -1,4 +1,4 @@
-// File: my-react-app/src/components/ActionButtons.jsx
+// File: client/src/components/ActionButtons.jsx
 
 import React from 'react';
 

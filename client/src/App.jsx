@@ -1,4 +1,4 @@
-// File: my-react-app/src/App.jsx
+// File: client/src/App.jsx
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 

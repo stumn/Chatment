@@ -1,4 +1,4 @@
-// File: my-react-app/src/hooks/useEditMode.js
+// File: client/src/hooks/useEditMode.js
 
 import { useState, useRef } from 'react';
 import usePostStore from './../store/postStore';

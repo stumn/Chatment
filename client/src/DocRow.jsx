@@ -1,4 +1,4 @@
-// File: my-react-app/src/DocRow.jsx
+// File: client/src/DocRow.jsx
 
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';

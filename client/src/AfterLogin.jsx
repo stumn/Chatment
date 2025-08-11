@@ -1,4 +1,4 @@
-// File: my-react-app/src/AfterLogin.jsx
+// File: client/src/AfterLogin.jsx
 
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'

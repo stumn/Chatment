@@ -1,4 +1,4 @@
-// File: my-react-app/src/BeforeLogin.jsx
+// File: client/src/BeforeLogin.jsx
 
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';

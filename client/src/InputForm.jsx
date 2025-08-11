@@ -1,4 +1,4 @@
-// File: my-react-app/src/InputForm.jsx
+// File: client/src/InputForm.jsx
 
 import React, { useState } from 'react';
 
