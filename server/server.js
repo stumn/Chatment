@@ -11,7 +11,7 @@ const { SOCKET_CONFIG, PORT } = require('./constants');
 const io = new Server(server, SOCKET_CONFIG);
 
 // ミドルウェア
-app.use(express.static('client/dist'));
+app.use(express.static('./client/dist'));
 app.use(express.json());
 
 // ルート設定
