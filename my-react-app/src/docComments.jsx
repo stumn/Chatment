@@ -10,7 +10,6 @@ import DocRow from './DocRow';
 import useSizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
 import usePostStore from './store/postStore';
-import { preconnect } from 'react-dom';
 
 const DocComments = ({ lines, documentFunctions }) => {
 
