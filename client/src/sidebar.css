@@ -241,7 +241,7 @@
 }
 
 .sb-heading-button.colorful-mode:hover {
-    background-color: rgba(21, 128, 61, 0.05);
+    background-color: #15803d0d;
 }
 
 /* コメントボタン */
@@ -291,13 +291,15 @@
 }
 
 .sb-room-button.active {
-    background-color: #dcfce7;
+    background-color: #15803d0d;
+    border: 1px solid #15803d;
     color: #15803d;
     font-weight: 600;
 }
 
 .sb-room-button.colorful-mode.active {
-    background-color: #dcfce7;
+    background-color: #15803d0d;
+    border: 1px solid #15803d;
     color: #15803d;
 }
 
@@ -333,12 +335,12 @@
 }
 
 .sb-room-button.active .sb-room-participants {
-    background-color: #bbf7d0;
+    background-color: #15803d0d;
     color: #047857;
 }
 
 .sb-room-button.colorful-mode.active .sb-room-participants {
-    background-color: #bbf7d0;
+    background-color: #15803d0d;
     color: #047857;
 }
 
