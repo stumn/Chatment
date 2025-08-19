@@ -1,13 +1,13 @@
-// File: client/src/TableOfContents.jsx
+// File: client/src/Sidebar.jsx
 
 import React, { useState, useMemo } from 'react';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
 import useRoomStore from './store/roomStore';
 import useSocket from './hooks/useSocket';
-import './Toc.css';
+import './sidebar.css';
 
-const TableOfContents = ({ isOpen, onToggle }) => {
+const Sidebar = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
 
@@ -101,59 +101,59 @@ const TableOfContents = ({ isOpen, onToggle }) => {
         <>
             {/* 閉じた状態のタブ */}
             {!isOpen && (
-                <div className="toc-tab-closed" onClick={onToggle}>
-                    <div className="toc-tab-text">
+                <div className="sb-tab-closed" onClick={onToggle}>
+                    <div className="sb-tab-text">
                         目次
                     </div>
                 </div>
             )}
 
             {/* パネル本体（常にレンダリング、CSSで制御） */}
-            <div className={`toc-panel ${!isOpen ? 'closed' : ''}`}>
+            <div className={`sb-panel ${!isOpen ? 'closed' : ''}`}>
                 {/* ヘッダー */}
-                <div className="toc-header">
-                    <h3 className="toc-title">
+                <div className="sb-header">
+                    <h3 className="sb-title">
                         #チャプターと<br />注目コメント
                     </h3>
                     <button
                         onClick={onToggle}
-                        className="toc-close-button"
+                        className="sb-close-button"
                     >
                     ×
                 </button>
             </div>
 
             {/* コンテンツ */}
-            <div className="toc-content">
+            <div className="sb-content">
                 {tocData.length === 0 ? (
-                    <div className="toc-empty-message">
+                    <div className="sb-empty-message">
                         見出しや注目コメントがありません
                     </div>
                 ) : (
-                    <ul className="toc-list">
+                    <ul className="sb-list">
                         {tocData.map(section => (
-                            <li key={section.id} className="toc-section">
+                            <li key={section.id} className="sb-section">
                                 {/* 見出し */}
                                 <button
                                     onClick={() => handleItemClick(section.id)}
-                                    className={`toc-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
+                                    className={`sb-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
                                 >
-                                    <span className="toc-heading-icon">#</span>
-                                    <span className="toc-heading-text">
+                                    <span className="sb-heading-icon">#</span>
+                                    <span className="sb-heading-text">
                                         {section.msg.replace(/^#+\s*/, '')}
                                     </span>
                                 </button>
 
                                 {/* ネストされた注目コメント */}
                                 {section.comments.length > 0 && (
-                                    <ul className={`toc-comments-list ${isColorfulMode ? 'colorful-mode' : ''}`}>
+                                    <ul className={`sb-comments-list ${isColorfulMode ? 'colorful-mode' : ''}`}>
                                         {section.comments.map(comment => (
-                                            <li key={comment.id} className="toc-comment-item">
+                                            <li key={comment.id} className="sb-comment-item">
                                                 <button
                                                     onClick={() => handleItemClick(comment.id)}
-                                                    className="toc-comment-button"
+                                                    className="sb-comment-button"
                                                 >
-                                                    <div className="toc-comment-text">
+                                                    <div className="sb-comment-text">
                                                         {comment.msg}
                                                     </div>
                                                 </button>
@@ -168,29 +168,29 @@ const TableOfContents = ({ isOpen, onToggle }) => {
             </div>
 
             {/* ルーム一覧 */}
-            <div className="toc-rooms">
-                <h4 className="toc-room-title" style={{ textAlign: 'left' }}>サブルーム一覧</h4>
-                <ul className="toc-room-list">
+            <div className="sb-rooms">
+                <h4 className="sb-room-title" style={{ textAlign: 'left' }}>サブルーム一覧</h4>
+                <ul className="sb-room-list">
                     {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
-                        <li key={room.id} className="toc-room-item">
+                        <li key={room.id} className="sb-room-item">
                             <button
                                 onClick={() => handleRoomClick(room.id)}
-                                className={`toc-room-button ${activeRoomId === room.id ? 'active' : ''
+                                className={`sb-room-button ${activeRoomId === room.id ? 'active' : ''
                                     } ${isColorfulMode ? 'colorful-mode' : ''} ${switchingRoom ? 'switching' : ''
                                     }`}
                                 disabled={switchingRoom}
                             >
-                                <div className="toc-room-info">
+                                <div className="sb-room-info">
 
-                                    <span className="toc-room-name">{room.name}</span>
+                                    <span className="sb-room-name">{room.name}</span>
 
                                     {switchingRoom && activeRoomId === room.id && (
-                                        <div className="toc-loading-container">
-                                            <div className="toc-dot-loader"></div>
+                                        <div className="sb-loading-container">
+                                            <div className="sb-dot-loader"></div>
                                         </div>
                                     )}
 
-                                    <span className="toc-room-participants">
+                                    <span className="sb-room-participants">
                                         ({room.participantCount}人)
                                     </span>
                                 </div>
@@ -205,4 +205,4 @@ const TableOfContents = ({ isOpen, onToggle }) => {
     );
 };
 
-export default TableOfContents;
+export default Sidebar;

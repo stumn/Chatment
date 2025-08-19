@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useAppStore from './store/appStore';
-import './Chat.css'; // チャット用のスタイル
+import './chat.css'; // チャット用のスタイル
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];

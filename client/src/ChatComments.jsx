@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 import usePostStore from './store/postStore';
 const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
+import './chat.css'; // スタイルをインポート
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);

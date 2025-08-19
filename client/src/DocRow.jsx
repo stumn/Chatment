@@ -10,7 +10,7 @@ import useFadeOut from './hooks/useFadeOut';
 import useEditMode from './hooks/useEditMode';
 import ActionButtons from './components/ActionButtons';
 import ChangeBar from './components/ChangeBar';
-import './Doc.css';
+import './doc.css';
 
 const DocRow = ({ data, index, style }) => {
 

@@ -1,7 +1,7 @@
-/* TableOfContents Component Styles */
+/* Sidebar Component Styles */
 
 /* 目次タブ（閉じた状態） */
-.toc-tab-closed {
+.sb-tab-closed {
     position: fixed;
     left: 0;
     top: 20%;
@@ -16,19 +16,19 @@
     transition: all 0.3s ease;
 }
 
-.toc-tab-closed:hover {
+.sb-tab-closed:hover {
     background-color: #e8e8e8;
     box-shadow: 3px 0 6px rgba(0, 0, 0, 0.15);
 }
 
-.toc-tab-text {
+.sb-tab-text {
     writing-mode: vertical-rl;
     font-size: 14px;
     color: #666;
 }
 
 /* 目次パネル（開いた状態） */
-.toc-panel {
+.sb-panel {
     position: fixed;
     left: 0;
     top: 0;
@@ -46,12 +46,12 @@
 }
 
 /* 閉じた状態のパネル */
-.toc-panel.closed {
+.sb-panel.closed {
     transform: translateX(-100%);
 }
 
 /* 目次ヘッダー */
-.toc-header {
+.sb-header {
     padding: 16px;
     border-bottom: 1px solid #e0e0e0;
     background-color: #fff;
@@ -60,14 +60,14 @@
     align-items: center;
 }
 
-.toc-title {
+.sb-title {
     margin: 0;
     font-size: 18px;
     font-weight: bold;
     color: #333;
 }
 
-.toc-close-button {
+.sb-close-button {
     background: none;
     border: none;
     font-size: xx-large;
@@ -76,36 +76,36 @@
     padding: 4px;
 }
 
-.toc-close-button:hover {
+.sb-close-button:hover {
     color: #333;
 }
 
 /* 目次コンテンツ */
-.toc-content {
+.sb-content {
     flex: 1;
     overflow: auto;
     padding: 16px;
 }
 
-.toc-empty-message {
+.sb-empty-message {
     text-align: center;
     color: #999;
     font-size: 14px;
     margin-top: 40px;
 }
 
-.toc-list {
+.sb-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.toc-section {
+.sb-section {
     margin-bottom: 16px;
 }
 
 /* 見出しボタン */
-.toc-heading-button {
+.sb-heading-button {
     width: 100%;
     text-align: left;
     padding: 8px 12px;
@@ -121,30 +121,30 @@
     transition: all 0.2s;
 }
 
-.toc-heading-button:hover {
+.sb-heading-button:hover {
     background-color: #f0f0f0;
 }
 
-.toc-heading-button.colorful-mode {
+.sb-heading-button.colorful-mode {
     color: #6D28D9;
 }
 
-.toc-heading-button.colorful-mode:hover {
+.sb-heading-button.colorful-mode:hover {
     background-color: rgba(109, 40, 217, 0.1);
 }
 
-.toc-heading-icon {
+.sb-heading-icon {
     margin-right: 8px;
 }
 
-.toc-heading-text {
+.sb-heading-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 /* ネストされたコメントリスト */
-.toc-comments-list {
+.sb-comments-list {
     list-style: none;
     padding: 0;
     margin: 8px 0 0 20px;
@@ -152,16 +152,16 @@
     padding-left: 12px;
 }
 
-.toc-comments-list.colorful-mode {
+.sb-comments-list.colorful-mode {
     border-left-color: rgba(109, 40, 217, 0.3);
 }
 
-.toc-comment-item {
+.sb-comment-item {
     margin-bottom: 8px;
 }
 
 /* コメントボタン */
-.toc-comment-button {
+.sb-comment-button {
     width: 100%;
     text-align: left;
     padding: 6px 8px;
@@ -174,65 +174,65 @@
     transition: all 0.2s;
 }
 
-.toc-comment-button:hover {
+.sb-comment-button:hover {
     background-color: #f0f0f0;
 }
 
-.toc-comment-text {
+.sb-comment-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-bottom: 4px;
 }
 
-.toc-comment-reactions {
+.sb-comment-reactions {
     display: flex;
     align-items: center;
     font-size: 11px;
     color: #999;
 }
 
-.toc-reaction-positive {
+.sb-reaction-positive {
     color: #999;
     margin-right: 8px;
 }
 
-.toc-reaction-positive.colorful-mode {
+.sb-reaction-positive.colorful-mode {
     color: #10B981;
 }
 
-.toc-reaction-negative {
+.sb-reaction-negative {
     color: #999;
 }
 
-.toc-reaction-negative.colorful-mode {
+.sb-reaction-negative.colorful-mode {
     color: #EF4444;
 }
 
 /* ルーム一覧のスタイル */
-.toc-rooms {
+.sb-rooms {
     padding: 16px;
     border-bottom: 1px solid #e0e0e0;
 }
 
-.toc-room-title {
+.sb-room-title {
     margin: 0 0 12px 0;
     font-size: 16px;
     font-weight: bold;
     color: #333;
 }
 
-.toc-room-list {
+.sb-room-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.toc-room-item {
+.sb-room-item {
     margin-bottom: 8px;
 }
 
-.toc-room-button {
+.sb-room-button {
     width: 100%;
     padding: 12px;
     background-color: #fff;
@@ -243,46 +243,46 @@
     text-align: left;
 }
 
-.toc-room-button:hover {
+.sb-room-button:hover {
     background-color: #f5f5f5;
     border-color: #bbb;
 }
 
-.toc-room-button.active {
+.sb-room-button.active {
     background-color: #e0e0e0;
     border-color: #888;
     box-shadow: 0 2px 4px rgba(120, 120, 120, 0.15);
 }
 
-.toc-room-button.colorful-mode {
+.sb-room-button.colorful-mode {
     border-color: #8B5CF6;
 }
 
-.toc-room-button.colorful-mode:hover {
+.sb-room-button.colorful-mode:hover {
     background-color: #F3E8FF;
     border-color: #7C3AED;
 }
 
-.toc-room-button.colorful-mode.active {
+.sb-room-button.colorful-mode.active {
     background-color: #DDD6FE;
     border-color: #8B5CF6;
     box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
 }
 
-.toc-room-info {
+.sb-room-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4px;
 }
 
-.toc-room-name {
+.sb-room-name {
     font-weight: bold;
     color: #333;
     font-size: 14px;
 }
 
-.toc-room-participants {
+.sb-room-participants {
     font-size: 12px;
     color: #666;
     background-color: #f0f0f0;
@@ -290,72 +290,72 @@
     border-radius: 12px;
 }
 
-.toc-room-button.active .toc-room-participants {
+.sb-room-button.active .sb-room-participants {
     background-color: #e0e0e0;
     color: #333;
 }
 
-.toc-room-button.colorful-mode.active .toc-room-participants {
+.sb-room-button.colorful-mode.active .sb-room-participants {
     background-color: #C4B5FD;
     color: #6B46C1;
 }
 
-.toc-room-description {
+.sb-room-description {
     font-size: 12px;
     color: #666;
     line-height: 1.3;
     margin-top: 4px;
 }
 
-.toc-room-button.active .toc-room-description {
+.sb-room-button.active .sb-room-description {
     color: #1976d2;
 }
 
-.toc-room-button.colorful-mode.active .toc-room-description {
+.sb-room-button.colorful-mode.active .sb-room-description {
     color: #6B46C1;
 }
 
-.toc-room-switching {
+.sb-room-switching {
     margin-left: 8px;
     font-size: larger;
     color: #999;
 }
 
 /* ローディングアニメーション */
-.toc-loading-container {
+.sb-loading-container {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-left: 8px;
 }
 
-.toc-dot-loader {
+.sb-dot-loader {
     width: 16px;
     height: 16px;
     border-radius: 50%;
     border: 2px solid #e2e8f0;
     border-top-color: #3b82f6;
-    animation: toc-spin 1s linear infinite;
+    animation: sb-spin 1s linear infinite;
     display: inline-block;
 }
 
-.toc-room-button.colorful-mode .toc-dot-loader {
+.sb-room-button.colorful-mode .sb-dot-loader {
     border-color: #DDD6FE;
     border-top-color: #8B5CF6;
 }
 
-.toc-room-button.active .toc-dot-loader {
+.sb-room-button.active .sb-dot-loader {
     border-color: #d0d0d0;
     border-top-color: #666;
 }
 
-.toc-room-button.colorful-mode.active .toc-dot-loader {
+.sb-room-button.colorful-mode.active .sb-dot-loader {
     border-color: #C4B5FD;
     border-top-color: #6B46C1;
 }
 
 /* アニメーションの定義 */
-@keyframes toc-spin {
+@keyframes sb-spin {
     0% {
         transform: rotate(0deg);
     }

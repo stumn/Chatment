@@ -3,7 +3,7 @@
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
-import TableOfContents from './TableOfContents';
+import Sidebar from './Sidebar';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
@@ -45,7 +45,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             }}>
 
             {/* 目次コンポーネント */}
-            <TableOfContents isOpen={isTocOpen} onToggle={toggleToc} />
+            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} />
 
             <div style={{
                 display: 'flex',
