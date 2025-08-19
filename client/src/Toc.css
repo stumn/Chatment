@@ -236,9 +236,9 @@
 }
 
 .toc-room-button.active {
-    background-color: #e3f2fd;
-    border-color: #2196f3;
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+    background-color: #e0e0e0;
+    border-color: #888;
+    box-shadow: 0 2px 4px rgba(120, 120, 120, 0.15);
 }
 
 .toc-room-button.colorful-mode {
@@ -278,8 +278,8 @@
 }
 
 .toc-room-button.active .toc-room-participants {
-    background-color: #bbdefb;
-    color: #1976d2;
+    background-color: #e0e0e0;
+    color: #333;
 }
 
 .toc-room-button.colorful-mode.active .toc-room-participants {
@@ -300,4 +300,53 @@
 
 .toc-room-button.colorful-mode.active .toc-room-description {
     color: #6B46C1;
+}
+
+.toc-room-switching {
+    margin-left: 8px;
+    font-size: larger;
+    color: #999;
+}
+
+/* ローディングアニメーション */
+.toc-loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.toc-dot-loader {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    animation: toc-spin 1s linear infinite;
+    display: inline-block;
+}
+
+.toc-room-button.colorful-mode .toc-dot-loader {
+    border-color: #DDD6FE;
+    border-top-color: #8B5CF6;
+}
+
+.toc-room-button.active .toc-dot-loader {
+    border-color: #d0d0d0;
+    border-top-color: #666;
+}
+
+.toc-room-button.colorful-mode.active .toc-dot-loader {
+    border-color: #C4B5FD;
+    border-top-color: #6B46C1;
+}
+
+/* アニメーションの定義 */
+@keyframes toc-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

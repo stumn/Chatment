@@ -180,13 +180,18 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                 disabled={switchingRoom}
                             >
                                 <div className="toc-room-info">
+                                    
                                     <span className="toc-room-name">{room.name}</span>
+
+                                    {switchingRoom && activeRoomId === room.id && (
+                                        <div className="toc-loading-container">
+                                            <div className="toc-dot-loader"></div>
+                                        </div>
+                                    )}
+                                    
                                     <span className="toc-room-participants">
                                         ({room.participantCount}人)
                                     </span>
-                                    {switchingRoom && activeRoomId === room.id && (
-                                        <span className="toc-room-switching">⟳</span>
-                                    )}
                                 </div>
                             </button>
                         </li>
