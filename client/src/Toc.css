@@ -13,6 +13,12 @@
     padding: 8px 4px;
     cursor: pointer;
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.toc-tab-closed:hover {
+    background-color: #e8e8e8;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.15);
 }
 
 .toc-tab-text {
@@ -26,7 +32,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 350px;
+    width: 300px;
     height: 100vh;
     background-color: #fafafa;
     border-right: 1px solid #e0e0e0;
@@ -35,6 +41,13 @@
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+}
+
+/* 閉じた状態のパネル */
+.toc-panel.closed {
+    transform: translateX(-100%);
 }
 
 /* 目次ヘッダー */
@@ -57,7 +70,7 @@
 .toc-close-button {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: xx-large;
     cursor: pointer;
     color: #666;
     padding: 4px;

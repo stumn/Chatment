@@ -97,27 +97,28 @@ const TableOfContents = ({ isOpen, onToggle }) => {
         console.log(`✅ [TableOfContents] ルーム選択完了: ${roomId}`);
     };
 
-    if (!isOpen) {
-        return (
-            <div className="toc-tab-closed" onClick={onToggle}>
-                <div className="toc-tab-text">
-                    目次
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="toc-panel">
-            {/* ヘッダー */}
-            <div className="toc-header">
-                <h3 className="toc-title">
-                    チャプターと注目コメント
-                </h3>
-                <button
-                    onClick={onToggle}
-                    className="toc-close-button"
-                >
+        <>
+            {/* 閉じた状態のタブ */}
+            {!isOpen && (
+                <div className="toc-tab-closed" onClick={onToggle}>
+                    <div className="toc-tab-text">
+                        目次
+                    </div>
+                </div>
+            )}
+
+            {/* パネル本体（常にレンダリング、CSSで制御） */}
+            <div className={`toc-panel ${!isOpen ? 'closed' : ''}`}>
+                {/* ヘッダー */}
+                <div className="toc-header">
+                    <h3 className="toc-title">
+                        #チャプターと<br />注目コメント
+                    </h3>
+                    <button
+                        onClick={onToggle}
+                        className="toc-close-button"
+                    >
                     ×
                 </button>
             </div>
@@ -168,7 +169,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
 
             {/* ルーム一覧 */}
             <div className="toc-rooms">
-                <h4 className="toc-room-title" style={{ textAlign: 'left' }}>ルーム一覧</h4>
+                <h4 className="toc-room-title" style={{ textAlign: 'left' }}>サブルーム一覧</h4>
                 <ul className="toc-room-list">
                     {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
                         <li key={room.id} className="toc-room-item">
@@ -180,7 +181,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                 disabled={switchingRoom}
                             >
                                 <div className="toc-room-info">
-                                    
+
                                     <span className="toc-room-name">{room.name}</span>
 
                                     {switchingRoom && activeRoomId === room.id && (
@@ -188,7 +189,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
                                             <div className="toc-dot-loader"></div>
                                         </div>
                                     )}
-                                    
+
                                     <span className="toc-room-participants">
                                         ({room.participantCount}人)
                                     </span>
@@ -200,6 +201,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
             </div>
 
         </div>
+        </>
     );
 };
 
