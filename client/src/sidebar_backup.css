@@ -1,0 +1,381 @@
+/* Sidebar Component Styles - Collapsible Design */
+
+/* Import Inter font for consistent typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* サイドバー全体のコンテナ */
+.sb-sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 5rem; /* 80px - 閉じた状態の幅 */
+    background-color: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    z-index: 1000;
+    display: flex;
+    transition: width 0.3s ease-in-out;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+/* 開いた状態 */
+.sb-sidebar-container.open {
+    width: 20rem; /* 320px - 開いた状態の幅 */
+}
+
+/* 左側のアイコン部分（常に表示） */
+.sb-sidebar-icons {
+    width: 5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.sb-icons-header {
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.sb-toggle-button {
+    padding: 0.5rem;
+    border-radius: 9999px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sb-toggle-button:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.sb-nav-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sb-nav-icon {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sb-nav-icon:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* 開いた状態でのアイコン配置 */
+.sb-nav-icons-open {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5rem;
+    height: 100%;
+    pointer-events: none;
+}
+
+.sb-nav-icon-positioned {
+    position: absolute;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.sb-nav-icon-positioned:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* チャプターアイコンの位置 */
+.sb-nav-icon-chapter {
+    top: calc(1.5rem + 2rem + 1.5rem + 1rem); /* ヘッダーパディング + ヘッダー高さ + コンテンツパディング + セクションタイトルまでの余白 */
+    left: 1rem;
+}
+
+/* サブルームアイコンの位置 */
+.sb-nav-icon-rooms {
+    top: calc(1.5rem + 2rem + 1.5rem + 1rem + 2rem + 10rem); /* チャプターアイコン位置 + チャプターセクション高さ + サブルームセクションまでの余白 */
+    left: 1rem;
+}
+
+.sb-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* 右側のコンテンツ部分（開いた時のみ表示） */
+.sb-sidebar-content {
+    flex: 1;
+    height: 100%;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.sb-sidebar-container.open .sb-sidebar-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sb-content-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sb-title {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+}
+
+.sb-main-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* セクションラッパー */
+.sb-section-wrapper {
+    margin-bottom: 2rem;
+}
+
+.sb-section-wrapper:last-child {
+    margin-bottom: 0;
+}
+
+/* セクションヘッダー */
+.sb-section-header {
+    margin-bottom: 1rem;
+}
+
+.sb-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* アイテムコンテナ */
+.sb-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 空メッセージ */
+.sb-empty-message {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    padding: 0.75rem;
+}
+
+/* セクション */
+.sb-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* 見出しボタン */
+.sb-heading-button {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem;
+    background-color: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #374151;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.sb-heading-button:hover {
+    background-color: #f3f4f6;
+}
+
+.sb-heading-button.colorful-mode {
+    color: #15803d;
+}
+
+.sb-heading-button.colorful-mode:hover {
+    background-color: rgba(21, 128, 61, 0.05);
+}
+
+/* コメントボタン */
+.sb-comment-button {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem;
+    background-color: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.2s ease;
+    margin-left: 1rem;
+    font-family: inherit;
+}
+
+.sb-comment-button:hover {
+    background-color: #f3f4f6;
+}
+
+.sb-comment-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ルームボタン */
+.sb-room-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    font-family: inherit;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sb-room-button:hover {
+    background-color: #f3f4f6;
+}
+
+.sb-room-button.active {
+    background-color: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+}
+
+.sb-room-button.colorful-mode.active {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.sb-room-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sb-room-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.sb-room-name {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: inherit;
+}
+
+.sb-room-button.active .sb-room-name {
+    font-weight: 600;
+}
+
+.sb-room-participants {
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: #e5e7eb;
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.sb-room-button.active .sb-room-participants {
+    background-color: #bbf7d0;
+    color: #047857;
+}
+
+.sb-room-button.colorful-mode.active .sb-room-participants {
+    background-color: #bbf7d0;
+    color: #047857;
+}
+
+/* ローディングアニメーション */
+.sb-loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+}
+
+.sb-dot-loader {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    animation: sb-spin 1s linear infinite;
+    display: inline-block;
+}
+
+.sb-room-button.colorful-mode .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #10b981;
+}
+
+.sb-room-button.active .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #047857;
+}
+
+.sb-room-button.colorful-mode.active .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #047857;
+}
+
+/* アニメーションの定義 */
+@keyframes sb-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

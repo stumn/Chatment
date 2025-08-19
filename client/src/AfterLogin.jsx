@@ -3,7 +3,7 @@
 import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
-import TableOfContents from './TableOfContents';
+import Sidebar from './Sidebar';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
@@ -45,7 +45,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
             }}>
 
             {/* 目次コンポーネント */}
-            <TableOfContents isOpen={isTocOpen} onToggle={toggleToc} />
+            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} />
 
             <div style={{
                 display: 'flex',
@@ -71,7 +71,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                         }}
                     >
                         <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                            🏠 {currentRoom.name}
+                            {currentRoom.name}
                         </span>
                         <span style={{ fontSize: '20px', color: '#666' }}>
                             {currentRoom.participantCount}人参加中

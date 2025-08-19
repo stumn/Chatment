@@ -97,7 +97,13 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       console.log(`👋 [server] ルーム退出要求: ${nickname} -> ${roomId}`);
 
       if (!rooms.has(roomId)) {
-        socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
+        console.warn(`⚠️ [server] 退出要求されたルームが見つかりません（既に削除済み?）: ${roomId}`);
+        // ルームが存在しない場合でも退出完了として扱う
+        socket.emit('room-left', {
+          roomId,
+          participantCount: 0
+        });
+        userRooms.delete(userId);
         return;
       }
 
