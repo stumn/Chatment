@@ -1,0 +1,154 @@
+/* Chat.css */
+
+/* チャットメッセージのベーススタイル */
+.chat-cMsg {
+    position: relative;
+    border: 1px solid transparent;
+    border-bottom: 1px solid #eee;
+    transition: all 0.2s ease;
+    background-color: white;
+    padding: 4px 16px 4px 4px;
+}
+
+/* ホバー時の視覚的フィードバック */
+.chat-cMsg:hover {
+    background-color: #f3f4f6; /* hover:bg-gray-100相当 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* hover:shadow-md相当 */
+    border-color: #e5e7eb; /* ボーダーも少し強調 */
+}
+
+/* ユーザー名と時刻の表示スタイル */
+.chat-user-info {
+    text-align: left;
+    font-size: 15px;
+    margin-left: 20px;
+}
+
+.chat-user-info strong {
+    font-weight: bold;
+}
+
+.chat-user-info span {
+    color: #666;
+}
+
+/* チャットメッセージのコンテンツエリア */
+.chat-message-content {
+    text-align: left;
+    margin-left: 40px;
+    position: relative;
+    flex: 1;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+/* メッセージテキストのスタイル */
+.chat-message-text {
+    display: inline-block;
+    cursor: text;
+    outline: none;
+    border: none;
+    background: transparent;
+}
+
+/* チャットボタンコンテナ */
+.chat-buttons-container {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.chat-cMsg:hover .chat-buttons-container {
+    opacity: 1;
+}
+
+/* ポジティブボタン */
+.chat-positive-btn {
+    font-size: 18px;
+    border: none;
+    background: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.chat-positive-btn:not(:disabled) {
+    cursor: pointer;
+}
+
+.chat-positive-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.chat-positive-btn:hover:not(:disabled) {
+    background-color: rgba(76, 175, 80, 0.1);
+    transform: scale(1.1);
+}
+
+/* ネガティブボタン */
+.chat-negative-btn {
+    font-size: 18px;
+    border: none;
+    background: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.chat-negative-btn:not(:disabled) {
+    cursor: pointer;
+}
+
+.chat-negative-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.chat-negative-btn:hover:not(:disabled) {
+    background-color: rgba(244, 67, 54, 0.1);
+    transform: scale(1.1);
+}
+
+/* カラフルモード用の色設定 */
+.chat-positive-text {
+    color: #4CAF50;
+}
+
+.chat-negative-text {
+    color: #F44336;
+}
+
+.chat-positive-btn-colorful {
+    color: #4CAF50;
+}
+
+.chat-positive-btn-disabled {
+    color: #ccc;
+}
+
+.chat-positive-btn-default {
+    color: #888;
+}
+
+.chat-negative-btn-colorful {
+    color: #F44336;
+}
+
+.chat-negative-btn-disabled {
+    color: #ccc;
+}
+
+.chat-negative-btn-default {
+    color: #bbb;
+}
+
+/* 見出しスタイル（#で始まるメッセージ） */
+.chat-heading {
+    font-weight: bold;
+}

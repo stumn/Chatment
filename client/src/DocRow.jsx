@@ -164,7 +164,7 @@ const DocRow = ({ data, index, style }) => {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
+                    className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                 // ロック管理用のdata属性
                 >

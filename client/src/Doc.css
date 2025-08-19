@@ -30,6 +30,13 @@
     align-items: stretch;
 }
 
+/* ホバー時の視覚的フィードバック */
+.doc-comment-item:hover {
+    background-color: #f3f4f6; /* hover:bg-gray-100相当 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* hover:shadow-md相当 */
+    border-color: #e5e7eb; /* ボーダーも少し強調 */
+}
+
 /* ★改善: ドラッグ中のアイテムが元あった場所のスタイル */
 .is-drag-placeholder {
     background-color: #e6f7ff;
@@ -77,13 +84,15 @@
 
 /* 既存のスタイル ... */
 .doc-comment-content {
-    flex: 1;
+    flex: none; /* flex: 1 を削除してコンテンツ幅に合わせる */
+    width: fit-content; /* テキストコンテンツの幅に合わせる */
+    max-width: calc(100% - 150px); /* ボタンエリアを考慮した最大幅 */
     outline: none;
     word-break: break-word;
     cursor: default;
     text-align: left;
     padding-left: 8px;
-    padding-right: 72px;
+    padding-right: 8px;
     font-size: 15px;
     border: none;
     background: transparent;
@@ -135,7 +144,7 @@
     pointer-events: auto;
 }
 
-.list-item-container:hover .add-button,
+.doc-comment-item:hover .add-button,
 .doc-comment-content:focus + .add-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
@@ -152,7 +161,7 @@
     pointer-events: auto;
 }
 
-.list-item-container:hover .edit-button {
+.doc-comment-item:hover .edit-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
 }
@@ -168,15 +177,9 @@
     pointer-events: auto;
 }
 
-.list-item-container:hover .delete-button {
+.doc-comment-item:hover .delete-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
-}
-
-.list-item-container {
-    position: relative;
-    /* 高さは子要素に合わせて伸びる */
-    align-items: stretch;
 }
 
 /* ロック状態の視覚的表現 */

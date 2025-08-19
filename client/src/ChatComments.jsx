@@ -52,7 +52,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                 ref={listRef}
                 style={{
                     height: bottomHeight,
-                    overflowY: 'auto',
+                    overflowY: 'hidden',
                     width: '100%',
                     textAlign: 'left',
                 }}

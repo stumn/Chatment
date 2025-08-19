@@ -24,7 +24,7 @@ export default function ResizablePanels({ appController }) {
     // ルーム情報を取得
     const { activeRoomId, rooms } = useRoomStore();
     const currentRoom = rooms.find(room => room.id === activeRoomId);
-    
+
     // ルーム変更を監視してログ出力
     useEffect(() => {
         if (currentRoom) {
@@ -92,9 +92,21 @@ export default function ResizablePanels({ appController }) {
         let lineCount = 0;
 
         for (let i = messages.length - 1; i >= 0; i--) {
-            const favCount = messages[i].fav || 0;
+            const favCount = messages[i].positive || messages[i].fav || 0;
             const fontSize = STANDARD_FONT_SIZE + favCount * 2;
-            const lineHeight = fontSize + 12;
+            
+            // チャット行の高さ計算：
+            // - ユーザー情報行（固定15px）
+            // - メッセージ行（動的フォントサイズ）
+            // - .chat-cMsgのパディング（上下4px x 2 = 8px）
+            // - ボーダー（1px）
+            // - 行間マージン（2px）
+            const userInfoHeight = 15;
+            const messageHeight = fontSize;
+            const paddingHeight = 8; // 上下パディング
+            const borderHeight = 1;
+            const marginHeight = 2;
+            const lineHeight = userInfoHeight + messageHeight + paddingHeight + borderHeight + marginHeight;
 
             if (totalHeight + lineHeight > newBottomHeight) break;
 
@@ -103,7 +115,7 @@ export default function ResizablePanels({ appController }) {
         }
 
         if (lineCount === 0) lineCount = 1; // 最低でも1行は表示する
-        lineCount = Math.round(lineCount / 2.2); // 推定行数を見た目に調整（経験的に2.2で割るとよい感じ）
+        lineCount = Math.round(lineCount / 1.8); // チャット行は2行構造なので調整係数を1.8に変更
 
         return lineCount;
     };
