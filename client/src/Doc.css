@@ -1,12 +1,5 @@
 /* Doc.css */
 
-/* --- 修正ポイント ---
-1. .is-dragging, .is-drag-placeholder, .doc-comment-item などのDnD用クラスを明確化
-2. .doc-comment-contentのoutline, border, background, focus時の見た目を改善
-3. .dotのドラッグハンドルの見た目を改善
-4. コメントを追加
-*/
-
 #docList {
     overflow-x: hidden;
     padding-top: 8px;
@@ -21,12 +14,8 @@
     padding-right: 16px;
     box-sizing: border-box;
     background-color: white;
-    /* ★改善: レイアウトのズレを防ぐため、予め透明なボーダーでスペースを確保 */
     border: 1px solid transparent;
-    border-bottom: 1px solid #eee;
-    /* 通常時の区切り線を薄く表示 */
     transition: all 0.2s ease;
-    /* 高さは子要素に合わせて伸びる */
     align-items: stretch;
 }
 
