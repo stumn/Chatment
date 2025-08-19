@@ -71,7 +71,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                         }}
                     >
                         <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                            🏠 {currentRoom.name}
+                            {currentRoom.name}
                         </span>
                         <span style={{ fontSize: '20px', color: '#666' }}>
                             {currentRoom.participantCount}人参加中

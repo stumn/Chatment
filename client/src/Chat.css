@@ -12,9 +12,9 @@
 
 /* ホバー時の視覚的フィードバック */
 .chat-cMsg:hover {
-    background-color: #f3f4f6; /* hover:bg-gray-100相当 */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* hover:shadow-md相当 */
-    border-color: #e5e7eb; /* ボーダーも少し強調 */
+    background-color: #f3f4f6;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-color: #e5e7eb;
 }
 
 /* ユーザー名と時刻の表示スタイル */
@@ -30,7 +30,10 @@
 
 .chat-user-info span {
     color: #666;
+    font-size: small;
 }
+
+.chat-user-info span::before {content:"\00A0\00A0";}
 
 /* チャットメッセージのコンテンツエリア */
 .chat-message-content {

@@ -112,7 +112,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
             {/* ヘッダー */}
             <div className="toc-header">
                 <h3 className="toc-title">
-                    📚 目次
+                    チャプターと注目コメント
                 </h3>
                 <button
                     onClick={onToggle}
@@ -168,7 +168,7 @@ const TableOfContents = ({ isOpen, onToggle }) => {
 
             {/* ルーム一覧 */}
             <div className="toc-rooms">
-                <h4 className="toc-room-title">🏠 ルーム一覧</h4>
+                <h4 className="toc-room-title" style={{ textAlign: 'left' }}>ルーム一覧</h4>
                 <ul className="toc-room-list">
                     {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
                         <li key={room.id} className="toc-room-item">

@@ -4,6 +4,7 @@ import './Chat.css'; // チャット用のスタイル
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
+
     // --- positive/negative人数 ---
     const positive = cMsg.positive || 0;
     const negative = cMsg.negative || 0;
@@ -67,7 +68,8 @@ const ChatRow = ({ data, index, style }) => {
             onMouseLeave={() => setIsHovered(false)}
         >
             <div className="chat-user-info">
-                <strong>{cMsg.nickname}</strong> <span>[{cMsg.time}]</span>
+                <strong>{cMsg.nickname}</strong>
+                <span>{cMsg.time}</span>
             </div>
             <div
                 className="chat-message-content"
@@ -90,8 +92,8 @@ const ChatRow = ({ data, index, style }) => {
                     <button
                         contentEditable={false}
                         className={`chat-positive-btn ${hasVotedPositive
-                                ? 'chat-positive-btn-disabled'
-                                : (isColorfulMode ? 'chat-positive-btn-colorful' : 'chat-positive-btn-default')
+                            ? 'chat-positive-btn-disabled'
+                            : (isColorfulMode ? 'chat-positive-btn-colorful' : 'chat-positive-btn-default')
                             }`}
                         onClick={handlePositive}
                         disabled={hasVotedPositive}
@@ -102,8 +104,8 @@ const ChatRow = ({ data, index, style }) => {
                     <button
                         contentEditable={false}
                         className={`chat-negative-btn ${hasVotedNegative
-                                ? 'chat-negative-btn-disabled'
-                                : (isColorfulMode ? 'chat-negative-btn-colorful' : 'chat-negative-btn-default')
+                            ? 'chat-negative-btn-disabled'
+                            : (isColorfulMode ? 'chat-negative-btn-colorful' : 'chat-negative-btn-default')
                             }`}
                         onClick={handleNegative}
                         disabled={hasVotedNegative}
