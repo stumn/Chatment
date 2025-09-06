@@ -60,6 +60,18 @@ const Sidebar = ({ isOpen, onToggle }) => {
         console.log('TOC item clicked:', postId);
     };
 
+    // 直近の見出しを取得
+    const latestHeading = useMemo(() => {
+        if (tocData.length === 0) return '見出しなし';
+        const lastSection = tocData[tocData.length - 1];
+        return lastSection.msg.replace(/^#+\s*/, '');
+    }, [tocData]);
+
+    // アクティブルーム情報を取得
+    const activeRoom = useMemo(() => {
+        return rooms.find(room => room.id === activeRoomId);
+    }, [rooms, activeRoomId]);
+
     const handleRoomClick = (roomId) => {
         console.log(`🎯 [TableOfContents] ルーム選択開始: ${roomId}`);
         console.log(`📊 [TableOfContents] 現在のアクティブルーム: ${activeRoomId}`);
@@ -101,11 +113,16 @@ const Sidebar = ({ isOpen, onToggle }) => {
         return (
             <div className={'sb-nav-icons'}>
 
-                <button onClick={onToggle} className="sb-toggle-button close">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="sb-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                <div>
+                    <button onClick={onToggle} className="sb-toggle-button close">
+                        <div className="sb-nav-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="sb-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-7-7l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
+                    <span className='closed-icons-text'>メニュー</span>
+                </div>
                 
                 <div>
                     <div className="sb-nav-icon">
@@ -113,16 +130,14 @@ const Sidebar = ({ isOpen, onToggle }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <span className='closed-icons-text'>#chapter1</span>
-                </div>
-
-                <div>
+                    <span className='closed-icons-text'>#{latestHeading}</span>
+                </div>                <div>
                     <div className="sb-nav-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" className="sb-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
                     </div>
-                    <span className='closed-icons-text'>room-1<br />n人</span>
+                    <span className='closed-icons-text'>{activeRoom ? activeRoom.name : '全体'}<br />{activeRoom ? activeRoom.participantCount : 0}人</span>
                 </div>
             </div>
         )
