@@ -1,10 +1,11 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
+import './chat.css';
+
+const ChatRow = React.lazy(() => import('./ChatRow'));
 
 import usePostStore from './store/postStore';
-const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
-import './chat.css'; // スタイルをインポート
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);
@@ -12,13 +13,16 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
 
     const chatMessages = useMemo(() => {
         
+        // createdAt または updatedAt でソート
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
             const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
             return aTime - bTime;
         });
+        
         // ★空白行を除外
         const filtered = sorted.filter(msg => msg && msg.msg && msg.msg.trim() !== "");
+        
         // timeプロパティを生成して付与
         return filtered.slice(-Math.ceil(lines.num)).map(msg => ({
             ...msg,
@@ -28,6 +32,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     : ''
         }));
+
     }, [posts, lines.num]);
 
     // idがundefinedなものを除外し、重複idも除外
