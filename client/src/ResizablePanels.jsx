@@ -156,10 +156,9 @@ export default function ResizablePanels({ appController }) {
         document.addEventListener("mouseup", onMouseUp);
     };
 
-    const [isDragging, setIsDragging] = useState(false);
-
     return (
         <Paper
+            id='resizable-panels'
             elevation={3}
             style={{
                 width: `${CONTAINER_resizable_WIDTH}px`,
@@ -184,7 +183,7 @@ export default function ResizablePanels({ appController }) {
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,
                     width: `${CONTAINER_resizable_WIDTH}px`,
-                    backgroundColor: isDragging ? "rgba(4, 149, 35, 0.51)" : "rgba(53, 59, 72, 0.6)",
+                    backgroundColor: "rgba(53, 59, 72, 0.6)",
                     cursor: "row-resize"
                 }}
                 onMouseDown={handleMouseDown}
