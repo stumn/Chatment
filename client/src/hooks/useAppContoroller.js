@@ -73,13 +73,32 @@ export const useAppController = () => {
      */
     const editDocument = useCallback((id, newMsg) => {
         try {
+            // 基本バリデーション
+            if (!newMsg?.trim()) {
+                console.warn('Empty content not allowed for document edit');
+                return;
+            }
+
+            // 文字数制限（140文字）
+            let validatedMsg = newMsg;
+            if (newMsg.length > 140) {
+                console.warn('Document content too long, truncating to 140 characters');
+                validatedMsg = newMsg.slice(0, 140);
+            }
+
+            // 基本的な文字正規化
+            validatedMsg = validatedMsg
+                .replace(/\r/g, '')              // キャリッジリターン除去
+                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
+                .trim();                         // 前後の空白除去
+
             // 楽観的更新: 即座にUIを更新
-            updatePost(id, newMsg, userInfo?.nickname);
+            updatePost(id, validatedMsg, userInfo?.nickname);
 
             // サーバーに送信
             emitDocEdit({ 
                 id, 
-                newMsg, 
+                newMsg: validatedMsg, 
                 nickname: userInfo?.nickname,
                 updatedAt: new Date().toISOString()
             });
@@ -88,7 +107,7 @@ export const useAppController = () => {
             emitLog({
                 userId: userInfo?._id,
                 action: 'document-edit',
-                detail: { id, messageLength: newMsg?.length }
+                detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
             });
         } catch (error) {
             console.error('Failed to edit document:', error);
@@ -154,9 +173,9 @@ export const useAppController = () => {
         try {
             // バリデーション
             if (!message?.trim()) return;
-            if (message.length > 1000) {
-                console.warn('Message too long, truncating...');
-                message = message.slice(0, 1000);
+            if (message.length > 140) {
+                console.warn('Message too long, truncating to 140 characters');
+                message = message.slice(0, 140);
             }
 
             emitChatMessage(handleName, message.trim(), userInfo?._id, roomId);
