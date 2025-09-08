@@ -1,6 +1,9 @@
 // File: client/src/Sidebar.jsx
 
 import React, { useState, useMemo } from 'react';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import usePostStore from './store/postStore';
 import useAppStore from './store/appStore';
 import useRoomStore from './store/roomStore';
@@ -10,6 +13,7 @@ import './sidebar.css';
 const Sidebar = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+    const toggleColorfulMode = useAppStore((state) => state.toggleColorfulMode);
     const userInfo = useAppStore((state) => state.userInfo);
 
     // ルーム関連の状態
@@ -162,8 +166,27 @@ const Sidebar = ({ isOpen, onToggle }) => {
                         {userInfo?.nickname ? `${userInfo.nickname} (${userInfo.ageGroup} ${userInfo.status})さん` : 'ゲスト'}
                     </span>
                     <div className="sb-colorful-mode">
-                        <span>カラフルモード：{isColorfulMode ? 'ON' : 'OFF'}</span>
-                        {/* トグルスイッチは後で実装予定 */}
+                        <FormGroup>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={isColorfulMode}
+                                        onChange={toggleColorfulMode}
+                                        size="small"
+                                        color="primary"
+                                    />
+                                }
+                                label="カラフルモード"
+                                labelPlacement="start"
+                                sx={{
+                                    margin: 0,
+                                    '& .MuiFormControlLabel-label': {
+                                        fontSize: '12px',
+                                        color: '#666'
+                                    }
+                                }}
+                            />
+                        </FormGroup>
                     </div>
                 </div>
 
