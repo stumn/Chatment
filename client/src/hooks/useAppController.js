@@ -51,9 +51,9 @@ export const useAppController = () => {
                 ageGroup: userInfo?.ageGroup,
                 timestamp: new Date().toISOString()
             };
-            
+
             emitDocAdd(data);
-            
+
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
@@ -108,25 +108,47 @@ export const useAppController = () => {
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
 
-            // 楽観的更新: 即座にUIを更新
-            updatePost(id, validatedMsg, userInfo?.nickname);
+            // 1文字目が#の場合、見出し行として扱う（#は削除しない・チャットには送信しない）
+            if (validatedMsg.startsWith('#')) {
+                console.log('★Editing a heading line, skipping chat send', { validatedMsg });
 
-            // サーバーに送信
-            emitDocEdit({ 
-                id, 
-                newMsg: validatedMsg, 
-                nickname: userInfo?.nickname,
-                updatedAt: new Date().toISOString()
-            });
+                // サーバーに送信
+                emitDocEdit({
+                    id,
+                    newMsg: validatedMsg,
+                    nickname: userInfo?.nickname,
+                    updatedAt: new Date().toISOString()
+                });
 
-            // ログ記録
-            emitLog({
-                userId: userInfo?._id,
-                action: 'document-edit',
-                detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
-            });
+                // ログ記録
+                emitLog({
+                    userId: userInfo?._id,
+                    action: 'document-edit-heading',
+                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                });
 
-            return { success: true, validatedMsg };
+                return { success: true, validatedMsg };
+
+            } else {
+                // サーバーに送信
+                emitDocEdit({
+                    id,
+                    newMsg: validatedMsg,
+                    nickname: userInfo?.nickname,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // ログ記録
+                emitLog({
+                    userId: userInfo?._id,
+                    action: 'document-edit',
+                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                });
+
+                return { success: true, validatedMsg };
+            }
+
+
         } catch (error) {
             console.error('Failed to edit document:', error);
             return { success: false, error: '編集に失敗しました。もう一度お試しください。' };
@@ -197,7 +219,7 @@ export const useAppController = () => {
             }
 
             let validatedMessage = message;
-            
+
             if (message.length > 140) {
                 console.warn('Message too long, truncating to 140 characters');
                 return { success: false, error: 'メッセージが140文字を超えています。短くしてください。' };
@@ -312,7 +334,7 @@ export const useAppController = () => {
             requestLock,
             unlockRow
         },
-        
+
         // Chat操作  
         chat: {
             send: sendChatMessage,
@@ -332,9 +354,9 @@ export const useAppController = () => {
         // ユーザー情報
         user: userInfo
     }), [
-        addDocument, editDocument, deleteDocument, reorderDocument, 
-        requestLock, unlockRow, sendChatMessage, addPositive, 
-        addNegative, socketId, heightArray, stableSocketFunctions, 
+        addDocument, editDocument, deleteDocument, reorderDocument,
+        requestLock, unlockRow, sendChatMessage, addPositive,
+        addNegative, socketId, heightArray, stableSocketFunctions,
         userInfo
     ]);
 

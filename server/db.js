@@ -101,6 +101,9 @@ const postSchema = new mongoose.Schema({
     // --- ルーム機能: メッセージが送信されたルームのID ---
     roomId: { type: String, default: null },
 
+    // --- ソース情報: チャット入力 or ドキュメント編集 ---
+    source: { type: String, enum: ['chat', 'document'], default: 'document' },
+
     positive: [{ type: positiveSchema, default: () => ({}) }],
     negative: [{ type: negativeSchema, default: () => ({}) }],
 
@@ -119,6 +122,7 @@ postSchema.index({ roomId: 1, createdAt: -1 }); // ルーム別の時系列取�
 postSchema.index({ displayOrder: 1 }); // ドキュメント表示用
 postSchema.index({ createdAt: -1 }); // 一般的な時系列取得用
 postSchema.index({ userId: 1 }); // ユーザー別取得用
+postSchema.index({ source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
 
 const Post = mongoose.model("Post", postSchema);
 
