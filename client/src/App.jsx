@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import { useAppController } from './hooks/useAppContoroller';
+import { useAppController } from './hooks/useAppController';
 
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
