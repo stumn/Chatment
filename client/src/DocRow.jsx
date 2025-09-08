@@ -175,7 +175,8 @@ const DocRow = ({ data, index, style }) => {
                         onMouseLeave={handleMouseLeave}
                     />
 
-                    <span {...provided.dragHandleProps} className='dot' />
+                    {/* 見出し行の場合は.dotを非表示 */}
+                    {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
                     <div
                         id={rowElementId}
                         className='doc-comment-content'
