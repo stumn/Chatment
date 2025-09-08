@@ -30,6 +30,8 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
         <div
             id="after-login-container"
             style={{
+                paddingTop: '1.5rem',
+                paddingBottom: '1.5rem',
                 width: `${CONTAINER_1_WIDTH}px`,
                 height: `${CONTAINER_1_HEIGHT}px`,
                 marginLeft: `${tocOffset}px`, // 目次が開いている場合は右にシフト
