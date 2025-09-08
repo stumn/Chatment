@@ -17,6 +17,7 @@
     border: 1px solid transparent;
     transition: all 0.2s ease;
     align-items: stretch;
+    position: relative; /* エラーメッセージ位置調整のため */
 }
 
 /* ホバー時の視覚的フィードバック */
