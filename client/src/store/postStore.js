@@ -102,7 +102,7 @@ const usePostStore = create((set, get) => ({
 
     // ----- 特定ルームのメッセージのみ取得 -----
     getRoomMessages: (roomId) => {
-        if (roomId === 'room-0') {
+        if (roomId === DEFAULT_ROOM_ID) {
             return [...get().posts];
         }
 
