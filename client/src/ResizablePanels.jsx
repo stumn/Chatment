@@ -1,7 +1,6 @@
 // ResizablePanels.jsx
 
 import { useState, useEffect, useMemo } from "react";
-import Paper from "@mui/material/Paper";
 
 import ChatComments from "./ChatComments";
 import DocComments from "./DocComments";
@@ -15,7 +14,7 @@ export default function ResizablePanels({ appController }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
-    const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.85;
+    const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.82; // 82%の高さ
 
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
@@ -157,9 +156,8 @@ export default function ResizablePanels({ appController }) {
     };
 
     return (
-        <Paper
+        <div
             id='resizable-panels'
-            elevation={3}
             style={{
                 width: `${CONTAINER_resizable_WIDTH}px`,
                 height: `${CONTAINER_resizable_HEIGHT}px`,
@@ -194,6 +192,6 @@ export default function ResizablePanels({ appController }) {
                 style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
                 <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} />
             </div>
-        </Paper>
+        </div>
     );
 }

@@ -21,7 +21,7 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
 
     // resizable-containerの幅・高さを設定(計算)
     const CONTAINER_2_WIDTH = CONTAINER_1_WIDTH; // 100%の幅
-    const CONTAINER_2_HEIGHT = CONTAINER_1_HEIGHT * 0.85; //85%の高さ
+    const CONTAINER_2_HEIGHT = CONTAINER_1_HEIGHT * 0.82; //82%の高さ
 
     // 目次が開いている場合のレイアウト調整
     const tocOffset = isTocOpen ? 80 : 0; // 目次の幅分オフセット
