@@ -86,6 +86,16 @@ export const useAppController = () => {
                 validatedMsg = newMsg.slice(0, 140);
             }
 
+            // 改行数制限（5行まで）
+            const lines = validatedMsg.split('\n');
+            if (lines.length > 5) {
+                console.warn('Too many lines, limiting to 5 lines');
+                validatedMsg = lines.slice(0, 5).join('\n');
+            }
+
+            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
+            validatedMsg = validatedMsg.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
             // 基本的な文字正規化
             validatedMsg = validatedMsg
                 .replace(/\r/g, '')              // キャリッジリターン除去
@@ -178,7 +188,23 @@ export const useAppController = () => {
                 message = message.slice(0, 140);
             }
 
-            emitChatMessage(handleName, message.trim(), userInfo?._id, roomId);
+            // 改行数制限（5行まで）
+            const lines = message.split('\n');
+            if (lines.length > 5) {
+                console.warn('Too many lines in chat message, limiting to 5 lines');
+                message = lines.slice(0, 5).join('\n');
+            }
+
+            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
+            message = message.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+            // 基本的な文字正規化
+            message = message
+                .replace(/\r/g, '')              // キャリッジリターン除去
+                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
+                .trim();                         // 前後の空白除去
+
+            emitChatMessage(handleName, message, userInfo?._id, roomId);
 
             // ログ記録
             emitLog({
