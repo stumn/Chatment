@@ -8,7 +8,7 @@ export default function Telomere({ heightArray, CONTAINER_HEIGHT }) {
                     className="telomere"
                     style={{
                         position: 'absolute',
-                        top: `${height + 60}px`, // 60px は画面上部の余白とログイン名表示
+                        top: `${height + 24}px`,
                         width: '10px',
                         height: '20px',
                         backgroundColor: 'rgba(4, 149, 35, 0.51)',

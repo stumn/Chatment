@@ -61,7 +61,7 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
       id="input-form"
       direction="row"
       spacing={2}
-      sx={{ margin: '24px 8%', width: textBoxWidth, alignItems: 'center' }}
+      sx={{ margin: '24px 8%', width: textBoxWidth, position: 'absolute', bottom: 0, alignItems: 'center' }}
     >
       {/* --- ハンドルネーム選択セレクトボックスを追加 --- */}
       <TextField

@@ -15,7 +15,7 @@ export default function ResizablePanels({ appController }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
-    const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.8;
+    const CONTAINER_resizable_HEIGHT = useSizeStore((state) => state.height) * 0.85;
 
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
