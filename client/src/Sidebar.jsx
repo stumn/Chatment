@@ -10,6 +10,7 @@ import './sidebar.css';
 const Sidebar = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+    const userInfo = useAppStore((state) => state.userInfo);
 
     // ルーム関連の状態
     const { rooms, activeRoomId, setActiveRoom, switchingRoom, setSwitchingRoom } = useRoomStore();
@@ -157,8 +158,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
                 {/* ユーザー情報と現在のステータス */}
                 <div className="sb-user-info sidebar-text">
-                    <span className="sb-user-name">Bさん (20代 大学院生)</span>
-                    <span className="sb-current-room">表示中：{rooms.find(room => room.id === activeRoomId)?.name || '全体'}</span>
+                    <span className="sb-user-name">
+                        {userInfo?.nickname ? `${userInfo.nickname} (${userInfo.ageGroup} ${userInfo.status})さん` : 'ゲスト'}
+                    </span>
                     <div className="sb-colorful-mode">
                         <span>カラフルモード：{isColorfulMode ? 'ON' : 'OFF'}</span>
                         {/* トグルスイッチは後で実装予定 */}
