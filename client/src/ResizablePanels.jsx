@@ -1,4 +1,4 @@
-// ResizablePanels.jsx　
+// ResizablePanels.jsx 
 
 import { useState, useEffect, useMemo } from "react";
 
