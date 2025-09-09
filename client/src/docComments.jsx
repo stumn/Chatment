@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 
-import './doc.css';
+import './Doc.css';
 import DocRow from './DocRow';
 
 import useSizeStore from './store/sizeStore';
