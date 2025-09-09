@@ -74,6 +74,11 @@ function setupDocHandlers(socket, io, lockedRows) {
         return;
       }
 
+      // 編集した内容をチェックする
+      // まず、#から始まる見出しの場合には、チャットに送信しない
+      // 文章内容の変更が無い場合には、編集したとみなさない
+      // (これらのチェックはクライアント側でも行うが、念のためサーバー側でも実施)
+
       // DBに編集を保存
       const updatedPost = await updatePostData(payload);
 

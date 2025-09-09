@@ -4,7 +4,7 @@ const { handleErrors } = require('../utils');
 const { organizeLogs } = require('./userOperations');
 
 // --- データベースにレコードを保存 ---
-async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
+async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, source = 'document') {
     try {
         // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
         let validUserId = userId;
@@ -17,6 +17,7 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
             nickname,
             msg,
             displayOrder: displayOrder || 0,
+            source, // ソース情報を追加
             ...(validUserId && { userId: validUserId }),
             ...(roomId && { roomId })
         };
@@ -34,7 +35,7 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null) {
 // --- チャットメッセージ受送信 ---
 async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, roomId = null }) {
     try {
-        const record = await saveRecord(nickname, message, userId, displayOrder, roomId);
+        const record = await saveRecord(nickname, message, userId, displayOrder, roomId, 'chat'); // ソースをchatに指定
         return organizeLogs(record);
     } catch (error) {
         handleErrors(error, 'チャット受送信中にエラーが発生しました');

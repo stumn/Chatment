@@ -1,9 +1,11 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
+import './chat.css';
+
+const ChatRow = React.lazy(() => import('./ChatRow'));
 
 import usePostStore from './store/postStore';
-const ChatRow = React.lazy(() => import('./ChatRow')); // DocRowを遅延読み込み
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);
@@ -11,13 +13,32 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
 
     const chatMessages = useMemo(() => {
         
+        // createdAt または updatedAt でソート
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
             const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
             return aTime - bTime;
         });
-        // ★空白行を除外
-        const filtered = sorted.filter(msg => msg && msg.msg && msg.msg.trim() !== "");
+        
+        // ★空白行を除外 + ソース情報でフィルタリング
+        const filtered = sorted.filter(msg => {
+            // 基本的な空白行除外
+            if (!msg || !msg.msg || msg.msg.trim() === "") return false;
+            
+            // ソース情報による判定
+            // - 'chat' ソース: 常に表示（チャット入力からの投稿）
+            // - 'document' ソース: 見出し以外は表示（ドキュメント編集からの通常テキスト）
+            // - ソース不明（既存データ）: 見出し行以外は表示（後方互換性）
+            if (msg.source === 'chat') {
+                return true; // チャット入力からの投稿は常に表示
+            } else if (msg.source === 'document') {
+                return !msg.msg.trim().startsWith('#'); // ドキュメント編集からの見出し以外は表示
+            } else {
+                // 既存データ（sourceフィールドなし）の場合、見出し行以外を表示
+                return !msg.msg.trim().startsWith('#');
+            }
+        });
+        
         // timeプロパティを生成して付与
         return filtered.slice(-Math.ceil(lines.num)).map(msg => ({
             ...msg,
@@ -27,6 +48,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     : ''
         }));
+
     }, [posts, lines.num]);
 
     // idがundefinedなものを除外し、重複idも除外
@@ -52,7 +74,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                 ref={listRef}
                 style={{
                     height: bottomHeight,
-                    overflowY: 'auto',
+                    overflowY: 'hidden',
                     width: '100%',
                     textAlign: 'left',
                 }}
