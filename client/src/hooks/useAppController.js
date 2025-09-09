@@ -51,9 +51,9 @@ export const useAppController = () => {
                 ageGroup: userInfo?.ageGroup,
                 timestamp: new Date().toISOString()
             };
-            
+
             emitDocAdd(data);
-            
+
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
@@ -70,29 +70,88 @@ export const useAppController = () => {
      * ドキュメントを編集する（楽観的更新付き）
      * @param {string} id - 編集対象のID
      * @param {string} newMsg - 新しいメッセージ
+     * @returns {Object} { success: boolean, error?: string, validatedMsg?: string }
      */
     const editDocument = useCallback((id, newMsg) => {
         try {
-            // 楽観的更新: 即座にUIを更新
-            updatePost(id, newMsg, userInfo?.nickname);
+            // 基本バリデーション
+            if (!newMsg?.trim()) {
+                console.warn('Empty content not allowed for document edit');
+                return { success: false, error: '内容が空です。文字を入力してください。' };
+            }
 
-            // サーバーに送信
-            emitDocEdit({ 
-                id, 
-                newMsg, 
-                nickname: userInfo?.nickname,
-                updatedAt: new Date().toISOString()
-            });
+            // 文字数制限（140文字）
+            let validatedMsg = newMsg;
+            if (newMsg.length > 140) {
+                console.warn('Document content too long, truncating to 140 characters');
+                return { success: false, error: '文字数が140文字を超えています。短くしてください。' };
+            }
 
-            // ログ記録
-            emitLog({
-                userId: userInfo?._id,
-                action: 'document-edit',
-                detail: { id, messageLength: newMsg?.length }
-            });
+            // 改行数制限（5行まで）
+            const lines = validatedMsg.split('\n');
+            if (lines.length > 5) {
+                console.warn('Too many lines, limiting to 5 lines');
+                return { success: false, error: '改行数が5行を超えています。短くしてください。' };
+            }
+
+            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
+            validatedMsg = validatedMsg.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+            // 基本的な文字正規化
+            validatedMsg = validatedMsg
+                .replace(/\r/g, '')              // キャリッジリターン除去
+                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
+                .trim();                         // 前後の空白除去
+
+            // 正規化後に再度空チェック
+            if (!validatedMsg) {
+                return { success: false, error: '有効な文字が含まれていません。' };
+            }
+
+            // 1文字目が#の場合、見出し行として扱う（#は削除しない・チャットには送信しない）
+            if (validatedMsg.startsWith('#')) {
+                console.log('★Editing a heading line, skipping chat send', { validatedMsg });
+
+                // サーバーに送信
+                emitDocEdit({
+                    id,
+                    newMsg: validatedMsg,
+                    nickname: userInfo?.nickname,
+                    updatedAt: new Date().toISOString()
+                });
+
+                // ログ記録
+                emitLog({
+                    userId: userInfo?._id,
+                    action: 'document-edit-heading',
+                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                });
+
+                return { success: true, validatedMsg };
+
+            } else {
+                // サーバーに送信
+                emitDocEdit({
+                    id,
+                    newMsg: validatedMsg,
+                    nickname: userInfo?.nickname,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // ログ記録
+                emitLog({
+                    userId: userInfo?._id,
+                    action: 'document-edit',
+                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                });
+
+                return { success: true, validatedMsg };
+            }
+
+
         } catch (error) {
             console.error('Failed to edit document:', error);
-            // TODO: 楽観的更新をロールバック
+            return { success: false, error: '編集に失敗しました。もう一度お試しください。' };
         }
     }, [userInfo, updatePost, emitDocEdit, emitLog]);
 
@@ -149,26 +208,57 @@ export const useAppController = () => {
      * チャットメッセージを送信
      * @param {string} handleName - 表示名
      * @param {string} message - メッセージ内容
+     * @param {string} roomId - ルームID
+     * @returns {Object} { success: boolean, error?: string }
      */
     const sendChatMessage = useCallback((handleName, message, roomId) => {
         try {
             // バリデーション
-            if (!message?.trim()) return;
-            if (message.length > 1000) {
-                console.warn('Message too long, truncating...');
-                message = message.slice(0, 1000);
+            if (!message?.trim()) {
+                return { success: false, error: 'メッセージが空です。文字を入力してください。' };
             }
 
-            emitChatMessage(handleName, message.trim(), userInfo?._id, roomId);
+            let validatedMessage = message;
+
+            if (message.length > 140) {
+                console.warn('Message too long, truncating to 140 characters');
+                return { success: false, error: 'メッセージが140文字を超えています。短くしてください。' };
+            }
+
+            // 改行数制限（5行まで）
+            const lines = message.split('\n');
+            if (lines.length > 5) {
+                console.warn('Too many lines in chat message, limiting to 5 lines');
+                return { success: false, error: '改行数が5行を超えています。短くしてください。' };
+            }
+
+            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
+            validatedMessage = validatedMessage.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+            // 基本的な文字正規化
+            validatedMessage = validatedMessage
+                .replace(/\r/g, '')              // キャリッジリターン除去
+                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
+                .trim();                         // 前後の空白除去
+
+            // 正規化後に再度空チェック
+            if (!validatedMessage) {
+                return { success: false, error: '有効な文字が含まれていません。' };
+            }
+
+            emitChatMessage(handleName, validatedMessage, userInfo?._id, roomId);
 
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
                 action: 'chat-send',
-                detail: { handleName, messageLength: message.length, roomId }
+                detail: { handleName, messageLength: validatedMessage.length, roomId }
             });
+
+            return { success: true };
         } catch (error) {
             console.error('Failed to send chat message:', error);
+            return { success: false, error: 'メッセージの送信に失敗しました。もう一度お試しください。' };
         }
     }, [userInfo, emitChatMessage, emitLog]);
 
@@ -244,7 +334,7 @@ export const useAppController = () => {
             requestLock,
             unlockRow
         },
-        
+
         // Chat操作  
         chat: {
             send: sendChatMessage,
@@ -264,9 +354,9 @@ export const useAppController = () => {
         // ユーザー情報
         user: userInfo
     }), [
-        addDocument, editDocument, deleteDocument, reorderDocument, 
-        requestLock, unlockRow, sendChatMessage, addPositive, 
-        addNegative, socketId, heightArray, stableSocketFunctions, 
+        addDocument, editDocument, deleteDocument, reorderDocument,
+        requestLock, unlockRow, sendChatMessage, addPositive,
+        addNegative, socketId, heightArray, stableSocketFunctions,
         userInfo
     ]);
 

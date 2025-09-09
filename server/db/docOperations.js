@@ -26,6 +26,7 @@ async function addDocRow({ nickname, msg = '', displayOrder }) {
             nickname,
             msg,
             displayOrder: order,
+            source: 'document', // ドキュメントソースを明示的に指定
             previousData: {
                 nickname,
                 createdAt: now

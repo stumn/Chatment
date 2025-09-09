@@ -10,7 +10,7 @@ import useFadeOut from './hooks/useFadeOut';
 import useEditMode from './hooks/useEditMode';
 import ActionButtons from './components/ActionButtons';
 import ChangeBar from './components/ChangeBar';
-import './Doc.css';
+import './doc.css';
 
 const DocRow = ({ data, index, style }) => {
 
@@ -31,7 +31,9 @@ const DocRow = ({ data, index, style }) => {
         handleBlur,
         handleCompleteEdit,
         handleInput,
-        handleKeyDown
+        handleKeyDown,
+        editError,
+        clearEditError
     } = useEditMode(message, userInfo, edit, listRef, index);
 
     // 行のElement IDを生成
@@ -164,7 +166,7 @@ const DocRow = ({ data, index, style }) => {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`doc-comment-item list-item-container${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
+                    className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
                     style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                 // ロック管理用のdata属性
                 >
@@ -175,7 +177,8 @@ const DocRow = ({ data, index, style }) => {
                         onMouseLeave={handleMouseLeave}
                     />
 
-                    <span {...provided.dragHandleProps} className='dot' />
+                    {/* 見出し行の場合は.dotを非表示 */}
+                    {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
                     <div
                         id={rowElementId}
                         className='doc-comment-content'
@@ -183,7 +186,13 @@ const DocRow = ({ data, index, style }) => {
                         suppressContentEditableWarning={true}
                         ref={contentRef}
                         onBlur={handleBlur}
-                        onInput={handleInput}
+                        onInput={(e) => {
+                            handleInput(e);
+                            // 入力中にエラーをクリア
+                            if (editError) {
+                                clearEditError();
+                            }
+                        }}
                         onKeyDown={handleKeyDown} // Ctrl+Enter対応
                         tabIndex={0}
                         spellCheck={true}
@@ -196,6 +205,26 @@ const DocRow = ({ data, index, style }) => {
                             </React.Fragment>
                         ))}
                     </div>
+
+                    {/* 編集エラーメッセージの表示 */}
+                    {editError && isEditing && (
+                        <div className="edit-error" style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: '20px',
+                            right: '20px',
+                            backgroundColor: '#ffebee',
+                            border: '1px solid #f44336',
+                            borderRadius: '4px',
+                            padding: '8px',
+                            fontSize: '12px',
+                            color: '#d32f2f',
+                            zIndex: 1000,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}>
+                            ⚠️ {editError}
+                        </div>
+                    )}
 
                     {/* ロック中は操作ボタンを非表示 */}
                     {!locked && (

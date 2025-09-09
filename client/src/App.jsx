@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import { useAppController } from './hooks/useAppContoroller';
+import { useAppController } from './hooks/useAppController';
 
 import useAppStore from './store/appStore';
 import useSizeStore from './store/sizeStore';
@@ -29,7 +29,7 @@ function App() {
   // useAppControllerを使用してSocket通信を一元管理
   const appController = useAppController();
   const { socket: { heightArray }, raw: socketFunctions } = appController;
-  
+
   // ルーム関連のソケット関数を取得
   const { emitGetRoomList, emitJoinRoom } = useSocket();
 
@@ -39,7 +39,7 @@ function App() {
   useEffect(() => {
     if (!isLoggedIn) return;
     socketFunctions.emitLoginName(userInfo);
-    
+
     // ログイン後にルーム一覧を取得し、デフォルトルームに参加
     emitGetRoomList();
     emitJoinRoom(DEFAULT_ROOM_ID); // デフォルトルームに参加
@@ -55,23 +55,19 @@ function App() {
 
   if (isLoggedIn) { // ログイン完了後
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: width, height: height }}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <AfterLogin
-            heightArray={heightArray}
-            appController={appController}
-            userInfo={userInfo}
-          />
-        </Suspense>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AfterLogin
+          heightArray={heightArray}
+          appController={appController}
+          userInfo={userInfo}
+        />
+      </Suspense>
     );
   } else { // ログイン前
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '95vh' }}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <BeforeLogin open={open} onLogin={setUserInfo} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <BeforeLogin open={open} onLogin={setUserInfo} />
+      </Suspense>
     );
   }
 

@@ -19,8 +19,8 @@ async function initializeDefaultRooms() {
             },
             {
                 id: 'room-1',
-                name: '発表関連',
-                description: '議論をしよう',
+                name: 'サブルーム1',
+                description: 'サブルーム1',
                 createdByNickname: 'システム',
                 settings: {
                     autoDeleteMessages: false,
@@ -30,19 +30,8 @@ async function initializeDefaultRooms() {
             },
             {
                 id: 'room-2',
-                name: 'general',
-                description: '全員へのアナウンス',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 90,
-                    allowAnonymous: true
-                }
-            },
-            {
-                id: 'room-3',
-                name: 'random',
-                description: 'つぶやきを投下するところ',
+                name: 'サブルーム2',
+                description: 'サブルーム2',
                 createdByNickname: 'システム',
                 settings: {
                     autoDeleteMessages: false,
@@ -50,17 +39,6 @@ async function initializeDefaultRooms() {
                     allowAnonymous: true
                 }
             },
-            {
-                id: 'room-4',
-                name: '雑談',
-                description: 'とにかく雑談しよう',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            }
         ];
 
         for (const roomData of defaultRooms) {
@@ -71,7 +49,8 @@ async function initializeDefaultRooms() {
             if (existingRoom) {
                 console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
             } else {
-                await Room.create(roomData);
+                // ルームが存在しない場合は新規作成
+                createRoom(roomData);
                 console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
             }
         }

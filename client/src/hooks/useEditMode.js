@@ -21,6 +21,7 @@ const useEditMode = (
 ) => {
     // 編集状態を管理するステート
     const [isEditing, setIsEditing] = useState(false);
+    const [editError, setEditError] = useState('');
 
     // contentEditableの要素を参照するためのref
     const contentRef = useRef(null);
@@ -62,6 +63,9 @@ const useEditMode = (
      * @param {string} rowElementId - 行のElement ID
      */
     const startEdit = (requestLock, rowElementId) => {
+        // エラーをクリア
+        setEditError('');
+        
         // ロック要求を送信
         requestLock && requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
 
@@ -74,19 +78,31 @@ const useEditMode = (
      * @param {string} newContent - 新しいコンテンツ
      */
     const saveAndFinishEdit = (newContent) => {
+        setEditError(''); // エラーをクリア
+        
         const originalContent = message.msg || '';
 
-        // ローカル状態とサーバーを更新
-        updateDocMessage(message.id, newContent);
-        edit && edit(message.id, newContent);
+        // バリデーション付きで編集実行
+        const result = edit && edit(message.id, newContent);
+
+        if (result && !result.success) {
+            // バリデーションエラーの場合、エラーメッセージを表示して編集モードを継続
+            setEditError(result.error);
+            return false; // 編集継続
+        }
+
+        // バリデーション成功時のローカル更新
+        updateDocMessage(message.id, result?.validatedMsg || newContent);
 
         // 内容が実際に変更された場合のみ変更状態を記録
-        if (newContent !== originalContent) {
+        const finalContent = result?.validatedMsg || newContent;
+        if (finalContent !== originalContent) {
             setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
         }
 
         setIsEditing(false);
         resetListHeight();
+        return true; // 編集完了
     };
 
     /**
@@ -130,13 +146,17 @@ const useEditMode = (
         // 状態
         isEditing,
         contentRef,
+        editError,
 
         // 編集制御関数
         startEdit,
         handleBlur,
         handleCompleteEdit,
         handleInput,
-        handleKeyDown
+        handleKeyDown,
+        
+        // エラー制御
+        clearEditError: () => setEditError('')
     };
 };
 

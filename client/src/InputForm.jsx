@@ -1,20 +1,19 @@
 // File: client/src/InputForm.jsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
-import { Stack } from '@mui/material';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem'; // MenuItemをインポート
+import { Stack, Alert } from '@mui/material';
+import MenuItem from '@mui/material/MenuItem';
 
 import useSizeStore from './store/sizeStore';
 import useRoomStore from './store/roomStore';
-import useSocket from './hooks/useSocket';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
@@ -31,60 +30,91 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // ❌ 問題: trim()だけでは不十分なバリデーションです
-    // ✅ 修正案: 文字数制限やHTMLタグの除去など、より厳密なバリデーションを追加
-    if (message.trim()) {
-      console.log(`📝 [InputForm] メッセージ送信開始 ルーム: ${activeRoomId} (${currentRoom?.name})`);
-      console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"`);
+    setError(''); // エラーをクリア
+    
+    console.log(`📝 [InputForm] メッセージ送信開始 ルーム: ${activeRoomId} (${currentRoom?.name})`);
+    console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"`);
 
-      // TODO: XSS対策やメッセージ長制限を追加
-      // const sanitizedMessage = message.trim().slice(0, 1000); // 1000文字制限
-      sendChatMessage(handleName, message, activeRoomId);
+    // バリデーション付きでメッセージ送信
+    const result = sendChatMessage(handleName, message, activeRoomId);
 
-      // 送信後、入力フィールドをクリア
+    if (result.success) {
+      // 送信成功時、入力フィールドをクリア
       setMessage('');
       console.log(`✅ [InputForm] メッセージ送信完了`);
+    } else {
+      // バリデーションエラー時、エラーメッセージを表示
+      setError(result.error);
+      console.log(`❌ [InputForm] メッセージ送信失敗: ${result.error}`);
     }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
-      sendChatMessage(handleName, message, activeRoomId);
-      setMessage('');
+      setError(''); // エラーをクリア
+      
+      const result = sendChatMessage(handleName, message, activeRoomId);
+      
+      if (result.success) {
+        setMessage('');
+      } else {
+        setError(result.error);
+      }
     }
   };
 
-  const textBoxWidth = useSizeStore((state) => state.width) * 0.8; // 80%の幅を使用
+  const textBoxWidth = useSizeStore((state) => state.width);
 
   return (
-    <Stack
-      id="input-form"
-      direction="row"
-      spacing={2}
-      sx={{ margin: '24px 8%', width: textBoxWidth, alignItems: 'center' }}
+    <div id="InputFormBorder"
+      style={{
+        width: textBoxWidth, 
+        position: 'absolute', 
+        bottom: '1.5rem',
+        backgroundColor: 'white', 
+        padding: '8px', 
+        border: '1.5px solid lightgray', 
+        borderRadius: '8px',
+      }}
     >
-      {/* --- ハンドルネーム選択セレクトボックスを追加 --- */}
-      <TextField
-        select
-        label="ハンドルネーム"
-        value={handleName}
-        onChange={e => setHandleName(e.target.value)}
-        variant="standard"
-        sx={{ width: 200 }}
+      {/* エラーメッセージの表示 */}
+      {error && (
+        <Alert severity="error" sx={{ marginBottom: 1, fontSize: '0.875rem' }}>
+          {error}
+        </Alert>
+      )}
+      
+      <Stack
+        id="input-form"
+        direction="row"
+        spacing={2}
+        sx={{ padding: '0.5rem', alignItems: 'center' }}
       >
-        <MenuItem value={nickname}>{nickname}</MenuItem>
-        <MenuItem value={altHandle}>{altHandle}</MenuItem>
-      </TextField>
-      {/* --- メッセージ入力欄 --- */}
-      <TextField
-        label="Message"
-        variant="standard"
-        fullWidth
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown} // Ctrl + Enter で送信
-      />
-      <Tooltip title="Ctrl + Enter" placement='top' arrow>
+        {/* --- ハンドルネーム選択セレクトボックスを追加 --- */}
+        <TextField
+          select
+          label="ハンドルネーム"
+          value={handleName}
+          onChange={e => setHandleName(e.target.value)}
+          variant="standard"
+          sx={{ width: 200 }}
+        >
+          <MenuItem value={nickname}>{nickname}</MenuItem>
+          <MenuItem value={altHandle}>{altHandle}</MenuItem>
+        </TextField>
+        {/* --- メッセージ入力欄 --- */}
+        <TextField
+          label="チャットで送信（Ctrl+Enterで送信）"
+          variant="standard"
+          fullWidth
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (error) setError(''); // 入力中にエラーをクリア
+          }}
+          onKeyDown={handleKeyDown} // Ctrl + Enter で送信
+          error={!!error} // エラー状態を表示
+        />
         <span>
           <Button
             variant="contained"
@@ -95,8 +125,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
             Send
           </Button>
         </span>
-      </Tooltip>
-    </Stack>
+      </Stack>
+    </div>
   );
 };
 
