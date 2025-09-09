@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 
 import ChatComments from "./ChatComments";
-import DocComments from "./docComments";
+import DocComments from "./DocComments";
 
 import useSizeStore from "./store/sizeStore";
 import useAppStore from "./store/appStore";

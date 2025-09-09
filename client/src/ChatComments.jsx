@@ -1,7 +1,7 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import './chat.css';
+import './Chat.css';
 
 const ChatRow = React.lazy(() => import('./ChatRow'));
 
