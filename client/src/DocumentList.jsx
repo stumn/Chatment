@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 // import './DocumentList.css'; // スタイルシートがあれば利用
 
 // モックドキュメントデータ
@@ -104,6 +104,9 @@ const documents = [
 const DocumentList = () => {
     // 開いているドキュメントウィンドウを管理（シンプルなMap）
     const openWindows = React.useRef(new Map());
+    
+    // ドキュメントリストの開閉状態
+    const [isListOpen, setIsListOpen] = useState(false);
 
     const openDocumentWindow = (doc) => {
         // すでに開いているウィンドウがあるかチェック
@@ -207,7 +210,7 @@ const DocumentList = () => {
                 <div class="document-container">
                     <div class="header">
                         <div class="document-info">
-                            📄 ドキュメントID: ${doc.id} | 別ウィンドウ表示中
+                            📄 ドキュメントID: ${doc.id}
                         </div>
                         <button class="close-btn" onclick="window.close()">✕ 閉じる</button>
                     </div>
@@ -275,6 +278,47 @@ const DocumentList = () => {
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, []);
+
+    // ドキュメントリストが閉じている場合のアイコンボタン
+    if (!isListOpen) {
+        return (
+            <button
+                onClick={() => setIsListOpen(true)}
+                style={{
+                    position: 'fixed',
+                    right: '20px',
+                    top: '1.5rem',
+                    zIndex: 1000,
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: '#007acc',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px'
+                }}
+                onMouseOver={e => {
+                    e.target.style.background = '#0056b3';
+                    e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseOut={e => {
+                    e.target.style.background = '#007acc';
+                    e.target.style.transform = 'scale(1)';
+                }}
+                title="ドキュメントリストを開く"
+            >
+                📚
+            </button>
+        );
+    }
+
+    // ドキュメントリストが開いている場合
     return (
         <div className="document-list-container"
             style={{
@@ -293,13 +337,58 @@ const DocumentList = () => {
                 overflowY: 'auto',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
             }}>
-            <h2 className="document-list-title" style={{
-                margin: '0 0 15px 0',
-                fontSize: '16px',
-                color: '#333',
+            
+            {/* ヘッダー部分（タイトル + 閉じるボタン） */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '15px',
                 borderBottom: '2px solid #007acc',
                 paddingBottom: '8px'
-            }}>ドキュメントリスト</h2>
+            }}>
+                <h2 style={{
+                    margin: 0,
+                    fontSize: '16px',
+                    color: '#333'
+                }}>📚 ドキュメントリスト</h2>
+                
+                {/* 閉じるボタン（サイドバーと同じSVG） */}
+                <button
+                    onClick={() => setIsListOpen(false)}
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background 0.2s'
+                    }}
+                    onMouseOver={e => {
+                        e.target.style.background = '#f5f5f5';
+                    }}
+                    onMouseOut={e => {
+                        e.target.style.background = 'transparent';
+                    }}
+                    title="ドキュメントリストを閉じる"
+                >
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="18" 
+                        height="18" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor" 
+                        strokeWidth="2"
+                        style={{ color: '#666' }}
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
             <ul className="document-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {documents.map(doc => (
                     <li key={doc.id} className="document-list-item" style={{
