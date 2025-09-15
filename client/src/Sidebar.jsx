@@ -152,7 +152,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
     return (
         <div className={'sb-sidebar-container open'}>
 
-            {/* ヘッダーセクション */}
+            {/* ヘッダーセクション - 固定領域 */}
             <div className="sb-header">
                 <button onClick={onToggle} className="sb-toggle-button open">
                     <svg xmlns="http://www.w3.org/2000/svg" className="sb-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -192,61 +192,62 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
             </div>
 
-            {/* メインコンテンツセクション */}
-            <div className="sb-main-content">
-
-                {/* 区切り線 */}
-                <hr className="sb-divider sidebar-text" />
-
+            {/* スクロール可能なメインコンテンツセクション */}
+            <div className="sb-scrollable-content">
                 {/* チャプターと注目コメントセクション */}
-                <div className="sb-section-wrapper">
-                    <div className="sb-section-header">
+                <div className="sb-chapter-section">
+                    {/* タイトル部分 - 固定 */}
+                    <div className="sb-section-header sidebar-text">
                         <svg xmlns="http://www.w3.org/2000/svg" className="sb-section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <div className="sidebar-text">
+                        <div>
                             <h2 className="sb-section-title">チャプターと注目コメント</h2>
                         </div>
                     </div>
 
-                    <div className="sb-items-container sidebar-text">
-                        {tocData.length === 0 ? (
-                            <div className="sb-empty-message">
-                                見出しや注目コメントがありません
-                            </div>
-                        ) : (
-                            tocData.map(section => (
-                                <div key={section.id} className="sb-section">
-                                    {/* 見出し */}
-                                    <button
-                                        onClick={() => handleItemClick(section.id)}
-                                        className={`sb-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
-                                    >
-                                        {section.msg.replace(/^#+\s*/, '')}
-                                    </button>
-
-                                    {/* ネストされた注目コメント */}
-                                    {section.comments.length > 0 && (
-                                        section.comments.map(comment => (
-                                            <button
-                                                key={comment.id}
-                                                onClick={() => handleItemClick(comment.id)}
-                                                className="sb-comment-button"
-                                            >
-                                                <div className="sb-comment-text">
-                                                    {comment.msg}
-                                                </div>
-                                            </button>
-                                        ))
-                                    )}
+                    {/* スクロール可能なリスト部分 */}
+                    <div className="sb-chapter-list sidebar-text">
+                        <div className="sb-items-container">
+                            {tocData.length === 0 ? (
+                                <div className="sb-empty-message">
+                                    見出しや注目コメントがありません
                                 </div>
-                            ))
-                        )}
+                            ) : (
+                                tocData.map(section => (
+                                    <div key={section.id} className="sb-section">
+                                        {/* 見出し */}
+                                        <button
+                                            onClick={() => handleItemClick(section.id)}
+                                            className={`sb-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
+                                        >
+                                            {section.msg.replace(/^#+\s*/, '')}
+                                        </button>
+
+                                        {/* ネストされた注目コメント */}
+                                        {section.comments.length > 0 && (
+                                            section.comments.map(comment => (
+                                                <button
+                                                    key={comment.id}
+                                                    onClick={() => handleItemClick(comment.id)}
+                                                    className="sb-comment-button"
+                                                >
+                                                    <div className="sb-comment-text">
+                                                        {comment.msg}
+                                                    </div>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                {/* 区切り線 */}
-                <hr className="sb-divider sidebar-text" />
+            {/* フッターセクション - 固定領域 */}
+            <div className="sb-footer">
 
                 {/* サブルーム一覧セクション */}
                 <div className="sb-section-wrapper">

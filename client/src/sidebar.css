@@ -27,12 +27,61 @@
     /* 320px - 開いた状態の幅 */
 }
 
-/* ヘッダーセクション */
+/* ヘッダーセクション - 固定領域 */
 .sb-header {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
     padding: 1.5rem 1.5rem 0 1.5rem;
     flex-shrink: 0;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* スクロール可能なメインコンテンツ */
+.sb-scrollable-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow: hidden; /* 外側のスクロールを無効化 */
+    min-height: 0; /* Flexboxでのスクロール有効化 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* チャプターセクション全体 */
+.sb-chapter-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+}
+
+/* セクションヘッダー（固定部分） */
+.sb-section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-shrink: 0; /* 固定 */
+    background-color: #f5f5f5; /* 背景色を追加して見やすく */
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* チャプターのスクロール可能リスト */
+.sb-chapter-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-top: 0.5rem;
+}
+
+/* フッターセクション - 固定領域 */
+.sb-footer {
+    flex-shrink: 0;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e5e7eb;
+    max-height: 30vh; /* フッターの最大高さを制限 */
+    overflow-y: auto; /* フッター内でもスクロール可能にする（多数のルームがある場合） */
 }
 
 .sb-toggle-button.close {
@@ -52,6 +101,7 @@
 }
 
 .sb-toggle-button.open {
+    align-self: flex-start;
     padding-inline: 0;
     border-radius: 9999px;
     background: none;
@@ -60,6 +110,7 @@
     color: #6b7280;
     transition: all 0.2s ease;
     height: auto;
+    margin-bottom: 1rem;
 }
 
 .sb-toggle-button:hover {
@@ -131,20 +182,13 @@
     text-align: center;
 }
 
-/* メインコンテンツ */
-.sb-main-content {
-    flex: 1;
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    overflow-y: auto;
-}
-
 /* ユーザー情報セクション */
 .sb-user-info {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-    margin-left: 1rem;
+    margin-bottom: 1rem;
 }
 
 .sb-user-name {
@@ -168,23 +212,22 @@
 .sb-divider {
     border: none;
     border-top: 1px solid #d1d5db;
-    margin: 1.5rem 0;
+    margin: 1rem 0;
+    width: 100%;
 }
 
 /* セクションラッパー */
 .sb-section-wrapper {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .sb-section-wrapper:last-child {
     margin-bottom: 0;
 }
 
-/* セクションヘッダー */
-.sb-section-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
+/* フッター内のセクションラッパーの調整 */
+.sb-footer .sb-section-wrapper {
+    margin-bottom: 0;
 }
 
 .sb-section-icon {
