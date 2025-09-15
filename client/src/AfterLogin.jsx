@@ -4,6 +4,7 @@ import ResizablePanels from './ResizablePanels'
 import InputForm from './InputForm'
 import Telomere from './Telomere';
 import Sidebar from './Sidebar';
+import DocumentList from './DocumentList';
 
 import sizeStore from './store/sizeStore';
 import useAppStore from './store/appStore';
@@ -58,6 +59,8 @@ export default function AfterLogin({ heightArray, appController, userInfo }) {
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 
             </div>
+
+            <DocumentList />
 
             <InputForm nickname={nickname} status={status} ageGroup={ageGroup} userId={userId} appController={appController} />
         </div>
