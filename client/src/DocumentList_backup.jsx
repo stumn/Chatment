@@ -35,8 +35,8 @@ const DocumentList = () => {
             </div>
             <style>
                 .post-item {
-                    margin: 4px 0;
-                    padding: 8px 12px;
+                    margin: 8px 0;
+                    padding: 12px 16px;
                     border-radius: 6px;
                     transition: all 0.2s ease;
                     cursor: default;
@@ -56,8 +56,8 @@ const DocumentList = () => {
                 
                 .post-meta {
                     position: absolute;
-                    top: 6px;
-                    right: 8px;
+                    top: 8px;
+                    right: 12px;
                     background: rgba(0,0,0,0.8);
                     color: white;
                     padding: 4px 8px;
@@ -71,11 +71,11 @@ const DocumentList = () => {
                 }
                 
                 .post-content {
-                    line-height: 1.4;
+                    line-height: 1.5;
                     color: #333;
                     white-space: pre-wrap;
                     word-wrap: break-word;
-                    margin-right: 50px;
+                    margin-right: 60px;
                 }
             </style>
         `;
@@ -90,20 +90,17 @@ const DocumentList = () => {
             // 見出しの場合
             if (isHeading) {
                 const headingLevel = (post.msg.match(/^#+/) || ['#'])[0].length;
-                const headingText = post.msg.replace(/^#+\\s*/, '');
-                
-                // 見出しレベルに応じたフォントサイズを設定
-                const fontSize = Math.max(24 - (headingLevel - 1) * 2, 16); // h1=24px, h2=22px, h3=20px...
+                const headingText = post.msg.replace(/^#+\s*/, '');
                 
                 content += `
                     <h${Math.min(headingLevel, 6)} style="
-                        color: #000; 
-                        background: none;
-                        margin: 20px 0 8px 0; 
-                        padding: 0; 
-                        font-size: ${fontSize}px;
-                        font-weight: 600;
-                        line-height: 1.3;
+                        color: #2c3e50; 
+                        margin: 30px 0 15px 0; 
+                        padding: 12px 16px; 
+                        background: linear-gradient(90deg, #3498db, #2980b9);
+                        color: white;
+                        border-radius: 6px;
+                        font-weight: 500;
                     ">
                         ${headingText}
                     </h${Math.min(headingLevel, 6)}>
@@ -117,12 +114,12 @@ const DocumentList = () => {
                     if (reactionScore > 0) {
                         // ポジティブな反応が多い
                         const intensity = Math.min(reactionScore * 0.1, 0.3);
-                        backgroundColor = `rgba(76, 175, 80, ${intensity})`; // 緑系
+                        backgroundColor = \`rgba(76, 175, 80, \${intensity})\`; // 緑系
                         borderColor = '#4caf50';
                     } else if (reactionScore < 0) {
                         // ネガティブな反応が多い
                         const intensity = Math.min(Math.abs(reactionScore) * 0.1, 0.3);
-                        backgroundColor = `rgba(244, 67, 54, ${intensity})`; // 赤系
+                        backgroundColor = \`rgba(244, 67, 54, \${intensity})\`; // 赤系
                         borderColor = '#f44336';
                     } else {
                         // 同じ数の反応
@@ -136,23 +133,20 @@ const DocumentList = () => {
                     borderColor = '#ff9800';
                 }
                 
-                const postContent = (post.msg || '(空のメッセージ)').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                const nickname = (post.nickname || 'Unknown').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                
-                content += `
+                content += \`
                     <div class="post-item" style="
-                        background: ${backgroundColor};
-                        border-left-color: ${borderColor};
-                        ${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
+                        background: \${backgroundColor};
+                        border-left-color: \${borderColor};
+                        \${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
                     ">
                         <div class="post-meta">
-                            👤 ${nickname}<br>
-                            ⏰ ${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
-                            ${reactionTotal > 0 ? `👍${positive} 👎${negative}` : ''}
+                            � \${post.nickname || 'Unknown'}<br>
+                            ⏰ \${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
+                            \${reactionTotal > 0 ? \`👍\${positive} 👎\${negative}\` : ''}
                         </div>
-                        <div class="post-content">${postContent}</div>
+                        <div class="post-content">\${post.msg || '(空のメッセージ)'}</div>
                     </div>
-                `;
+                \`;
             }
         });
 
@@ -175,7 +169,7 @@ const DocumentList = () => {
         }
 
         // 新しいウィンドウを作成
-        const windowFeatures = 'width=1000,height=750,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no';
+        const windowFeatures = 'width=900,height=700,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no';
         const newWindow = window.open('', `chatment-doc-${doc.id}`, windowFeatures);
 
         // ドキュメント専用のHTMLを生成
@@ -191,16 +185,16 @@ const DocumentList = () => {
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
                         margin: 0; 
                         padding: 0; 
-                        background: #DCDDE0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         min-height: 100vh;
                     }
                     .document-container {
                         background: white;
                         margin: 20px;
-                        padding: 30px;
+                        padding: 40px;
                         border-radius: 12px;
                         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                        max-width: 900px;
+                        max-width: 800px;
                         margin: 20px auto;
                         min-height: calc(100vh - 40px);
                         box-sizing: border-box;
@@ -211,11 +205,7 @@ const DocumentList = () => {
                         align-items: center;
                         border-bottom: 2px solid #f0f0f0;
                         padding-bottom: 15px;
-                        margin-bottom: 25px;
-                        position: sticky;
-                        top: 0;
-                        background: white;
-                        z-index: 10;
+                        margin-bottom: 30px;
                     }
                     .close-btn {
                         background: #ff4757;
@@ -240,16 +230,31 @@ const DocumentList = () => {
                         line-height: 1.6;
                         color: #333;
                     }
-                    .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
-                        margin-top: 0;
+                    .content h1 {
+                        color: #2c3e50;
+                        border-bottom: 3px solid #3498db;
+                        padding-bottom: 10px;
+                    }
+                    .content h2 {
+                        color: #34495e;
+                        margin-top: 30px;
+                    }
+                    .content h3 {
+                        color: #7f8c8d;
+                    }
+                    .content ul, .content ol {
+                        padding-left: 25px;
+                    }
+                    .content li {
+                        margin-bottom: 8px;
                     }
                     .document-info {
-                        background: #e3f2fd;
-                        padding: 12px 16px;
+                        background: #ecf0f1;
+                        padding: 15px;
                         border-radius: 6px;
-                        font-size: 13px;
-                        color: #1976d2;
-                        border-left: 4px solid #2196f3;
+                        margin-bottom: 20px;
+                        font-size: 14px;
+                        color: #7f8c8d;
                     }
                 </style>
             </head>
@@ -257,7 +262,7 @@ const DocumentList = () => {
                 <div class="document-container">
                     <div class="header">
                         <div class="document-info">
-                            📄 ${doc.name} | リアルタイムデータ表示
+                            📄 ドキュメントID: ${doc.id}
                         </div>
                         <button class="close-btn" onclick="window.close()">✕ 閉じる</button>
                     </div>
@@ -278,7 +283,7 @@ const DocumentList = () => {
                         if (window.opener) {
                             window.opener.postMessage({
                                 type: 'DOCUMENT_WINDOW_CLOSED',
-                                docId: '${doc.id}'
+                                docId: ${doc.id}
                             }, '*');
                         }
                     });
@@ -288,7 +293,7 @@ const DocumentList = () => {
                         if (window.opener) {
                             window.opener.postMessage({
                                 type: 'WINDOW_READY',
-                                docId: '${doc.id}'
+                                docId: ${doc.id}
                             }, '*');
                         }
                     });
@@ -436,7 +441,6 @@ const DocumentList = () => {
                     </svg>
                 </button>
             </div>
-            
             <ul className="document-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 <li className="document-list-item" style={{
                     marginBottom: '12px',

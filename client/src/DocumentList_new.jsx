@@ -35,8 +35,8 @@ const DocumentList = () => {
             </div>
             <style>
                 .post-item {
-                    margin: 4px 0;
-                    padding: 8px 12px;
+                    margin: 8px 0;
+                    padding: 12px 16px;
                     border-radius: 6px;
                     transition: all 0.2s ease;
                     cursor: default;
@@ -56,8 +56,8 @@ const DocumentList = () => {
                 
                 .post-meta {
                     position: absolute;
-                    top: 6px;
-                    right: 8px;
+                    top: 8px;
+                    right: 12px;
                     background: rgba(0,0,0,0.8);
                     color: white;
                     padding: 4px 8px;
@@ -71,11 +71,11 @@ const DocumentList = () => {
                 }
                 
                 .post-content {
-                    line-height: 1.4;
+                    line-height: 1.5;
                     color: #333;
                     white-space: pre-wrap;
                     word-wrap: break-word;
-                    margin-right: 50px;
+                    margin-right: 60px;
                 }
             </style>
         `;
@@ -92,18 +92,15 @@ const DocumentList = () => {
                 const headingLevel = (post.msg.match(/^#+/) || ['#'])[0].length;
                 const headingText = post.msg.replace(/^#+\\s*/, '');
                 
-                // 見出しレベルに応じたフォントサイズを設定
-                const fontSize = Math.max(24 - (headingLevel - 1) * 2, 16); // h1=24px, h2=22px, h3=20px...
-                
                 content += `
                     <h${Math.min(headingLevel, 6)} style="
-                        color: #000; 
-                        background: none;
-                        margin: 20px 0 8px 0; 
-                        padding: 0; 
-                        font-size: ${fontSize}px;
-                        font-weight: 600;
-                        line-height: 1.3;
+                        color: #2c3e50; 
+                        margin: 30px 0 15px 0; 
+                        padding: 12px 16px; 
+                        background: linear-gradient(90deg, #3498db, #2980b9);
+                        color: white;
+                        border-radius: 6px;
+                        font-weight: 500;
                     ">
                         ${headingText}
                     </h${Math.min(headingLevel, 6)}>
@@ -191,7 +188,7 @@ const DocumentList = () => {
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
                         margin: 0; 
                         padding: 0; 
-                        background: #DCDDE0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         min-height: 100vh;
                     }
                     .document-container {
