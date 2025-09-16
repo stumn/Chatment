@@ -136,23 +136,28 @@ const DocumentList = () => {
                     borderColor = '#ff9800';
                 }
                 
-                const postContent = (post.msg || '(空のメッセージ)').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                const postContent = (post.msg || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                 const nickname = (post.nickname || 'Unknown').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                 
-                content += `
-                    <div class="post-item" style="
-                        background: ${backgroundColor};
-                        border-left-color: ${borderColor};
-                        ${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
-                    ">
-                        <div class="post-meta">
-                            👤 ${nickname}<br>
-                            ⏰ ${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
-                            ${reactionTotal > 0 ? `👍${positive} 👎${negative}` : ''}
+                // 空の投稿の場合は<br>タグとして追加
+                if (!post.msg || post.msg.trim() === '') {
+                    content += `<br>`;
+                } else {
+                    content += `
+                        <div class="post-item" style="
+                            background: ${backgroundColor};
+                            border-left-color: ${borderColor};
+                            ${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
+                        ">
+                            <div class="post-meta">
+                                👤 ${nickname}<br>
+                                ⏰ ${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
+                                ${reactionTotal > 0 ? `👍${positive} 👎${negative}` : ''}
+                            </div>
+                            <div class="post-content">${postContent}</div>
                         </div>
-                        <div class="post-content">${postContent}</div>
-                    </div>
-                `;
+                    `;
+                }
             }
         });
 
