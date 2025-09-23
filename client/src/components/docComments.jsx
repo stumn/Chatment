@@ -4,12 +4,12 @@ import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 
-import './Doc.css';
+import '../styles/Doc.css';
 import DocRow from './DocRow';
 
-import useSizeStore from './store/sizeStore';
-import useAppStore from './store/appStore';
-import usePostStore from './store/postStore';
+import useSizeStore from '../store/sizeStore';
+import useAppStore from '../store/appStore';
+import usePostStore from '../store/postStore';
 
 const DocComments = ({ lines, documentFunctions }) => {
 

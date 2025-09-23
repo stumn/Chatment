@@ -3,14 +3,14 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-import usePostStore from './store/postStore';
-import useAppStore from './store/appStore';
+import usePostStore from '../store/postStore';
+import useAppStore from '../store/appStore';
 
-import useFadeOut from './hooks/useFadeOut';
-import useEditMode from './hooks/useEditMode';
-import ActionButtons from './components/ActionButtons';
-import ChangeBar from './components/ChangeBar';
-import './Doc.css';
+import useFadeOut from '../hooks/useFadeOut';
+import useEditMode from '../hooks/useEditMode';
+import ActionButtons from './ActionButtons';
+import ChangeBar from './ChangeBar';
+import '../styles/Doc.css';
 
 const DocRow = ({ data, index, style }) => {
 

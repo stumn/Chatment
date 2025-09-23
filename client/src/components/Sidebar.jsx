@@ -4,11 +4,11 @@ import React, { useState, useMemo } from 'react';
 import Switch from '@mui/material/Switch';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import usePostStore from './store/postStore';
-import useAppStore from './store/appStore';
-import useRoomStore from './store/roomStore';
-import useSocket from './hooks/useSocket';
-import './sidebar.css';
+import usePostStore from '../store/postStore';
+import useAppStore from '../store/appStore';
+import useRoomStore from '../store/roomStore';
+import useSocket from '../hooks/useSocket';
+import '../styles/sidebar.css';
 
 const Sidebar = ({ isOpen, onToggle }) => {
     const posts = usePostStore((state) => state.posts);

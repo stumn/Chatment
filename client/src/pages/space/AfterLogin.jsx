@@ -1,13 +1,13 @@
 // File: client/src/AfterLogin.jsx
 
-import ResizablePanels from './ResizablePanels'
-import InputForm from './InputForm'
-import Telomere from './Telomere';
-import Sidebar from './Sidebar';
-import DocumentList from './DocumentList';
+import ResizablePanels from '../../components/ResizablePanels'
+import InputForm from '../../components/InputForm'
+import Telomere from '../../components/Telomere';
+import Sidebar from '../../components/Sidebar';
+import DocumentList from '../../components/DocumentList';
 
-import sizeStore from './store/sizeStore';
-import useAppStore from './store/appStore';
+import sizeStore from '../../store/sizeStore';
+import useAppStore from '../../store/appStore';
 
 export default function AfterLogin({ heightArray, appController, userInfo }) {
     // userInfoをpropsから受け取る

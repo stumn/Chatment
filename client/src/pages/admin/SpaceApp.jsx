@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // TODO: スペースストアをインポート（Zustandなどのライブラリをインストール後）
-// import { useSpaceStore } from './store/spaceStore';
+// import { useSpaceStore } from '../../store/spaceStore';
 
 const styles = {
   container: {

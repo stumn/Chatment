@@ -4,9 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 
 // 遅延読み込みでコンポーネントを分割
-const SpaceApp = lazy(() => import('./SpaceApp'));
-const ChatApp = lazy(() => import('./ChatApp'));
-const SpaceDetail = lazy(() => import('./SpaceDetail'));
+const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
+const ChatApp = lazy(() => import('./pages/space/ChatApp'));
+const SpaceDetail = lazy(() => import('./pages/space/SpaceDetail'));
 
 function App() {
   return (

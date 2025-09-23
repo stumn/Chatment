@@ -2,13 +2,13 @@
 
 import { useEffect, Suspense, lazy, useState } from 'react';
 
-import { useAppController } from './hooks/useAppController';
+import { useAppController } from '../../hooks/useAppController';
 
-import useAppStore from './store/appStore';
-import useSizeStore from './store/sizeStore';
-import useSocket from './hooks/useSocket';
+import useAppStore from '../../store/appStore';
+import useSizeStore from '../../store/sizeStore';
+import useSocket from '../../hooks/useSocket';
 
-import useResponsiveSize from './useResponsiveSize';
+import useResponsiveSize from '../../utils/useResponsiveSize';
 
 import BeforeLogin from "./BeforeLogin";
 const AfterLogin = lazy(() => import('./AfterLogin'));

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import usePostStore from './store/postStore';
+import usePostStore from '../store/postStore';
 // import './DocumentList.css'; // スタイルシートがあれば利用
 
 const DocumentList = () => {

@@ -1,11 +1,11 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import './Chat.css';
+import '../styles/Chat.css';
 
 const ChatRow = React.lazy(() => import('./ChatRow'));
 
-import usePostStore from './store/postStore';
+import usePostStore from '../store/postStore';
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);

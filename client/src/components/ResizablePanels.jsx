@@ -5,10 +5,10 @@ import { useState, useEffect, useMemo } from "react";
 import ChatComments from "./ChatComments";
 import DocComments from "./docComments";
 
-import useSizeStore from "./store/sizeStore";
-import useAppStore from "./store/appStore";
-import usePostStore from "./store/postStore";
-import useRoomStore from "./store/roomStore";
+import useSizeStore from "../store/sizeStore";
+import useAppStore from "../store/appStore";
+import usePostStore from "../store/postStore";
+import useRoomStore from "../store/roomStore";
 
 export default function ResizablePanels({ appController }) {
 

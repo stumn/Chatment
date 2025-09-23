@@ -8,8 +8,8 @@ import SendIcon from '@mui/icons-material/Send';
 import { Stack, Alert } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 
-import useSizeStore from './store/sizeStore';
-import useRoomStore from './store/roomStore';
+import useSizeStore from '../store/sizeStore';
+import useRoomStore from '../store/roomStore';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
