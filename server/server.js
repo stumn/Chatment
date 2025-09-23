@@ -23,6 +23,11 @@ app.get('/plain', (req, res) => {
 const apiRoutes = require('./apiRoutes');
 app.use('/api', apiRoutes);
 
+// SPAのルーティング対応 - 他のすべてのルートでReactアプリを返す
+app.get('*', (req, res) => {
+  res.sendFile(__dirname + '/../client/dist/index.html');
+});
+
 // Socket.IOハンドラー
 const { initializeSocketHandlers, rooms } = require('./socketHandlers');
 const { initializeDefaultRooms, getActiveRooms } = require('./dbOperation');

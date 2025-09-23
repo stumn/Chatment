@@ -14,8 +14,7 @@ const styles = {
     padding: '24px',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    maxWidth: '1024px',
-    margin: '32px auto'
+    maxWidth: '1024px'
   },
   title: {
     fontSize: '32px',
@@ -27,7 +26,8 @@ const styles = {
     fontSize: '24px',
     fontWeight: '600',
     color: '#374151',
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   section: {
     marginBottom: '32px'
@@ -342,6 +342,12 @@ const FinishedRoomRow = ({ room }) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
+  const handleViewDocument = () => {
+    // TODO: ドキュメント閲覧機能の実装
+    // navigate(`/spaces/${room.id}/documents`);
+    console.log(`ドキュメント閲覧: ${room.name}`);
+  };
+
   return (
     <tr>
       <td style={styles.tdName}>
@@ -392,6 +398,14 @@ const FinishedRoomRow = ({ room }) => {
         ))}
       </td>
       <td style={styles.tdGray}>{room.options}</td>
+      <td style={styles.td}>
+        <button 
+          style={styles.button}
+          onClick={handleViewDocument}
+        >
+          ドキュメント閲覧
+        </button>
+      </td>
     </tr>
   );
 };
@@ -515,7 +529,7 @@ function SpaceApp() {
         {selectedSpace && (
           <div style={styles.selectedSpace}>
             <h3 style={{ margin: '0 0 8px 0', color: '#1f2937' }}>
-              選択中のスペース: {selectedSpace.name}
+              入場中のスペース: {selectedSpace.name}
             </h3>
             <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px' }}>
               {selectedSpace.description}
@@ -527,7 +541,7 @@ function SpaceApp() {
               style={styles.buttonSecondary}
               onClick={handleClearSelection}
             >
-              選択解除
+              退場
             </button>
           </div>
         )}
@@ -565,7 +579,7 @@ function SpaceApp() {
                       onClick={() => handleSelectSpace(space)}
                       disabled={selectedSpace?.id === space.id}
                     >
-                      {selectedSpace?.id === space.id ? '選択中' : '選択'}
+                      {selectedSpace?.id === space.id ? '入場中' : '入場'}
                     </button>
                     <button 
                       style={{...styles.buttonSecondary, backgroundColor: '#ef4444'}}
@@ -582,10 +596,10 @@ function SpaceApp() {
           </table>
         </div>
 
-        <div>
+        <div style={styles.section}>
           <h2 style={styles.sectionTitle}>終了したコミュニケーションスペース</h2>
           <table style={styles.table}>
-            <TableHeader columns={['スペース名', 'ファイル', 'オプション']} />
+            <TableHeader columns={['スペース名', 'ファイル', 'オプション', 'アクション']} />
             <tbody>
               {finishedSpaces.map(space => (
                 <FinishedRoomRow key={space.id} room={space} />
