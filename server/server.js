@@ -26,14 +26,18 @@ const apiRoutes = require('./apiRoutes');
 app.use('/api', apiRoutes);
 
 // SPAのルーティング対応 - 他のすべてのルートでReactアプリを返す
-app.get('*', (req, res) => {
-  // APIリクエストやstatic assetsは除外
+app.get('*', (req, res, next) => {
+  // APIリクエストは除外
   if (req.path.startsWith('/api/') || req.path.startsWith('/plain')) {
     return next();
   }
   
+  // 静的ファイル（CSS、JS、画像など）のリクエストかチェック
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    return next();
+  }
+  
   const indexPath = path.join(__dirname, '../client/dist/index.html');
-  console.log('Trying to serve file:', indexPath);
   
   // ファイルが存在するかチェック
   if (fs.existsSync(indexPath)) {
