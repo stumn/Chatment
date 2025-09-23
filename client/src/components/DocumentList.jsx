@@ -1,335 +1,31 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import usePostStore from '../store/postStore';
 // import './DocumentList.css'; // スタイルシートがあれば利用
 
 const DocumentList = () => {
+
+    const { id } = useParams();
+
     // postStoreからデータを取得
     const posts = usePostStore((state) => state.posts);
-    
-    // 開いているドキュメントウィンドウを管理（シンプルなMap）
-    const openWindows = React.useRef(new Map());
-    
+
     // ドキュメントリストの開閉状態
     const [isListOpen, setIsListOpen] = useState(false);
-
-    // postsデータからドキュメント形式に変換する関数
-    const generateDocumentContent = () => {
-        if (!posts || posts.length === 0) {
-            return `
-                <div style="text-align: center; padding: 50px; color: #666;">
-                    <h2>📝 投稿データが見つかりません</h2>
-                    <p>チャットでメッセージを投稿すると、ここにドキュメントとして表示されます。</p>
-                </div>
-            `;
-        }
-
-        const sortedPosts = [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
-        
-        let content = `
-            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007acc;">
-                <h1 style="margin: 0 0 10px 0; color: #007acc;">📊 チャット投稿データ全件</h1>
-                <p style="margin: 0; color: #666; font-size: 14px;">
-                    <strong>総件数:</strong> ${posts.length}件 | 
-                    <strong>生成日時:</strong> ${new Date().toLocaleString('ja-JP')}
-                </p>
-            </div>
-            <style>
-                .post-item {
-                    margin: 4px 0;
-                    padding: 8px 12px;
-                    border-radius: 6px;
-                    transition: all 0.2s ease;
-                    cursor: default;
-                    position: relative;
-                    border-left: 3px solid transparent;
-                }
-                
-                .post-item:hover {
-                    transform: translateX(2px);
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                }
-                
-                .post-item:hover .post-meta {
-                    opacity: 1;
-                    visibility: visible;
-                }
-                
-                .post-meta {
-                    position: absolute;
-                    top: 6px;
-                    right: 8px;
-                    background: rgba(0,0,0,0.8);
-                    color: white;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 11px;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.2s ease;
-                    pointer-events: none;
-                    z-index: 10;
-                }
-                
-                .post-content {
-                    line-height: 1.4;
-                    color: #333;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    margin-right: 50px;
-                }
-            </style>
-        `;
-
-        sortedPosts.forEach((post, index) => {
-            const isHeading = post.msg && post.msg.trim().startsWith('#');
-            const positive = post.positive || 0;
-            const negative = post.negative || 0;
-            const reactionTotal = positive + negative;
-            const reactionScore = positive - negative; // ポジティブ - ネガティブ
-            
-            // 見出しの場合
-            if (isHeading) {
-                const headingLevel = (post.msg.match(/^#+/) || ['#'])[0].length;
-                const headingText = post.msg.replace(/^#+\\s*/, '');
-                
-                // 見出しレベルに応じたフォントサイズを設定
-                const fontSize = Math.max(24 - (headingLevel - 1) * 2, 16); // h1=24px, h2=22px, h3=20px...
-                
-                content += `
-                    <h${Math.min(headingLevel, 6)} style="
-                        color: #000; 
-                        background: none;
-                        margin: 20px 0 8px 0; 
-                        padding: 0; 
-                        font-size: ${fontSize}px;
-                        font-weight: 600;
-                        line-height: 1.3;
-                    ">
-                        ${headingText}
-                    </h${Math.min(headingLevel, 6)}>
-                `;
-            } else {
-                // 背景色を反応に基づいて決定
-                let backgroundColor = '#ffffff';
-                let borderColor = '#e9ecef';
-                
-                if (reactionTotal > 0) {
-                    if (reactionScore > 0) {
-                        // ポジティブな反応が多い
-                        const intensity = Math.min(reactionScore * 0.1, 0.3);
-                        backgroundColor = `rgba(76, 175, 80, ${intensity})`; // 緑系
-                        borderColor = '#4caf50';
-                    } else if (reactionScore < 0) {
-                        // ネガティブな反応が多い
-                        const intensity = Math.min(Math.abs(reactionScore) * 0.1, 0.3);
-                        backgroundColor = `rgba(244, 67, 54, ${intensity})`; // 赤系
-                        borderColor = '#f44336';
-                    } else {
-                        // 同じ数の反応
-                        backgroundColor = 'rgba(255, 193, 7, 0.2)'; // 黄色系
-                        borderColor = '#ffc107';
-                    }
-                }
-                
-                // 特に注目度が高い投稿（リアクション10以上）
-                if (reactionTotal >= 10) {
-                    borderColor = '#ff9800';
-                }
-                
-                const postContent = (post.msg || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                const nickname = (post.nickname || 'Unknown').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                
-                // 空の投稿の場合は<br>タグとして追加
-                if (!post.msg || post.msg.trim() === '') {
-                    content += `<br>`;
-                } else {
-                    content += `
-                        <div class="post-item" style="
-                            background: ${backgroundColor};
-                            border-left-color: ${borderColor};
-                            ${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
-                        ">
-                            <div class="post-meta">
-                                👤 ${nickname}<br>
-                                ⏰ ${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
-                                ${reactionTotal > 0 ? `👍${positive} 👎${negative}` : ''}
-                            </div>
-                            <div class="post-content">${postContent}</div>
-                        </div>
-                    `;
-                }
-            }
-        });
-
-        return content;
-    };
 
     // ドキュメント情報（1つだけ、全件データ）
     const documentData = {
         id: 'posts-all',
-        name: '全投稿データ',
-        content: generateDocumentContent()
+        name: '全投稿データ'
     };
 
-    const openDocumentWindow = (doc) => {
-        // すでに開いているウィンドウがあるかチェック
-        const existingWindow = openWindows.current.get(doc.id);
-        if (existingWindow && !existingWindow.closed) {
-            existingWindow.focus(); // 既存ウィンドウにフォーカス
-            return;
-        }
-
-        // 新しいウィンドウを作成
-        const windowFeatures = 'width=1000,height=750,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no';
-        const newWindow = window.open('', `chatment-doc-${doc.id}`, windowFeatures);
-
-        // ドキュメント専用のHTMLを生成
-        newWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang="ja">
-            <head>
-                <title>${doc.name} - Chatment</title>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                    body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans JP', sans-serif;
-                        margin: 0; 
-                        padding: 0; 
-                        background: #DCDDE0;
-                        min-height: 100vh;
-                    }
-                    .document-container {
-                        background: white;
-                        margin: 20px;
-                        padding: 30px;
-                        border-radius: 12px;
-                        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                        max-width: 900px;
-                        margin: 20px auto;
-                        min-height: calc(100vh - 40px);
-                        box-sizing: border-box;
-                    }
-                    .header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        border-bottom: 2px solid #f0f0f0;
-                        padding-bottom: 15px;
-                        margin-bottom: 25px;
-                        position: sticky;
-                        top: 0;
-                        background: white;
-                        z-index: 10;
-                    }
-                    .close-btn {
-                        background: #ff4757;
-                        color: white;
-                        border: none;
-                        padding: 8px 15px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        transition: background 0.2s;
-                    }
-                    .close-btn:hover {
-                        background: #ff3838;
-                    }
-                    .loading { 
-                        text-align: center; 
-                        padding: 100px 20px;
-                        color: #666;
-                        font-size: 18px;
-                    }
-                    .content {
-                        line-height: 1.6;
-                        color: #333;
-                    }
-                    .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
-                        margin-top: 0;
-                    }
-                    .document-info {
-                        background: #e3f2fd;
-                        padding: 12px 16px;
-                        border-radius: 6px;
-                        font-size: 13px;
-                        color: #1976d2;
-                        border-left: 4px solid #2196f3;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="document-container">
-                    <div class="header">
-                        <div class="document-info">
-                            📄 ${doc.name} | リアルタイムデータ表示
-                        </div>
-                        <button class="close-btn" onclick="window.close()">✕ 閉じる</button>
-                    </div>
-                    <div class="content">
-                        <div class="loading">📖 ドキュメントを読み込み中...</div>
-                    </div>
-                </div>
-                <script>
-                    // 親ウィンドウとの通信設定
-                    window.addEventListener('message', (event) => {
-                        if (event.data.type === 'LOAD_DOCUMENT') {
-                            document.querySelector('.content').innerHTML = event.data.content;
-                        }
-                    });
-                    
-                    // ウィンドウが閉じられる時に親ウィンドウに通知
-                    window.addEventListener('beforeunload', () => {
-                        if (window.opener) {
-                            window.opener.postMessage({
-                                type: 'DOCUMENT_WINDOW_CLOSED',
-                                docId: '${doc.id}'
-                            }, '*');
-                        }
-                    });
-
-                    // ウィンドウが読み込まれたら親に準備完了を通知
-                    window.addEventListener('load', () => {
-                        if (window.opener) {
-                            window.opener.postMessage({
-                                type: 'WINDOW_READY',
-                                docId: '${doc.id}'
-                            }, '*');
-                        }
-                    });
-                </script>
-            </body>
-            </html>
-        `);
-
-        // ウィンドウの管理に追加
-        openWindows.current.set(doc.id, newWindow);
-
-        // 少し待ってからコンテンツを送信（ウィンドウの準備を待つ）
-        setTimeout(() => {
-            if (!newWindow.closed) {
-                newWindow.postMessage({
-                    type: 'LOAD_DOCUMENT',
-                    content: doc.content
-                }, '*');
-            }
-        }, 100);
+    const openDocumentWindow = () => {
+        // 新しいタブでドキュメントページを開く（React Routerを使用）
+        const documentUrl = `/document/${id}`;
+        window.open(documentUrl, '_blank');
     };
 
-    // 親ウィンドウでのメッセージ受信処理
-    useEffect(() => {
-        const handleMessage = (event) => {
-            if (event.data.type === 'DOCUMENT_WINDOW_CLOSED') {
-                openWindows.current.delete(event.data.docId);
-                console.log(`ドキュメントウィンドウ ${event.data.docId} が閉じられました`);
-            } else if (event.data.type === 'WINDOW_READY') {
-                console.log(`ドキュメントウィンドウ ${event.data.docId} の準備が完了しました`);
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    // 親ウィンドウでのメッセージ受信処理は不要（新しいタブを使用するため）
 
     // ドキュメントリストが閉じている場合のアイコンボタン
     if (!isListOpen) {
@@ -389,7 +85,7 @@ const DocumentList = () => {
                 overflowY: 'auto',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
             }}>
-            
+
             {/* ヘッダー部分（タイトル + 閉じるボタン） */}
             <div style={{
                 display: 'flex',
@@ -404,7 +100,7 @@ const DocumentList = () => {
                     fontSize: '16px',
                     color: '#333'
                 }}>📚 ドキュメントリスト</h2>
-                
+
                 {/* 閉じるボタン（サイドバーと同じSVG） */}
                 <button
                     onClick={() => setIsListOpen(false)}
@@ -427,13 +123,13 @@ const DocumentList = () => {
                     }}
                     title="ドキュメントリストを閉じる"
                 >
-                    <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="18" 
-                        height="18" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor" 
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                         strokeWidth="2"
                         style={{ color: '#666' }}
                     >
@@ -441,7 +137,7 @@ const DocumentList = () => {
                     </svg>
                 </button>
             </div>
-            
+
             <ul className="document-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 <li className="document-list-item" style={{
                     marginBottom: '12px',
@@ -451,9 +147,9 @@ const DocumentList = () => {
                     transition: 'all 0.2s',
                     overflow: 'hidden'
                 }}>
-                    <button 
-                        onClick={() => openDocumentWindow(documentData)}
-                        style={{ 
+                    <button
+                        onClick={() => openDocumentWindow()}
+                        style={{
                             width: '100%',
                             padding: '16px',
                             fontSize: '14px',
@@ -487,25 +183,14 @@ const DocumentList = () => {
                                 {posts.length}件の投稿データ
                             </div>
                         </div>
-                        <span style={{ 
-                            fontSize: '16px', 
+                        <span style={{
+                            fontSize: '16px',
                             opacity: 0.6,
                             transition: 'all 0.2s'
                         }}>🪟</span>
                     </button>
                 </li>
             </ul>
-            <div style={{
-                marginTop: '15px',
-                padding: '10px',
-                backgroundColor: '#e7f3ff',
-                borderRadius: '6px',
-                fontSize: '12px',
-                color: '#0066cc',
-                textAlign: 'center'
-            }}>
-                💡 リアルタイムでチャットデータを表示
-            </div>
         </div>
     );
 };

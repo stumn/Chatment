@@ -6,7 +6,8 @@ const {
   explainRoomQuery,
   getActiveRooms,
   getRoomById,
-  createRoom
+  createRoom,
+  getPostsByDisplayOrder
 } = require('./dbOperation');
 
 // パフォーマンス測定エンドポイント
@@ -142,6 +143,61 @@ router.post('/rooms', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+});
+
+// 全ポストデータ取得エンドポイント
+router.get('/posts', async (req, res) => {
+  try {
+    console.time('posts-api');
+    
+    // displayOrder順で全投稿を取得
+    const posts = await getPostsByDisplayOrder();
+    
+    console.timeEnd('posts-api');
+    console.log(`Posts API: Retrieved ${posts.length} posts`);
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      posts: posts,
+      count: posts.length
+    });
+  } catch (error) {
+    console.error('Posts API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to retrieve posts data'
+    });
+  }
+});
+
+// 特定のルームのポストデータ取得（オプション：将来的な拡張用）
+router.get('/posts/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    console.time(`posts-room-${roomId}-api`);
+    
+    // 現在はroomId指定による絞り込みは未実装
+    // 全データを返すが、将来的にはルーム指定対応を追加予定
+    const posts = await getPostsByDisplayOrder();
+    
+    console.timeEnd(`posts-room-${roomId}-api`);
+    console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts`);
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      roomId: roomId,
+      posts: posts,
+      count: posts.length
+    });
+  } catch (error) {
+    console.error(`Posts API (Room ${req.params.roomId}) error:`, error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to retrieve posts data for room'
     });
   }
 });

@@ -7,6 +7,7 @@ import { Suspense, lazy } from 'react';
 const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
 const ChatApp = lazy(() => import('./pages/space/ChatApp'));
 const SpaceDetail = lazy(() => import('./pages/space/SpaceDetail'));
+const DocumentPage = lazy(() => import('./pages/space/DocumentPage'));
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
           
           {/* スペース詳細 - パスパラメータ形式 */}
           <Route path="/space/:id" element={<SpaceDetail />} />
+          
+          {/* ドキュメント表示 */}
+          <Route path="/document/:id" element={<DocumentPage />} />
           
           {/* チャットアプリ（デフォルト） */}
           <Route path="/" element={<ChatApp />} />
