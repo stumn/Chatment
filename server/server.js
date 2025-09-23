@@ -1,4 +1,6 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
@@ -11,7 +13,7 @@ const { SOCKET_CONFIG, PORT } = require('./constants');
 const io = new Server(server, SOCKET_CONFIG);
 
 // ミドルウェア
-app.use(express.static('./client/dist'));
+app.use(express.static(path.join(__dirname, '../client/dist')));
 app.use(express.json());
 
 // ルート設定
@@ -25,7 +27,21 @@ app.use('/api', apiRoutes);
 
 // SPAのルーティング対応 - 他のすべてのルートでReactアプリを返す
 app.get('*', (req, res) => {
-  res.sendFile(__dirname + '/../client/dist/index.html');
+  // APIリクエストやstatic assetsは除外
+  if (req.path.startsWith('/api/') || req.path.startsWith('/plain')) {
+    return next();
+  }
+  
+  const indexPath = path.join(__dirname, '../client/dist/index.html');
+  console.log('Trying to serve file:', indexPath);
+  
+  // ファイルが存在するかチェック
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error('File not found:', indexPath);
+    res.status(404).send('File not found');
+  }
 });
 
 // Socket.IOハンドラー
