@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // TODO: スペースストアをインポート（Zustandなどのライブラリをインストール後）
 // import { useSpaceStore } from './store/spaceStore';
 
@@ -267,14 +268,14 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ name: spaceName, description: spaceDescription, options: spaceOptions })
       // });
-      
+
       onAdd({
         id: Date.now().toString(), // 実際はサーバーから返されるIDを使用
         name: spaceName,
         description: spaceDescription,
         options: spaceOptions || '#undefined'
       });
-      
+
       setSpaceName('');
       setSpaceDescription('');
       setSpaceOptions('');
@@ -314,15 +315,15 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
             onChange={(e) => setSpaceOptions(e.target.value)}
           />
           <div style={styles.buttonContainer}>
-            <button 
-              type="button" 
+            <button
+              type="button"
               style={styles.buttonSecondary}
               onClick={onClose}
             >
               キャンセル
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               style={styles.button}
             >
               追加
@@ -351,8 +352,8 @@ const FinishedRoomRow = ({ room }) => {
   return (
     <tr>
       <td style={styles.tdName}>
-        <a 
-          href={`/log/${room.id}/`} 
+        <a
+          href={`/log/${room.id}/`}
           style={styles.link}
           onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
           onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
@@ -383,8 +384,8 @@ const FinishedRoomRow = ({ room }) => {
             >
               {room.files[fileType].map(format => (
                 <li key={format}>
-                  <a 
-                    href={`/log/${room.id}/${fileType}.${format}`} 
+                  <a
+                    href={`/log/${room.id}/${fileType}.${format}`}
                     style={styles.dropdownItem}
                     onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
@@ -399,7 +400,7 @@ const FinishedRoomRow = ({ room }) => {
       </td>
       <td style={styles.tdGray}>{room.options}</td>
       <td style={styles.td}>
-        <button 
+        <button
           style={styles.button}
           onClick={handleViewDocument}
         >
@@ -422,6 +423,9 @@ const TableHeader = ({ columns }) => (
 );
 
 function SpaceApp() {
+  // react-router-domのナビゲート機能
+  const navigate = useNavigate();
+
   // TODO: Zustandストアを使用する場合（ライブラリインストール後）
   // const currentSpace = useSpaceStore(state => state.currentSpace);
   // const activeSpaces = useSpaceStore(state => state.activeSpaces);
@@ -438,7 +442,7 @@ function SpaceApp() {
   useEffect(() => {
     // TODO: ストアからデータを取得
     // fetchSpaces();
-    
+
     // TODO: ローカルストレージから選択済みスペースを復元
     // const savedSpace = localStorage.getItem('selectedSpace');
     // if (savedSpace) {
@@ -451,10 +455,10 @@ function SpaceApp() {
     try {
       // TODO: ストアのaddSpace関数を使用
       // await addSpace(newSpace);
-      
+
       // 一時的な処理
       setActiveSpaces(prev => [...prev, newSpace]);
-      
+
       // TODO: 成功通知を表示
       // showNotification('スペースが正常に追加されました', 'success');
     } catch (error) {
@@ -468,15 +472,19 @@ function SpaceApp() {
   const handleSelectSpace = (space) => {
     // TODO: ストアのsetCurrentSpace関数を使用
     // setCurrentSpace(space);
-    
+
     // 一時的な処理
     setSelectedSpace(space);
     localStorage.setItem('selectedSpace', JSON.stringify(space));
-    
+
+    // 新しいタブでチャットページを開く（react-router-domを使用）
+    const chatUrl = `/space/${space.id}`;
+    window.open(chatUrl, '_blank');
+
     // TODO: 選択されたスペースに関連するデータを取得
     // fetchSpaceMessages(space.id);
     // fetchSpaceParticipants(space.id);
-    
+
     // TODO: リアルタイム通信の設定
     // socket.emit('join-space', space.id);
   };
@@ -485,11 +493,11 @@ function SpaceApp() {
   const handleClearSelection = () => {
     // TODO: ストアの状態をクリア
     // setCurrentSpace(null);
-    
+
     // 一時的な処理
     setSelectedSpace(null);
     localStorage.removeItem('selectedSpace');
-    
+
     // TODO: リアルタイム通信の切断
     // socket.emit('leave-space');
   };
@@ -499,18 +507,18 @@ function SpaceApp() {
     try {
       // TODO: ストアのfinishSpace関数を使用
       // await finishSpace(spaceId);
-      
+
       // 一時的な処理
       const spaceToFinish = activeSpaces.find(space => space.id === spaceId);
       if (spaceToFinish) {
         setActiveSpaces(prev => prev.filter(space => space.id !== spaceId));
         setFinishedSpaces(prev => [...prev, { ...spaceToFinish, isActive: false }]);
-        
+
         if (selectedSpace?.id === spaceId) {
           handleClearSelection();
         }
       }
-      
+
       // TODO: 成功通知を表示
       // showNotification('スペースが終了されました', 'success');
     } catch (error) {
@@ -524,32 +532,11 @@ function SpaceApp() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h1 style={styles.title}>コミュニケーションスペース管理</h1>
-        
-        {/* 選択されたスペース表示エリア */}
-        {selectedSpace && (
-          <div style={styles.selectedSpace}>
-            <h3 style={{ margin: '0 0 8px 0', color: '#1f2937' }}>
-              入場中のスペース: {selectedSpace.name}
-            </h3>
-            <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px' }}>
-              {selectedSpace.description}
-            </p>
-            <p style={{ margin: '0 0 12px 0', color: '#6b7280', fontSize: '12px' }}>
-              オプション: {selectedSpace.options}
-            </p>
-            <button 
-              style={styles.buttonSecondary}
-              onClick={handleClearSelection}
-            >
-              退場
-            </button>
-          </div>
-        )}
 
         <div style={styles.section}>
           <div style={styles.actionBar}>
             <h2 style={styles.sectionTitle}>アクティブなコミュニケーションスペース</h2>
-            <button 
+            <button
               style={styles.button}
               onClick={() => setIsAddModalOpen(true)}
             >
@@ -562,8 +549,8 @@ function SpaceApp() {
               {activeSpaces.map(space => (
                 <tr key={space.id}>
                   <td style={styles.tdName}>
-                    <a 
-                      href={`/spaces/${space.id}`} 
+                    <a
+                      href={`/spaces/${space.id}`}
                       style={styles.link}
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
@@ -574,15 +561,15 @@ function SpaceApp() {
                   <td style={styles.tdGray}>{space.description || '説明なし'}</td>
                   <td style={styles.tdGray}>{space.options}</td>
                   <td style={styles.td}>
-                    <button 
+                    <button
                       style={styles.buttonSuccess}
                       onClick={() => handleSelectSpace(space)}
                       disabled={selectedSpace?.id === space.id}
                     >
-                      {selectedSpace?.id === space.id ? '入場中' : '入場'}
+                      入場
                     </button>
-                    <button 
-                      style={{...styles.buttonSecondary, backgroundColor: '#ef4444'}}
+                    <button
+                      style={{ ...styles.buttonSecondary, backgroundColor: '#ef4444' }}
                       onClick={() => handleFinishSpace(space.id)}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
@@ -615,7 +602,7 @@ function SpaceApp() {
       </div>
 
       {/* スペース追加モーダル */}
-      <AddSpaceModal 
+      <AddSpaceModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddSpace}
