@@ -128,7 +128,7 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
           onClick={() => onSelectSpace(space)}
           disabled={selectedSpace?.id === space.id}
         >
-          {selectedSpace?.id === space.id ? '選択中' : '入場'}
+          入場
         </button>
         <button
           style={{ ...styles.buttonSecondary, backgroundColor: '#ef4444' }}
