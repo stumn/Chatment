@@ -1,64 +1,5 @@
 import React, { useState } from 'react';
 
-const styles = {
-    modal: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: '24px',
-        borderRadius: '8px',
-        width: '400px',
-        maxWidth: '90%'
-    },
-    input: {
-        width: '100%',
-        padding: '8px 12px',
-        border: '1px solid #d1d5db',
-        borderRadius: '4px',
-        fontSize: '14px',
-        marginBottom: '12px',
-        boxSizing: 'border-box'
-    },
-    buttonContainer: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '8px',
-        marginTop: '16px'
-    },
-    button: {
-        padding: '8px 16px',
-        backgroundColor: '#3b82f6',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '14px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        marginRight: '8px'
-    },
-    buttonSecondary: {
-        padding: '8px 16px',
-        backgroundColor: '#6b7280',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '14px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        marginRight: '8px'
-    }
-};
-
 /**
  * コミュニケーションスペースを追加するためのモーダルコンポーネント
  * 
@@ -112,15 +53,21 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     if (!isOpen) return null;
 
     return (
-        <div style={styles.modal} onClick={handleClose}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>
+        <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]" 
+            onClick={handleClose}
+        >
+            <div 
+                className="bg-white p-6 rounded-lg w-96 max-w-[90%]" 
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h3 className="mb-4 text-lg font-semibold">
                     新しいコミュニケーションスペースを追加
                 </h3>
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '12px', color: '#374151', fontSize: '12px', flexDirection: 'column' }}>
+                    <div className="mb-3 text-gray-700 text-xs flex-col">
                         <input
-                            style={styles.input}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
                             type="text"
                             placeholder="スペース名"
                             value={spaceName}
@@ -129,7 +76,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             required
                         />
                         <input
-                            style={styles.input}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
                             type="text"
                             placeholder="説明（任意）"
                             value={spaceDescription}
@@ -137,7 +84,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             disabled={isSubmitting}
                         />
                         <input
-                            style={styles.input}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
                             type="text"
                             placeholder="オプション（例：#hashtag）"
                             value={spaceOptions}
@@ -145,10 +92,10 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             disabled={isSubmitting}
                         />
 
-                        <div style={styles.buttonContainer}>
+                        <div className="flex justify-end gap-2 mt-4">
                             <button
                                 type="button"
-                                style={styles.buttonSecondary}
+                                className="px-4 py-2 !bg-gray-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-gray-600 disabled:!bg-gray-300 disabled:cursor-not-allowed transition-colors duration-150"
                                 onClick={handleClose}
                                 disabled={isSubmitting}
                             >
@@ -156,7 +103,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             </button>
                             <button
                                 type="submit"
-                                style={styles.button}
+                                className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 disabled:!bg-blue-300 disabled:cursor-not-allowed transition-colors duration-150"
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? '追加中...' : '追加'}
