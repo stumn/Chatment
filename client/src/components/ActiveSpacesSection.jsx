@@ -1,106 +1,11 @@
 import React from 'react';
 
-const styles = {
-  section: {
-    marginBottom: '32px'
-  },
-  sectionTitle: {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: '16px',
-    textAlign: 'left'
-  },
-  actionBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16px'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tableHeader: {
-    backgroundColor: '#f9fafb'
-  },
-  th: {
-    padding: '12px 24px',
-    textAlign: 'left',
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  td: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tdName: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#111827',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tdGray: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    color: '#6b7280',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  link: {
-    color: '#2563eb',
-    textDecoration: 'none'
-  },
-  button: {
-    padding: '8px 16px',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginRight: '8px'
-  },
-  buttonSecondary: {
-    padding: '8px 16px',
-    backgroundColor: '#6b7280',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginRight: '8px'
-  },
-  buttonSuccess: {
-    padding: '8px 16px',
-    backgroundColor: '#10b981',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginRight: '8px'
-  }
-};
-
 // テーブルヘッダーコンポーネント
 const TableHeader = ({ columns }) => (
-  <thead style={styles.tableHeader}>
+  <thead className="bg-gray-50">
     <tr>
       {columns.map(col => (
-        <th key={col} scope="col" style={styles.th}>{col}</th>
+        <th key={col} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">{col}</th>
       ))}
     </tr>
   </thead>
@@ -110,31 +15,27 @@ const TableHeader = ({ columns }) => (
 const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) => {
   return (
     <tr>
-      <td style={styles.tdName}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
         <a
           href={`/spaces/${space.id}`}
-          style={styles.link}
-          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+          className="text-blue-600 no-underline hover:underline"
         >
           {space.name}
         </a>
       </td>
-      <td style={styles.tdGray}>{space.description || '説明なし'}</td>
-      <td style={styles.tdGray}>{space.options || 'オプションなし'}</td>
-      <td style={styles.td}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '説明なし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.options || 'オプションなし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
-          style={styles.buttonSuccess}
+          className="px-4 py-2 !bg-emerald-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-emerald-600 disabled:!bg-gray-300 disabled:cursor-not-allowed transition-colors duration-150"
           onClick={() => onSelectSpace(space)}
           disabled={selectedSpace?.id === space.id}
         >
           入場
         </button>
         <button
-          style={{ ...styles.buttonSecondary, backgroundColor: '#ef4444' }}
+          className="px-4 py-2 !bg-red-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-red-600 transition-colors duration-150"
           onClick={() => onFinishSpace(space.id)}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
         >
           終了
         </button>
@@ -161,17 +62,18 @@ const ActiveSpacesSection = ({
   onAddSpaceClick 
 }) => {
   return (
-    <div style={styles.section}>
-      <div style={styles.actionBar}>
-        <h2 style={styles.sectionTitle}>アクティブなコミュニケーションスペース</h2>
+    <div className="mb-8">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">アクティブなコミュニケーションスペース</h2>
         <button
-          style={styles.button}
+          className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
           onClick={onAddSpaceClick}
         >
           ＋ 新しいスペースを追加
         </button>
       </div>
-      <table style={styles.table}>
+      <div className="overflow-x-auto">
+        <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
         <TableHeader columns={['スペース名', '説明', 'オプション', 'アクション']} />
         <tbody>
           {activeSpaces.length > 0 ? (
@@ -186,13 +88,14 @@ const ActiveSpacesSection = ({
             ))
           ) : (
             <tr>
-              <td colSpan="4" style={{ ...styles.td, textAlign: 'center', color: '#9ca3af' }}>
+              <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200 text-center text-gray-400">
                 アクティブなスペースはありません
               </td>
             </tr>
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 };
