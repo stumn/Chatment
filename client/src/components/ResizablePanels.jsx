@@ -158,38 +158,33 @@ export default function ResizablePanels({ appController }) {
     return (
         <div
             id='resizable-panels'
+            className="flex flex-col bg-[var(--page-bg,#fefefe)] text-[#4A4A4A] shadow-[0_4px_0_rgba(0,0,0,.16)] rounded-t"
             style={{
                 width: `${CONTAINER_resizable_WIDTH}px`,
                 height: `${CONTAINER_resizable_HEIGHT}px`,
-                display: "flex",
-                flexDirection: "column",
-                backgroundColor: 'var(--page-bg, #fefefe)',
-                color: '#4A4A4A',
-                boxShadow: '0 4px 0 rgba(0,0,0,.16)',
-                borderTopLeftRadius: '4px',
-                borderTopRightRadius: '4px',
             }}
         >
             <div
                 id='doc-container'
-                style={{ backgroundColor: "#fefefe", height: `${myHeight}px` }}>
+                className="bg-[#fefefe]"
+                style={{ height: `${myHeight}px` }}>
                 <DocComments lines={lines} documentFunctions={documentFunctions} />
             </div>
 
             <div
                 id='slide-bar'
+                className="bg-gray-600/60 cursor-row-resize"
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,
                     width: `${CONTAINER_resizable_WIDTH}px`,
-                    backgroundColor: "rgba(53, 59, 72, 0.6)",
-                    cursor: "row-resize"
                 }}
                 onMouseDown={handleMouseDown}
             />
 
             <div
                 id='chat-container'
-                style={{ flexGrow: 1, backgroundColor: "#fefefe", height: `${bottomHeight}px` }}>
+                className="flex-grow bg-[#fefefe]"
+                style={{ height: `${bottomHeight}px` }}>
                 <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} />
             </div>
         </div>
