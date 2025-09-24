@@ -50,16 +50,27 @@ app.get('*', (req, res, next) => {
 
 // Socket.IOハンドラー
 const { initializeSocketHandlers, rooms } = require('./socketHandlers');
-const { initializeDefaultRooms, getActiveRooms } = require('./dbOperation');
+const { 
+  initializeDefaultRooms, 
+  getActiveRooms,
+  initializeDefaultSpace,
+  migrateExistingDataToSpace
+} = require('./dbOperation');
 
 initializeSocketHandlers(io);
 
-// サーバー起動時にデフォルトルームを初期化（DB経由）
+// サーバー起動時にデフォルトスペース・ルームを初期化（DB経由）
 const initializeRoomsFromDatabase = async () => {
   try {
-    console.log('🏠 [server] データベースからルーム初期化開始');
+    console.log('� [server] データベースからスペース・ルーム初期化開始');
 
-    // データベースにデフォルトルームを作成
+    // 1. デフォルトスペースを初期化
+    await initializeDefaultSpace();
+
+    // 2. 既存データをスペース構造に移行
+    await migrateExistingDataToSpace();
+
+    // 3. データベースにデフォルトルームを作成
     await initializeDefaultRooms();
 
     // データベースからアクティブなルームを取得してメモリに読み込み
@@ -80,7 +91,7 @@ const initializeRoomsFromDatabase = async () => {
 
     console.log(`✅ [server] ${dbRooms.length}個のルームを初期化完了`);
   } catch (error) {
-    console.error('❌ [server] ルーム初期化失敗:', error);
+    console.error('❌ [server] スペース・ルーム初期化失敗:', error);
   }
 };
 

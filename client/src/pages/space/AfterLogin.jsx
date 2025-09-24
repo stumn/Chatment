@@ -9,8 +9,8 @@ import DocumentList from '../../components/DocumentList';
 import sizeStore from '../../store/sizeStore';
 import useAppStore from '../../store/appStore';
 
-export default function AfterLogin({ heightArray, appController, userInfo }) {
-    // userInfoをpropsから受け取る
+export default function AfterLogin({ heightArray, appController, userInfo, spaceId = null }) {
+    // userInfoとspaceIdをpropsから受け取る
     const { nickname, status, ageGroup, userId } = userInfo;
 
     // サイドバーの状態管理

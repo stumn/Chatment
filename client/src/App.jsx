@@ -24,11 +24,11 @@ function App() {
           {/* 管理画面 */}
           <Route path="/admin" element={<SpaceApp />} />
           
-          {/* スペース詳細 - パスパラメータ形式 */}
-          <Route path="/space/:id" element={<SpaceDetail />} />
+          {/* スペース詳細 - 整数型スペースID対応 */}
+          <Route path="/spaces/:spaceId" element={<SpaceDetail />} />
           
-          {/* ドキュメント表示 */}
-          <Route path="/document/:id" element={<DocumentPage />} />
+          {/* ドキュメント表示 - スペースID + ドキュメントID */}
+          <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
           
           {/* チャットアプリ（デフォルト） */}
           <Route path="/" element={<ChatApp />} />

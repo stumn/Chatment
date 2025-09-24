@@ -2,19 +2,45 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const DocumentPage = () => {
-    const { id } = useParams();
+    const { spaceId, docId } = useParams(); // 整数型スペースIDとドキュメントIDを取得
+    const currentSpaceId = parseInt(spaceId, 10); // 整数型に変換
     const [posts, setPosts] = useState([]); // 直接stateで管理
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [spaceData, setSpaceData] = useState(null);
 
-    // APIからpostsデータを取得する関数
+    // スペース情報を取得
+    useEffect(() => {
+        const fetchSpaceData = async () => {
+            if (!currentSpaceId || isNaN(currentSpaceId)) return;
+
+            try {
+                const response = await fetch(`/api/spaces/${currentSpaceId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    setSpaceData(data.space);
+                }
+            } catch (error) {
+                console.error('スペース情報取得中にエラーが発生しました:', error);
+            }
+        };
+
+        fetchSpaceData();
+    }, [currentSpaceId]);
+
+    // APIからスペース別postsデータを取得する関数
     const fetchPostsFromAPI = async () => {
         try {
             setIsLoading(true);
             setError(null);
             
-            // APIエンドポイントからpostsを取得
-            const response = await fetch('/api/posts');
+            // スペース別APIエンドポイントからpostsを取得
+            const apiEndpoint = currentSpaceId && !isNaN(currentSpaceId) 
+                ? `/api/spaces/${currentSpaceId}/posts` 
+                : '/api/posts';
+            
+            const response = await fetch(apiEndpoint);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -39,7 +65,7 @@ const DocumentPage = () => {
     // コンポーネントマウント時にAPIからデータを取得
     useEffect(() => {
         fetchPostsFromAPI();
-    }, [id]); // idが変わった時も再取得
+    }, [currentSpaceId, docId]); // スペースIDやドキュメントIDが変わった時も再取得
 
     // postsデータからドキュメント形式に変換する関数
     const generateDocumentContent = () => {
@@ -241,15 +267,26 @@ const DocumentPage = () => {
                     background: 'white',
                     zIndex: '10'
                 }}>
-                    <div style={{
-                        background: '#e3f2fd',
-                        padding: '12px 16px',
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        color: '#1976d2',
-                        borderLeft: '4px solid #2196f3'
-                    }}>
-                        📄 全投稿データ {isLoading ? '(読み込み中...)' : `(${posts.length}件)`}
+                    <div>
+                        <div style={{
+                            background: '#e3f2fd',
+                            padding: '12px 16px',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            color: '#1976d2',
+                            borderLeft: '4px solid #2196f3',
+                            marginBottom: '8px'
+                        }}>
+                            📄 {spaceData ? `${spaceData.name} (ID: ${currentSpaceId})` : `スペース ${currentSpaceId}`} - ドキュメント表示
+                        </div>
+                        <div style={{
+                            fontSize: '12px',
+                            color: '#666',
+                            marginLeft: '16px'
+                        }}>
+                            {isLoading ? '読み込み中...' : `${posts.length}件の投稿`}
+                            {docId && ` | ドキュメントID: ${docId}`}
+                        </div>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         {!isLoading && (

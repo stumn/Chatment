@@ -211,14 +211,15 @@ const styles = {
 };
 
 const mockActiveRooms = [
-  { id: '6808ac9f1afc55447373dbed', name: '2025.04.24 IT Design', options: '#undefined', description: 'ITデザインの議論スペース' },
-  { id: '681247181afc55447373e32f', name: '2025.05.01 IT Design', options: '#undefined', description: 'ITデザインの議論スペース（5月版）' },
-  { id: '682540f71afc55447373e485', name: '2025.05.15 IT Design', options: '#undefined', description: 'ITデザインの議論スペース（最新版）' },
+  { id: 1, name: 'デフォルトスペース', options: '#main', description: 'メインのコミュニケーションスペース' },
+  { id: 2, name: '2025.04.24 IT Design', options: '#it-design', description: 'ITデザインの議論スペース' },
+  { id: 3, name: '2025.05.01 IT Design', options: '#it-design-may', description: 'ITデザインの議論スペース（5月版）' },
+  { id: 4, name: '2025.05.15 IT Design', options: '#it-design-latest', description: 'ITデザインの議論スペース（最新版）' },
 ];
 
 const mockFinishedRooms = [
   {
-    id: '5a24b2e2ed6fc559e4e514e4',
+    id: 100,
     name: 'WISS練習用',
     options: '#wiss2016',
     description: 'WISS発表練習のためのスペース',
@@ -229,9 +230,9 @@ const mockFinishedRooms = [
     }
   },
   {
-    id: '5a54d326ed6fc559e4e51519',
+    id: 101,
     name: 'GROUP 2018 backchannel',
-    options: '#undefined',
+    options: '#group2018',
     description: '2018年のGROUP会議のバックチャンネル',
     files: {
       lines: ['json', 'csv'],
@@ -240,9 +241,9 @@ const mockFinishedRooms = [
     }
   },
   {
-    id: '5ace17c0ed6fc559e4e5151c',
+    id: 102,
     name: '2018.4.12 ITコミュニケーションデザインA',
-    options: '#undefined',
+    options: '#itcomm2018',
     description: 'ITコミュニケーションデザインの授業スペース',
     files: {
       lines: ['json', 'csv'],
@@ -270,10 +271,10 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
       // });
 
       onAdd({
-        id: Date.now().toString(), // 実際はサーバーから返されるIDを使用
+        id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
         name: spaceName,
         description: spaceDescription,
-        options: spaceOptions || '#undefined'
+        options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`
       });
 
       setSpaceName('');
@@ -440,31 +441,82 @@ function SpaceApp() {
 
   // 初期化時にデータを取得
   useEffect(() => {
-    // TODO: ストアからデータを取得
-    // fetchSpaces();
+    const fetchSpacesFromAPI = async () => {
+      try {
+        const response = await fetch('/api/spaces');
+        const data = await response.json();
+        
+        if (data.success) {
+          // APIから取得したデータでモックデータを置き換え
+          setActiveSpaces(data.spaces.filter(space => space.isActive));
+          console.log('✅ スペース一覧を取得しました:', data.spaces.length);
+        } else {
+          console.error('スペース一覧の取得に失敗しました:', data.error);
+        }
+      } catch (error) {
+        console.error('スペース一覧取得中にエラーが発生しました:', error);
+        // エラー時はモックデータを使用
+        console.log('📋 モックデータを使用します');
+      }
+    };
 
-    // TODO: ローカルストレージから選択済みスペースを復元
-    // const savedSpace = localStorage.getItem('selectedSpace');
-    // if (savedSpace) {
-    //   setSelectedSpace(JSON.parse(savedSpace));
-    // }
+    fetchSpacesFromAPI();
+
+    // ローカルストレージから選択済みスペースを復元
+    const savedSpace = localStorage.getItem('selectedSpace');
+    if (savedSpace) {
+      try {
+        const parsedSpace = JSON.parse(savedSpace);
+        // 整数型IDに変換
+        if (parsedSpace.id && typeof parsedSpace.id === 'string') {
+          parsedSpace.id = parseInt(parsedSpace.id, 10);
+        }
+        setSelectedSpace(parsedSpace);
+      } catch (error) {
+        console.error('選択済みスペースの復元に失敗しました:', error);
+      }
+    }
   }, []);
 
   // コミュニケーションスペースを追加する関数
   const handleAddSpace = async (newSpace) => {
     try {
-      // TODO: ストアのaddSpace関数を使用
-      // await addSpace(newSpace);
+      // 実際のAPIを呼び出してスペースを作成
+      const response = await fetch('/api/spaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: newSpace.id,
+          name: newSpace.name,
+          description: newSpace.description,
+          createdByNickname: 'admin', // TODO: 実際のユーザー名を使用
+          settings: {
+            defaultRoomSettings: {
+              autoDeleteMessages: false,
+              messageRetentionDays: 30,
+              allowAnonymous: true
+            },
+            maxRooms: 50,
+            theme: 'default'
+          }
+        }),
+      });
 
-      // 一時的な処理
-      setActiveSpaces(prev => [...prev, newSpace]);
+      const data = await response.json();
 
-      // TODO: 成功通知を表示
-      // showNotification('スペースが正常に追加されました', 'success');
+      if (data.success) {
+        // APIから返された実際のスペースデータを使用
+        setActiveSpaces(prev => [...prev, data.space]);
+        console.log('✅ 新しいスペースが作成されました:', data.space);
+      } else {
+        throw new Error(data.error || 'スペースの作成に失敗しました');
+      }
     } catch (error) {
       console.error('スペース追加エラー:', error);
-      // TODO: エラー通知を表示
-      // showNotification('スペースの追加に失敗しました', 'error');
+      // エラー時はローカルに追加（フォールバック）
+      setActiveSpaces(prev => [...prev, newSpace]);
     }
   };
 
@@ -477,9 +529,9 @@ function SpaceApp() {
     setSelectedSpace(space);
     localStorage.setItem('selectedSpace', JSON.stringify(space));
 
-    // 新しいタブでチャットページを開く（react-router-domを使用）
-    const chatUrl = `/space/${space.id}`;
-    window.open(chatUrl, '_blank');
+    // 新しいタブでスペース詳細ページを開く（整数型スペースID対応）
+    const spaceUrl = `/spaces/${space.id}`;
+    window.open(spaceUrl, '_blank');
 
     // TODO: 選択されたスペースに関連するデータを取得
     // fetchSpaceMessages(space.id);

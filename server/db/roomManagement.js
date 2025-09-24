@@ -5,9 +5,12 @@ const { handleErrors } = require('../utils');
 // --- デフォルトルームを初期化 ---
 async function initializeDefaultRooms() {
     try {
+        const DEFAULT_SPACE_ID = 1; // デフォルトスペースID
+
         const defaultRooms = [
             {
                 id: 'room-0',
+                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
                 name: '全体',
                 description: '全ての投稿を表示',
                 createdByNickname: 'システム',
@@ -19,6 +22,7 @@ async function initializeDefaultRooms() {
             },
             {
                 id: 'room-1',
+                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
                 name: 'サブルーム1',
                 description: 'サブルーム1',
                 createdByNickname: 'システム',
@@ -30,6 +34,7 @@ async function initializeDefaultRooms() {
             },
             {
                 id: 'room-2',
+                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
                 name: 'サブルーム2',
                 description: 'サブルーム2',
                 createdByNickname: 'システム',
@@ -132,7 +137,7 @@ async function updateRoomStats(roomId, updates = {}) {
 async function createRoom(roomData) {
     try {
         // roomDataのデストラクション
-        const { id, name, description, createdByNickname, createdBy, settings = {} } = roomData;
+        const { id, spaceId = 1, name, description, createdByNickname, createdBy, settings = {} } = roomData;
 
         // 重複チェック
         const existingRoom = await Room.findOne({ id });
@@ -141,6 +146,7 @@ async function createRoom(roomData) {
         // 新しいルームを作成
         const newRoom = await Room.create({
             id,
+            spaceId, // スペースIDを追加
             name,
             description,
             createdByNickname,

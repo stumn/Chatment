@@ -21,17 +21,18 @@ async function getLastDisplayOrder() {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io, rooms) {
 
-  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId }) => {
+  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId = 1 }) => {
     try {
       // displayOrderの最後尾を取得
       const displayOrder = await getLastDisplayOrder();
 
-      // チャットメッセージデータ（ルーム情報も含める）
+      // チャットメッセージデータ（ルーム情報とスペース情報も含める）
       const messageData = {
         nickname,
         message,
         userId,
         displayOrder,
+        spaceId, // スペースIDを追加
         ...(roomId && { roomId })
       };
 

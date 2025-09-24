@@ -7,7 +7,16 @@ const {
   getActiveRooms,
   getRoomById,
   createRoom,
-  getPostsByDisplayOrder
+  getPostsByDisplayOrder,
+  // スペース関連操作
+  getActiveSpaces,
+  getSpaceById,
+  createSpace,
+  getRoomsBySpace,
+  getPostsBySpace,
+  deactivateSpace,
+  updateSpaceStats,
+  migrateExistingDataToSpace
 } = require('./dbOperation');
 
 // パフォーマンス測定エンドポイント
@@ -198,6 +207,187 @@ router.get('/posts/:roomId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to retrieve posts data for room'
+    });
+  }
+});
+
+// === スペース管理API ===
+
+// スペース一覧取得
+router.get('/spaces', async (req, res) => {
+  try {
+    const spaces = await getActiveSpaces();
+    res.json({
+      success: true,
+      spaces: spaces,
+      count: spaces.length
+    });
+  } catch (error) {
+    console.error('Spaces API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 特定スペース情報取得
+router.get('/spaces/:spaceId', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId); // 整数に変換
+    const space = await getSpaceById(spaceId);
+
+    if (!space) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: space
+    });
+  } catch (error) {
+    console.error('Space info API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 新しいスペース作成
+router.post('/spaces', async (req, res) => {
+  try {
+    const { id, name, description, createdByNickname, settings } = req.body;
+
+    if (!id || !name || !createdByNickname) {
+      return res.status(400).json({
+        success: false,
+        error: 'Required fields: id, name, createdByNickname'
+      });
+    }
+
+    const newSpace = await createSpace({
+      id: parseInt(id), // 整数に変換
+      name,
+      description,
+      createdByNickname,
+      settings
+    });
+
+    if (!newSpace) {
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to create space'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      space: newSpace
+    });
+
+  } catch (error) {
+    console.error('Create space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペース別ルーム一覧取得
+router.get('/spaces/:spaceId/rooms', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId); // 整数に変換
+    const rooms = await getRoomsBySpace(spaceId);
+    
+    res.json({
+      success: true,
+      spaceId: spaceId,
+      rooms: rooms,
+      count: rooms.length
+    });
+  } catch (error) {
+    console.error('Space rooms API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペース別投稿取得
+router.get('/spaces/:spaceId/posts', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId); // 整数に変換
+    const limit = parseInt(req.query.limit) || 100;
+    const posts = await getPostsBySpace(spaceId, limit);
+    
+    res.json({
+      success: true,
+      spaceId: spaceId,
+      posts: posts,
+      count: posts.length
+    });
+  } catch (error) {
+    console.error('Space posts API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペースを非アクティブ化
+router.delete('/spaces/:spaceId', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId); // 整数に変換
+    const deactivatedSpace = await deactivateSpace(spaceId);
+
+    if (!deactivatedSpace) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found or cannot be deactivated'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: deactivatedSpace
+    });
+  } catch (error) {
+    console.error('Deactivate space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// データ移行エンドポイント（初回セットアップ用）
+router.post('/migrate-to-spaces', async (req, res) => {
+  try {
+    const result = await migrateExistingDataToSpace();
+    
+    if (result) {
+      res.json({
+        success: true,
+        message: 'Data migration completed successfully'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Data migration failed'
+      });
+    }
+  } catch (error) {
+    console.error('Migration API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

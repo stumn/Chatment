@@ -48,7 +48,7 @@ const User = mongoose.model("User", userSchema);
 // 🏠Room スキーマ / モデル
 const roomSchema = new mongoose.Schema({
     id: { type: String, unique: true, required: true }, // ルームID（room-1, room-2など）
-    spaceId: { type: Number, required: true, index: true }, // 所属スペースID（整数）
+    spaceId: { type: String, required: true, index: true }, // 所属スペースID
     name: { type: String, required: true }, // ルーム名
     description: { type: String, default: '' }, // ルーム説明
     
@@ -82,9 +82,9 @@ roomSchema.index({ isActive: 1, createdAt: -1 }); // 全体アクティブルー
 
 const Room = mongoose.model("Room", roomSchema);
 
-// 🌍 Space スキーマ / モデル
+// � Space スキーマ / モデル
 const spaceSchema = new mongoose.Schema({
-    id: { type: Number, unique: true, required: true }, // 1, 2, 3など（整数）
+    id: { type: String, unique: true, required: true }, // space-1, space-2など
     name: { type: String, required: true }, // スペース名
     description: { type: String, default: '' }, // スペース説明
     
@@ -121,7 +121,7 @@ spaceSchema.index({ createdBy: 1 }); // 作成者別取得用
 
 const Space = mongoose.model("Space", spaceSchema);
 
-// 🌟positive/negative スキーマ（Post 内部）
+// �🌟positive/negative スキーマ（Post 内部）
 const positiveSchema = new mongoose.Schema({
     userSocketId: String,
     nickname: String
@@ -140,7 +140,7 @@ const postSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
     // --- スペース機能: メッセージが送信されたスペースのID ---
-    spaceId: { type: Number, required: true, index: true }, // 整数型のスペースID
+    spaceId: { type: String, required: true, index: true },
 
     // --- ルーム機能: メッセージが送信されたルームのID ---
     roomId: { type: String, default: null },

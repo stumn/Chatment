@@ -7,6 +7,7 @@ const docOperations = require('./db/docOperations');
 const roomOperations = require('./db/roomOperations');
 const roomManagement = require('./db/roomManagement');
 const logOperations = require('./db/logOperations');
+const spaceOperations = require('./db/spaceOperations');
 
 module.exports = {
     // ユーザー関連操作
@@ -25,5 +26,8 @@ module.exports = {
     ...roomManagement,
     
     // ログ関連操作
-    ...logOperations
+    ...logOperations,
+    
+    // スペース関連操作
+    ...spaceOperations
 };
