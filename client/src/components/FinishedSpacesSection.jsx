@@ -1,116 +1,11 @@
 import React, { useState } from 'react';
 
-const styles = {
-  section: {
-    marginBottom: '32px'
-  },
-  sectionTitle: {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: '16px',
-    textAlign: 'left'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tableHeader: {
-    backgroundColor: '#f9fafb'
-  },
-  th: {
-    padding: '12px 24px',
-    textAlign: 'left',
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  td: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tdName: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#111827',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tdGray: {
-    padding: '16px 24px',
-    whiteSpace: 'nowrap',
-    fontSize: '14px',
-    color: '#6b7280',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  link: {
-    color: '#2563eb',
-    textDecoration: 'none'
-  },
-  dropdown: {
-    position: 'relative',
-    display: 'inline-block',
-    marginRight: '8px'
-  },
-  dropdownButton: {
-    padding: '4px 12px',
-    color: '#3b82f6',
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '14px'
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    left: 0,
-    marginTop: '8px',
-    padding: '4px 0',
-    width: '128px',
-    backgroundColor: 'white',
-    borderRadius: '6px',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    zIndex: 10
-  },
-  dropdownItem: {
-    display: 'block',
-    padding: '8px 16px',
-    fontSize: '14px',
-    color: '#374151',
-    textDecoration: 'none'
-  },
-  svg: {
-    display: 'inline-block',
-    marginLeft: '4px',
-    width: '12px',
-    height: '12px',
-    color: '#6b7280'
-  },
-  button: {
-    padding: '8px 16px',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginRight: '8px'
-  }
-};
-
 // テーブルヘッダーコンポーネント
 const TableHeader = ({ columns }) => (
-  <thead style={styles.tableHeader}>
+  <thead className="bg-gray-50">
     <tr>
       {columns.map(col => (
-        <th key={col} scope="col" style={styles.th}>{col}</th>
+        <th key={col} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">{col}</th>
       ))}
     </tr>
   </thead>
@@ -132,45 +27,36 @@ const FinishedSpaceRow = ({ space }) => {
 
   return (
     <tr>
-      <td style={styles.tdName}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
         <a
           href={`/log/${space.id}/`}
-          style={styles.link}
-          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+          className="text-blue-600 no-underline hover:underline"
         >
           {space.name}
         </a>
       </td>
-      <td style={styles.tdGray}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
         {space.files && Object.keys(space.files).length > 0 ? (
           Object.keys(space.files).map(fileType => (
-            <span key={fileType} style={styles.dropdown}>
+            <span key={fileType} className="relative inline-block mr-2">
               <button
-                style={styles.dropdownButton}
+                className="px-3 py-1 text-blue-500 bg-transparent border-none cursor-pointer text-sm hover:text-blue-700 transition-colors duration-150"
                 type="button"
                 onClick={() => handleDropdownToggle(fileType)}
-                onMouseEnter={(e) => e.target.style.color = '#1d4ed8'}
-                onMouseLeave={(e) => e.target.style.color = '#3b82f6'}
               >
                 {fileType}
-                <svg style={styles.svg} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <svg className="inline-block ml-1 w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
                 </svg>
               </button>
               <ul
-                style={{
-                  ...styles.dropdownMenu,
-                  display: openDropdown === fileType ? 'block' : 'none'
-                }}
+                className={`absolute left-0 mt-2 py-1 w-32 bg-white rounded-md shadow-lg z-10 ${openDropdown === fileType ? 'block' : 'hidden'}`}
               >
                 {space.files[fileType].map(format => (
                   <li key={format}>
                     <a
                       href={`/log/${space.id}/${fileType}.${format}`}
-                      style={styles.dropdownItem}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                      className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
                     >
                       {format}
                     </a>
@@ -180,13 +66,13 @@ const FinishedSpaceRow = ({ space }) => {
             </span>
           ))
         ) : (
-          <span style={{ color: '#9ca3af' }}>ファイルなし</span>
+          <span className="text-gray-400">ファイルなし</span>
         )}
       </td>
-      <td style={styles.tdGray}>{space.options || 'オプションなし'}</td>
-      <td style={styles.td}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.options || 'オプションなし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
-          style={styles.button}
+          className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
           onClick={handleViewDocument}
         >
           ドキュメント閲覧
@@ -204,24 +90,26 @@ const FinishedSpaceRow = ({ space }) => {
  */
 const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
   return (
-    <div style={styles.section}>
-      <h2 style={styles.sectionTitle}>終了したコミュニケーションスペース</h2>
-      <table style={styles.table}>
-        <TableHeader columns={['スペース名', 'ファイル', 'オプション', 'アクション']} />
-        <tbody>
-          {finishedSpaces.length > 0 ? (
-            finishedSpaces.map(space => (
-              <FinishedSpaceRow key={space.id} space={space} />
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4" style={{ ...styles.td, textAlign: 'center', color: '#9ca3af' }}>
-                終了したスペースはありません
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="mb-8">
+      <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したコミュニケーションスペース</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
+          <TableHeader columns={['スペース名', 'ファイル', 'オプション', 'アクション']} />
+          <tbody>
+            {finishedSpaces.length > 0 ? (
+              finishedSpaces.map(space => (
+                <FinishedSpaceRow key={space.id} space={space} />
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200 text-center text-gray-400">
+                  終了したスペースはありません
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
