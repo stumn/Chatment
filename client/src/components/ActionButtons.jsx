@@ -25,7 +25,7 @@ const ActionButtons = ({
             {isEditing ? (
                 // 編集中の場合は編集完了ボタンのみ表示
                 <button
-                    className="complete-edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                    className="complete-edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border transition-colors duration-150"
                     title="編集完了 (Ctrl+Enter)"
                     onClick={onCompleteEdit}
                     tabIndex={-1}
@@ -51,7 +51,7 @@ const ActionButtons = ({
                 <>
                     {/* 編集ボタン */}
                     <button
-                        className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border"
+                        className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border transition-colors duration-150"
                         title="編集"
                         onClick={onEdit}
                         tabIndex={-1}
@@ -77,7 +77,7 @@ const ActionButtons = ({
                     {/* 削除ボタン（空白行の場合のみ表示） */}
                     {isBlank && (
                         <button
-                            className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border"
+                            className="delete-button p-1 ml-1 bg-white text-gray-400 hover:text-red-500 hover:bg-gray-200 rounded-full shadow-md border transition-colors duration-150"
                             title="空白行を削除"
                             onClick={onDelete}
                             tabIndex={-1}
@@ -106,7 +106,7 @@ const ActionButtons = ({
 
                     {/* 下に行追加ボタン */}
                     <button
-                        className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border"
+                        className="add-button p-1 bg-white text-gray-400 hover:text-blue-500 hover:bg-gray-200 rounded-full shadow-md border transition-colors duration-150"
                         title="下に行を挿入"
                         onClick={onAddBelow}
                         tabIndex={-1}

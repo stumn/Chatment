@@ -18,23 +18,25 @@ const ChangeBar = ({
     onMouseLeave
 }) => {
     /**
-     * 変更バーのスタイルクラスを決定する関数
-     * @returns {string} CSSクラス名
+     * 変更バーのTailwindクラスを決定する関数
+     * @returns {string} Tailwindクラス名
      */
-    const getChangeBarClass = () => {
-        if (!changeState) return 'bar-none';
+    const getChangeBarClasses = () => {
+        const baseClasses = 'w-3 h-full min-h-5 mx-1 rounded-sm transition-all duration-200 cursor-pointer hover:shadow-md';
+        
+        if (!changeState) return `${baseClasses} bg-transparent`;
 
         switch (changeState.type) {
             case 'added':
-                return 'bar-added';
+                return `${baseClasses} bg-blue-500`; // 青 - 空行追加
             case 'modified':
-                return 'bar-modified';
+                return `${baseClasses} bg-green-500`; // 緑 - 編集
             case 'deleted':
-                return 'bar-deleted';
+                return `${baseClasses} bg-red-500`; // 赤 - 削除
             case 'reordered':
-                return 'bar-reordered';
+                return `${baseClasses} bg-orange-500`; // オレンジ - 並び替え
             default:
-                return 'bar-none';
+                return `${baseClasses} bg-transparent`;
         }
     };
 
@@ -90,10 +92,9 @@ const ChangeBar = ({
             }}
         >
             <div
-                className={`change-bar ${getChangeBarClass()}${isFadingOut ? ' fade-out' : ''}`}
+                className={`${getChangeBarClasses()}${isFadingOut ? ' opacity-0 transition-opacity duration-[2000ms] ease-out' : ' opacity-100'} hover:!opacity-100`}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ cursor: 'pointer' }}
             />
         </Tooltip>
     );

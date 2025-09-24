@@ -1,18 +1,16 @@
 export default function Telomere({ heightArray, CONTAINER_HEIGHT }) {
-
     return (
-        <div id="telomere-div" style={{ width: '10px', height: CONTAINER_HEIGHT }}>
+        <div 
+            id="telomere-div" 
+            className="w-2.5" 
+            style={{ height: CONTAINER_HEIGHT }}
+        >
             {heightArray.map((height, index) => (
                 <div
                     key={index}
-                    className="telomere"
+                    className="absolute w-2.5 h-5 bg-green-600/50 mix-blend-multiply"
                     style={{
-                        position: 'absolute',
                         top: `${height + 24}px`,
-                        width: '10px',
-                        height: '20px',
-                        backgroundColor: 'rgba(4, 149, 35, 0.51)',
-                        mixBlendMode: 'multiply',
                     }}
                 />
             ))}
