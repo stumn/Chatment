@@ -1,224 +1,300 @@
-// コミュニケーションスペース関連のstore
-// Zustandやその他のstate管理ライブラリを使用することを想定
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
 
-import { create } from 'zustand'; // zustandを使用する場合
-
-// スペースストアの型定義（TypeScriptを使用する場合）
-/*
-interface Space {
-  id: string;
-  name: string;
-  description?: string;
-  options: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  isActive: boolean;
-  participants?: User[];
-  messages?: Message[];
-}
-
-interface SpaceState {
-  // 現在選択されているスペース
-  currentSpace: Space | null;
-  // アクティブなスペース一覧
-  activeSpaces: Space[];
-  // 終了したスペース一覧
-  finishedSpaces: Space[];
-  // ローディング状態
-  isLoading: boolean;
-  // エラー状態
-  error: string | null;
-}
-*/
-
-export const useSpaceStore = create((set, get) => ({
-  // 初期状態
-  currentSpace: null,
+/**
+ * スペース管理用のZustand Store
+ * 
+ * 機能:
+ * - アクティブなスペースの管理
+ * - 終了したスペースの管理
+ * - 現在選択されているスペースの状態管理
+ * - スペースの追加・終了・更新操作
+ * - APIとの連携
+ */
+const useSpaceStore = create(subscribeWithSelector((set, get) => ({
+  // ===== 状態 =====
+  
+  /** @type {Array} アクティブなスペースの配列 */
   activeSpaces: [],
+  
+  /** @type {Array} 終了したスペースの配列 */
   finishedSpaces: [],
+  
+  /** @type {Object|null} 現在選択されているスペース */
+  currentSpace: null,
+  
+  /** @type {boolean} データ読み込み中かどうか */
   isLoading: false,
+  
+  /** @type {string|null} エラーメッセージ */
   error: null,
 
-  // アクション
-  actions: {
-    // 現在のスペースを設定
-    setCurrentSpace: (space) => {
-      set({ currentSpace: space });
-      // TODO: ローカルストレージに保存
-      // localStorage.setItem('currentSpace', JSON.stringify(space));
-    },
+  // ===== アクション =====
+  
+  /**
+   * ローディング状態を設定
+   */
+  setLoading: (loading) => {
+    set({ isLoading: loading });
+  },
 
-    // スペース一覧を更新
-    setActiveSpaces: (spaces) => {
-      set({ activeSpaces: spaces });
-    },
+  /**
+   * エラーメッセージを設定
+   */
+  setError: (error) => {
+    set({ error });
+  },
 
-    // 終了したスペース一覧を更新
-    setFinishedSpaces: (spaces) => {
-      set({ finishedSpaces: spaces });
-    },
+  /**
+   * エラーをクリア
+   */
+  clearError: () => {
+    set({ error: null });
+  },
 
-    // 新しいスペースを追加
-    addSpace: async (spaceData) => {
-      set({ isLoading: true, error: null });
-      
-      try {
-        // TODO: バックエンドAPIを呼び出して新しいスペースを作成
-        // const response = await fetch('/api/spaces', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(spaceData),
-        // });
-        
-        // if (!response.ok) {
-        //   throw new Error('スペースの作成に失敗しました');
-        // }
-        
-        // const newSpace = await response.json();
-        
-        // 一時的なモック処理
-        const newSpace = {
-          ...spaceData,
-          id: Date.now().toString(),
-          createdAt: new Date(),
-          isActive: true,
-        };
-
-        const { activeSpaces } = get();
-        set({ 
-          activeSpaces: [...activeSpaces, newSpace],
-          isLoading: false 
-        });
-
-        return newSpace;
-      } catch (error) {
-        set({ 
-          error: error.message || 'スペースの作成に失敗しました',
-          isLoading: false 
-        });
-        throw error;
-      }
-    },
-
-    // スペース一覧を取得
-    fetchSpaces: async () => {
-      set({ isLoading: true, error: null });
-      
-      try {
-        // TODO: バックエンドAPIからスペース一覧を取得
-        // const response = await fetch('/api/spaces');
-        // if (!response.ok) {
-        //   throw new Error('スペース一覧の取得に失敗しました');
-        // }
-        // const data = await response.json();
-        
-        // 一時的なモック処理
-        const mockData = {
-          activeSpaces: [
-            { id: '1', name: 'Sample Space 1', description: 'Test space', options: '#test', isActive: true },
-            { id: '2', name: 'Sample Space 2', description: 'Another test space', options: '#test2', isActive: true },
-          ],
-          finishedSpaces: [
-            { id: '3', name: 'Finished Space', description: 'Completed space', options: '#finished', isActive: false },
-          ]
-        };
-
-        set({ 
-          activeSpaces: mockData.activeSpaces,
-          finishedSpaces: mockData.finishedSpaces,
-          isLoading: false 
-        });
-
-      } catch (error) {
-        set({ 
-          error: error.message || 'スペース一覧の取得に失敗しました',
-          isLoading: false 
-        });
-      }
-    },
-
-    // スペースを終了状態にする
-    finishSpace: async (spaceId) => {
-      set({ isLoading: true, error: null });
-      
-      try {
-        // TODO: バックエンドAPIでスペースを終了状態にする
-        // const response = await fetch(`/api/spaces/${spaceId}/finish`, {
-        //   method: 'PUT',
-        // });
-
-        const { activeSpaces, finishedSpaces } = get();
-        const spaceToFinish = activeSpaces.find(space => space.id === spaceId);
-        
-        if (spaceToFinish) {
-          const updatedSpace = { ...spaceToFinish, isActive: false };
-          
-          set({
-            activeSpaces: activeSpaces.filter(space => space.id !== spaceId),
-            finishedSpaces: [...finishedSpaces, updatedSpace],
-            currentSpace: get().currentSpace?.id === spaceId ? null : get().currentSpace,
-            isLoading: false
-          });
-        }
-
-      } catch (error) {
-        set({ 
-          error: error.message || 'スペースの終了に失敗しました',
-          isLoading: false 
-        });
-      }
-    },
-
-    // エラーをクリア
-    clearError: () => {
-      set({ error: null });
-    },
-
-    // ローカルストレージから状態を復元
-    loadFromStorage: () => {
-      try {
-        const savedCurrentSpace = localStorage.getItem('currentSpace');
-        if (savedCurrentSpace) {
-          set({ currentSpace: JSON.parse(savedCurrentSpace) });
-        }
-      } catch (error) {
-        console.error('ローカルストレージからの復元に失敗:', error);
-      }
-    },
-  }
-}));
-
-// 使用方法の例:
-/*
-// コンポーネント内での使用
-import { useSpaceStore } from '../store/spaceStore';
-
-function MyComponent() {
-  const currentSpace = useSpaceStore(state => state.currentSpace);
-  const activeSpaces = useSpaceStore(state => state.activeSpaces);
-  const { setCurrentSpace, addSpace, fetchSpaces } = useSpaceStore(state => state.actions);
-
-  useEffect(() => {
-    fetchSpaces(); // 初期データ取得
-  }, []);
-
-  const handleSelectSpace = (space) => {
-    setCurrentSpace(space);
-  };
-
-  const handleAddNewSpace = async (spaceData) => {
-    try {
-      const newSpace = await addSpace(spaceData);
-      console.log('新しいスペースが作成されました:', newSpace);
-    } catch (error) {
-      console.error('スペース作成エラー:', error);
+  /**
+   * 現在のスペースを設定
+   */
+  setCurrentSpace: (space) => {
+    set({ currentSpace: space });
+    
+    // ローカルストレージに保存
+    if (space) {
+      localStorage.setItem('selectedSpace', JSON.stringify(space));
+    } else {
+      localStorage.removeItem('selectedSpace');
     }
-  };
+  },
 
-  return (
-    // JSX...
-  );
-}
-*/
+  /**
+   * APIからスペース一覧を取得
+   */
+  fetchSpaces: async () => {
+    const { setLoading, setError, clearError } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      const response = await fetch('/api/spaces');
+      const data = await response.json();
+      
+      if (data.success) {
+        const activeSpaces = data.spaces.filter(space => space.isActive);
+        const finishedSpaces = data.spaces.filter(space => !space.isActive);
+        
+        set({
+          activeSpaces,
+          finishedSpaces,
+          isLoading: false
+        });
+        
+        console.log('✅ スペース一覧を取得しました:', data.spaces.length);
+        return data.spaces;
+      } else {
+        throw new Error(data.error || 'スペース一覧の取得に失敗しました');
+      }
+    } catch (error) {
+      console.error('スペース一覧取得エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
+   * 新しいスペースを追加
+   */
+  addSpace: async (spaceData) => {
+    const { setLoading, setError, clearError } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      const response = await fetch('/api/spaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: spaceData.id,
+          name: spaceData.name,
+          description: spaceData.description,
+          createdByNickname: 'admin', // TODO: 実際のユーザー名を使用
+          settings: {
+            defaultRoomSettings: {
+              autoDeleteMessages: false,
+              messageRetentionDays: 30,
+              allowAnonymous: true
+            },
+            maxRooms: 50,
+            theme: 'default'
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // ストアの状態を更新
+        set((state) => ({
+          activeSpaces: [...state.activeSpaces, data.space],
+          isLoading: false
+        }));
+        
+        console.log('✅ 新しいスペースが作成されました:', data.space);
+        return data.space;
+      } else {
+        throw new Error(data.error || 'スペースの作成に失敗しました');
+      }
+    } catch (error) {
+      console.error('スペース追加エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      
+      // エラー時のフォールバック: ローカルに追加
+      set((state) => ({
+        activeSpaces: [...state.activeSpaces, spaceData],
+        isLoading: false
+      }));
+      
+      throw error;
+    }
+  },
+
+  /**
+   * スペースを終了する
+   */
+  finishSpace: async (spaceId) => {
+    const { setLoading, setError, clearError, currentSpace, setCurrentSpace } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      // TODO: バックエンドAPIでスペースを終了する処理
+      // const response = await fetch(`/api/spaces/${spaceId}/finish`, {
+      //   method: 'POST'
+      // });
+      
+      // 現在はフロントエンドでの処理のみ
+      const state = get();
+      const spaceToFinish = state.activeSpaces.find(space => space.id === spaceId);
+      
+      if (spaceToFinish) {
+        set((state) => ({
+          activeSpaces: state.activeSpaces.filter(space => space.id !== spaceId),
+          finishedSpaces: [...state.finishedSpaces, { ...spaceToFinish, isActive: false }],
+          isLoading: false
+        }));
+
+        // 現在選択されているスペースが終了された場合はクリア
+        if (currentSpace?.id === spaceId) {
+          setCurrentSpace(null);
+        }
+
+        console.log('✅ スペースが終了されました:', spaceToFinish.name);
+        return true;
+      } else {
+        throw new Error('終了するスペースが見つかりません');
+      }
+    } catch (error) {
+      console.error('スペース終了エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
+   * スペース情報を更新
+   */
+  updateSpace: async (spaceId, updateData) => {
+    const { setLoading, setError, clearError } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      // TODO: バックエンドAPIでスペース情報を更新
+      // const response = await fetch(`/api/spaces/${spaceId}`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(updateData)
+      // });
+      
+      // 現在はフロントエンドでの処理のみ
+      set((state) => ({
+        activeSpaces: state.activeSpaces.map(space =>
+          space.id === spaceId ? { ...space, ...updateData } : space
+        ),
+        finishedSpaces: state.finishedSpaces.map(space =>
+          space.id === spaceId ? { ...space, ...updateData } : space
+        ),
+        isLoading: false
+      }));
+      
+      console.log('✅ スペース情報が更新されました:', spaceId);
+      return true;
+    } catch (error) {
+      console.error('スペース更新エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
+   * ローカルストレージから選択済みスペースを復元
+   */
+  restoreCurrentSpaceFromStorage: () => {
+    try {
+      const savedSpace = localStorage.getItem('selectedSpace');
+      if (savedSpace) {
+        const parsedSpace = JSON.parse(savedSpace);
+        
+        // 整数型IDに変換
+        if (parsedSpace.id && typeof parsedSpace.id === 'string') {
+          parsedSpace.id = parseInt(parsedSpace.id, 10);
+        }
+        
+        set({ currentSpace: parsedSpace });
+        console.log('📦 選択済みスペースを復元しました:', parsedSpace.name);
+        return parsedSpace;
+      }
+    } catch (error) {
+      console.error('選択済みスペースの復元に失敗しました:', error);
+      return null;
+    }
+  },
+
+  /**
+   * ストアの状態をリセット
+   */
+  reset: () => {
+    set({
+      activeSpaces: [],
+      finishedSpaces: [],
+      currentSpace: null,
+      isLoading: false,
+      error: null
+    });
+    localStorage.removeItem('selectedSpace');
+  },
+
+  /**
+   * 統計情報を取得
+   */
+  getStatistics: () => {
+    const { activeSpaces, finishedSpaces } = get();
+    return {
+      totalSpaces: activeSpaces.length + finishedSpaces.length,
+      activeCount: activeSpaces.length,
+      finishedCount: finishedSpaces.length,
+      hasCurrentSpace: !!get().currentSpace
+    };
+  }
+})));
+
+export default useSpaceStore;
