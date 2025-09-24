@@ -32,33 +32,7 @@ const DocumentList = () => {
         return (
             <button
                 onClick={() => setIsListOpen(true)}
-                style={{
-                    position: 'fixed',
-                    right: '20px',
-                    top: '1.5rem',
-                    zIndex: 1000,
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: '#007acc',
-                    color: 'white',
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px'
-                }}
-                onMouseOver={e => {
-                    e.target.style.background = '#0056b3';
-                    e.target.style.transform = 'scale(1.05)';
-                }}
-                onMouseOut={e => {
-                    e.target.style.background = '#007acc';
-                    e.target.style.transform = 'scale(1)';
-                }}
+                className="fixed right-5 top-6 z-[1000] !w-12 !h-12 min-w-12 min-h-12 aspect-square !rounded-full !bg-[#007acc] text-white border-none cursor-pointer shadow-lg transition-all duration-200 flex items-center justify-center text-xl leading-none hover:!bg-[#0056b3] hover:scale-105"
                 title="ドキュメントリストを開く"
             >
                 📚
@@ -68,59 +42,16 @@ const DocumentList = () => {
 
     // ドキュメントリストが開いている場合
     return (
-        <div className="document-list-container"
-            style={{
-                right: '20px',
-                top: '1.5rem',
-                position: 'fixed',
-                zIndex: 1000,
-                padding: '1rem',
-                border: '1px solid #ddd',
-                backgroundColor: '#fff',
-                borderRadius: '8px',
-                width: '280px',
-                marginLeft: '1.5rem',
-                height: 'auto',
-                maxHeight: '400px',
-                overflowY: 'auto',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-            }}>
+        <div className="document-list-container fixed right-5 top-6 z-[1000] p-4 border border-gray-300 bg-white rounded-lg w-70 ml-6 h-auto max-h-96 overflow-y-auto shadow-lg">
 
             {/* ヘッダー部分（タイトル + 閉じるボタン） */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '15px',
-                borderBottom: '2px solid #007acc',
-                paddingBottom: '8px'
-            }}>
-                <h2 style={{
-                    margin: 0,
-                    fontSize: '16px',
-                    color: '#333'
-                }}>📚 ドキュメントリスト</h2>
+            <div className="flex justify-between items-center mb-4 border-b-2 border-[#007acc] pb-2">
+                <h2 className="m-0 text-base text-gray-800">📚 ドキュメントリスト</h2>
 
                 {/* 閉じるボタン（サイドバーと同じSVG） */}
                 <button
                     onClick={() => setIsListOpen(false)}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'background 0.2s'
-                    }}
-                    onMouseOver={e => {
-                        e.target.style.background = '#f5f5f5';
-                    }}
-                    onMouseOut={e => {
-                        e.target.style.background = 'transparent';
-                    }}
+                    className="bg-transparent border-none cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-200 hover:bg-gray-100"
                     title="ドキュメントリストを閉じる"
                 >
                     <svg
@@ -131,63 +62,26 @@ const DocumentList = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth="2"
-                        style={{ color: '#666' }}
+                        className="text-gray-600"
                     >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <ul className="document-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li className="document-list-item" style={{
-                    marginBottom: '12px',
-                    border: '1px solid #e9ecef',
-                    borderRadius: '8px',
-                    backgroundColor: '#f8f9fa',
-                    transition: 'all 0.2s',
-                    overflow: 'hidden'
-                }}>
+            <ul className="document-list list-none p-0 m-0">
+                <li className="document-list-item mb-3 border border-gray-200 rounded-lg bg-gray-50 transition-all duration-200 overflow-hidden hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-200/50">
                     <button
                         onClick={() => openDocumentWindow()}
-                        style={{
-                            width: '100%',
-                            padding: '16px',
-                            fontSize: '14px',
-                            background: 'transparent',
-                            color: '#495057',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            fontWeight: '500',
-                            textAlign: 'left',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                        }}
-                        onMouseOver={e => {
-                            e.target.closest('li').style.backgroundColor = '#e3f2fd';
-                            e.target.closest('li').style.transform = 'translateY(-1px)';
-                            e.target.closest('li').style.boxShadow = '0 4px 12px rgba(0,123,204,0.2)';
-                            e.target.style.color = '#007acc';
-                        }}
-                        onMouseOut={e => {
-                            e.target.closest('li').style.backgroundColor = '#f8f9fa';
-                            e.target.closest('li').style.transform = 'translateY(0)';
-                            e.target.closest('li').style.boxShadow = 'none';
-                            e.target.style.color = '#495057';
-                        }}
+                        className="w-full p-4 text-sm bg-transparent text-gray-700 border-none cursor-pointer transition-all duration-200 font-medium text-left flex items-center justify-between hover:text-[#007acc]"
                     >
                         <div>
-                            <div style={{ marginBottom: '4px' }}>{documentData.name}</div>
-                            <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                            <div className="mb-1">{documentData.name}</div>
+                            <div className="text-xs text-gray-500">
                                 {posts.length}件の投稿データ
                             </div>
                         </div>
-                        <span style={{
-                            fontSize: '16px',
-                            opacity: 0.6,
-                            transition: 'all 0.2s'
-                        }}>🪟</span>
+                        <span className="text-base opacity-60 transition-all duration-200">🪟</span>
                     </button>
                 </li>
             </ul>
