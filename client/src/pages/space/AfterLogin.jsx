@@ -11,6 +11,8 @@ import useAppStore from '../../store/appStore';
 
 export default function AfterLogin({ heightArray, appController, userInfo, spaceId = null }) {
     // userInfoとspaceIdをpropsから受け取る
+    // TODO: spaceIdに基づいてスペース固有のUI要素を表示
+    // TODO: スペース権限に応じた機能制限の実装
     const { nickname, status, ageGroup, userId } = userInfo;
 
     // サイドバーの状態管理
@@ -40,7 +42,7 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
             }}>
 
             {/* 目次コンポーネント */}
-            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} />
+            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} userInfo={userInfo} spaceId={spaceId} />
 
             <div
                 id="resizable-container"

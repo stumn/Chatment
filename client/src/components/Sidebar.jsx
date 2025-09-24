@@ -10,11 +10,14 @@ import useRoomStore from '../store/roomStore';
 import useSocket from '../hooks/useSocket';
 import '../styles/sidebar.css';
 
-const Sidebar = ({ isOpen, onToggle }) => {
+const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
+    // TODO: spaceIdに基づいてスペース固有の投稿データをフィルタリング
+    // TODO: スペースタイトルや説明などの情報を表示
+    // TODO: 管理画面(/admin)への戻るリンクを追加
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
     const toggleColorfulMode = useAppStore((state) => state.toggleColorfulMode);
-    const userInfo = useAppStore((state) => state.userInfo);
+    const userInfo = propsUserInfo || useAppStore((state) => state.userInfo);
 
     // ルーム関連の状態
     const { rooms, activeRoomId, setActiveRoom, switchingRoom, setSwitchingRoom } = useRoomStore();
@@ -162,6 +165,17 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
                 {/* ユーザー情報と現在のステータス */}
                 <div className="sb-user-info sidebar-text">
+                    {/* スペースID表示 */}
+                    {spaceId && (
+                        <div className="sb-space-id" style={{ 
+                            fontSize: '12px', 
+                            color: '#666', 
+                            marginBottom: '4px',
+                            fontWeight: 'bold'
+                        }}>
+                            Space: {spaceId}
+                        </div>
+                    )}
                     <span className="sb-user-name">
                         {userInfo?.nickname ? `${userInfo.nickname} (${userInfo.ageGroup} ${userInfo.status})さん` : 'ゲスト'}
                     </span>

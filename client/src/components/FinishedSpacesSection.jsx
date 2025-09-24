@@ -125,9 +125,9 @@ const FinishedSpaceRow = ({ space }) => {
   };
 
   const handleViewDocument = () => {
-    // TODO: ドキュメント閲覧機能の実装
-    // navigate(`/spaces/${space.id}/documents`);
-    console.log(`ドキュメント閲覧: ${space.name}`);
+    // 新しいタブでドキュメント閲覧ページ（全ルーム全投稿）を開く
+    const docUrl = `/spaces/${space.id}/0`;
+    window.open(docUrl, '_blank');
   };
 
   return (

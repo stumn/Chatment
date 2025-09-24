@@ -1,6 +1,7 @@
 // File: client/src/ChatApp.jsx
 
 import { useEffect, Suspense, lazy, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { useAppController } from '../../hooks/useAppController';
 
@@ -16,6 +17,15 @@ const AfterLogin = lazy(() => import('./AfterLogin'));
 const DEFAULT_ROOM_ID = 'room-0';
 
 function ChatApp() {
+  // URLパラメータからspaceIdを取得
+  const { spaceId } = useParams();
+  
+  // TODO: 将来的にspaceIdの妥当性チェックを実装
+  // TODO: サーバーでスペースの存在確認とアクセス権限チェック  
+  // TODO: スペース情報（タイトル、説明等）をAPIから取得
+  // TODO: サーバー側でspaceId別のメッセージ分離とデータ管理
+  // TODO: スペース参加者の管理とリアルタイム更新
+  
   // --- 状態管理フックを先に記述 ---
   const [open, setOpen] = useState(true);
 
@@ -38,14 +48,19 @@ function ChatApp() {
 
   useEffect(() => {
     if (!isLoggedIn) return;
+    
+    // TODO: spaceIdをソケット通信に含めてスペースコンテキストを送信
     socketFunctions.emitLoginName(userInfo);
 
+    // TODO: スペース固有のルーム一覧を取得する機能を実装
     // ログイン後にルーム一覧を取得し、デフォルトルームに参加
     emitGetRoomList();
+    
+    // TODO: room-0ではなくスペース固有のデフォルトルームに参加
     emitJoinRoom(DEFAULT_ROOM_ID); // デフォルトルームに参加
 
     setOpen(false);
-  }, [userInfo, isLoggedIn]);
+  }, [userInfo, isLoggedIn, spaceId]); // spaceIdを依存配列に追加
 
   // myHeightが変更されたらサーバーに高さを送信
   useEffect(() => {
@@ -59,6 +74,7 @@ function ChatApp() {
           heightArray={heightArray}
           appController={appController}
           userInfo={userInfo}
+          spaceId={spaceId}
         />
       </Suspense>
     );
