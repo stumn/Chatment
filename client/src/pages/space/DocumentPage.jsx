@@ -85,7 +85,7 @@ const DocumentPage = () => {
         
         let content = `
             <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007acc;">
-                <h1 style="margin: 0 0 10px 0; color: #007acc;">📊 チャット投稿データ全件</h1>
+                <h3 style="margin: 0 0 10px 0; color: #007acc;">📊 チャット投稿データ全件</h3>
                 <p style="margin: 0; color: #666; font-size: 14px;">
                     <strong>総件数:</strong> ${posts.length}件 | 
                     <strong>生成日時:</strong> ${new Date().toLocaleString('ja-JP')}
