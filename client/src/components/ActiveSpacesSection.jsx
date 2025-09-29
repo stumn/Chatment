@@ -27,9 +27,8 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.options || 'オプションなし'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
-          className="px-4 py-2 !bg-emerald-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-emerald-600 disabled:!bg-gray-300 disabled:cursor-not-allowed transition-colors duration-150"
+          className="px-4 py-2 !bg-emerald-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-emerald-600 transition-colors duration-150"
           onClick={() => onSelectSpace(space)}
-          disabled={selectedSpace?.id === space.id}
         >
           入場
         </button>
