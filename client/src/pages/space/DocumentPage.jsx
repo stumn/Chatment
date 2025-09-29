@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import PostsList from '../../components/document/PostsList.jsx';
 
 /**
  * 統一ドキュメント表示ページ
@@ -134,283 +135,91 @@ const DocumentPage = () => {
         fetchPostsFromAPI();
     }, [currentSpaceId, docId]); // スペースIDやドキュメントIDが変わった時も再取得
 
-    // postsデータからドキュメント形式に変換する関数
-    const generateDocumentContent = () => {
-        // バリデーションエラー時は何も表示しない（エラーは別途表示済み）
+    // JSXコンポーネントでの表示内容を生成
+    const renderJSXContent = () => {
+        // バリデーションエラー時
         if (!isValidDocId) {
-            return '';
+            return null;
         }
 
+        // ローディング時
         if (isLoading) {
-            return `
-                <div style="text-align: center; padding: 50px; color: #666;">
-                    <h2>📖 データを読み込み中...</h2>
+            return (
+                <div className="text-center py-12 text-gray-500">
+                    <h2 className="text-2xl mb-4">📖 データを読み込み中...</h2>
                     <p>サーバーからpostsデータを取得しています。</p>
                 </div>
-            `;
+            );
         }
 
+        // エラー時
         if (error) {
             // URLパラメータエラーの場合は専用UI
             if (error.includes('無効なスペースID') || error.includes('無効なドキュメントID')) {
-                return `
-                    <div style="max-width: 600px; margin: 50px auto; padding: 30px; background: #fff5f5; border: 2px solid #fed7d7; border-radius: 12px; text-align: center;">
-                        <h2 style="color: #c53030; margin-bottom: 20px;">⚠️ URLパラメータエラー</h2>
-                        <pre style="background: #f7fafc; padding: 15px; border-radius: 6px; font-size: 14px; color: #2d3748; white-space: pre-wrap; text-align: left;">${error}</pre>
-                        <div style="margin-top: 25px;">
-                            <button onclick="window.location.href='/document/${currentSpaceId}/0'" style="
-                                padding: 12px 24px; 
-                                background: #48bb78; 
-                                color: white; 
-                                border: none; 
-                                border-radius: 6px; 
-                                cursor: pointer;
-                                margin-right: 10px;
-                                font-size: 14px;
-                            ">
+                return (
+                    <div className="max-w-2xl mx-auto my-12 p-8 bg-red-50 border-2 border-red-200 rounded-xl text-center">
+                        <h2 className="text-red-700 text-xl font-medium mb-5">⚠️ URLパラメータエラー</h2>
+                        <pre className="bg-gray-100 p-4 rounded-md text-sm text-gray-700 whitespace-pre-wrap text-left mb-6">
+                            {error}
+                        </pre>
+                        <div className="space-x-3">
+                            <button
+                                onClick={() => window.location.href = `/document/${currentSpaceId}/0`}
+                                className="px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+                            >
                                 📄 全投稿を表示
                             </button>
-                            <button onclick="window.history.back()" style="
-                                padding: 12px 24px; 
-                                background: #4299e1; 
-                                color: white; 
-                                border: none; 
-                                border-radius: 6px; 
-                                cursor: pointer;
-                                font-size: 14px;
-                            ">
+                            <button
+                                onClick={() => window.history.back()}
+                                className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+                            >
                                 ← 戻る
                             </button>
                         </div>
                     </div>
-                `;
+                );
             }
             
             // その他のエラー（API通信エラーなど）
-            return `
-                <div style="text-align: center; padding: 50px; color: #e74c3c;">
-                    <h2>❌ エラーが発生しました</h2>
-                    <p style="white-space: pre-wrap;">${error}</p>
-                    <button onclick="window.location.reload()" style="
-                        padding: 10px 20px; 
-                        background: #6c757d; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        margin-top: 15px;
-                    ">
+            return (
+                <div className="text-center py-12 text-red-600">
+                    <h2 className="text-2xl mb-4">❌ エラーが発生しました</h2>
+                    <p className="whitespace-pre-wrap mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-5 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                    >
                         再読み込み
                     </button>
                 </div>
-            `;
+            );
         }
 
+        // データが空の時
         if (!posts || posts.length === 0) {
-            return `
-                <div style="text-align: center; padding: 50px; color: #666;">
-                    <h2>📝 投稿データが見つかりません</h2>
+            return (
+                <div className="text-center py-12 text-gray-500">
+                    <h2 className="text-2xl mb-4">📝 投稿データが見つかりません</h2>
                     <p>チャットでメッセージを投稿すると、ここにドキュメントとして表示されます。</p>
                 </div>
-            `;
+            );
         }
 
-        const sortedPosts = [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
-        
-        // docId による表示分岐
-        if (currentDocId === 0) {
-            // docId = 0: 全投稿表示
-            return generateAllPostsContent(sortedPosts);
-        } else {
-            // docId > 0: 見出しレベル別表示（将来実装）
-            return generateSectionContent(sortedPosts, currentDocId);
-        }
+        // 正常時：PostsListコンポーネントを使用
+        return (
+            <PostsList 
+                posts={posts} 
+                docId={currentDocId} 
+                spaceId={currentSpaceId} 
+            />
+        );
     };
 
-    // === docId = 0: 全投稿表示のコンテンツ生成 ===
-    const generateAllPostsContent = (sortedPosts) => {
-        /* 責務: スペース内の全投稿を displayOrder 順で表示
-         * - 投稿データの HTML 生成
-         * - リアクションに基づく色分け表示
-         * - 見出し投稿の特別レンダリング
-         * - 投稿メタ情報の表示
-         */
-        let content = `
-            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #6c757d;">
-                <h3 style="margin: 0 0 10px 0; color: #495057;">📊 全投稿データ</h3>
-                <p style="margin: 0; color: #666; font-size: 14px;">
-                    <strong>総件数:</strong> ${sortedPosts.length}件 | 
-                    <strong>生成日時:</strong> ${new Date().toLocaleString('ja-JP')}
-                </p>
-            </div>
-            <style>
-                .post-item {
-                    margin: 8px 0;
-                    padding: 12px 16px;
-                    border-radius: 6px;
-                    transition: all 0.2s ease;
-                    cursor: default;
-                    position: relative;
-                    border-left: 3px solid transparent;
-                }
-                
-                .post-item:hover {
-                    transform: translateX(2px);
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                }
-                
-                .post-item:hover .post-meta {
-                    opacity: 1;
-                    visibility: visible;
-                }
-                
-                .post-meta {
-                    position: absolute;
-                    top: 8px;
-                    right: 12px;
-                    background: rgba(0,0,0,0.8);
-                    color: white;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 11px;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.2s ease;
-                    pointer-events: none;
-                    z-index: 10;
-                }
-                
-                .post-content {
-                    line-height: 1.5;
-                    color: #333;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    margin-right: 60px;
-                }
-            </style>
-        `;
 
-        sortedPosts.forEach((post, index) => {
-            const isHeading = post.msg && post.msg.trim().startsWith('#');
-            const positive = post.positive || 0;
-            const negative = post.negative || 0;
-            const reactionTotal = positive + negative;
-            const reactionScore = positive - negative; // ポジティブ - ネガティブ
-            
-            // 見出しの場合
-            if (isHeading) {
-                const headingLevel = (post.msg.match(/^#+/) || ['#'])[0].length;
-                const headingText = post.msg.replace(/^#+\s*/, '');
-                
-                content += `
-                    <h${Math.min(headingLevel, 6)} style="
-                        color: #2c3e50; 
-                        margin: 30px 0 15px 0; 
-                        padding: 12px 16px; 
-                        background: linear-gradient(90deg, #3498db, #2980b9);
-                        color: white;
-                        border-radius: 6px;
-                        font-weight: 500;
-                    ">
-                        ${headingText}
-                    </h${Math.min(headingLevel, 6)}>
-                `;
-            } else {
-                // 背景色を反応に基づいて決定
-                let backgroundColor = '#ffffff';
-                let borderColor = '#e9ecef';
-                
-                if (reactionTotal > 0) {
-                    if (reactionScore > 0) {
-                        // ポジティブな反応が多い
-                        const intensity = Math.min(reactionScore * 0.1, 0.3);
-                        backgroundColor = `rgba(76, 175, 80, ${intensity})`; // 緑系
-                        borderColor = '#4caf50';
-                    } else if (reactionScore < 0) {
-                        // ネガティブな反応が多い
-                        const intensity = Math.min(Math.abs(reactionScore) * 0.1, 0.3);
-                        backgroundColor = `rgba(244, 67, 54, ${intensity})`; // 赤系
-                        borderColor = '#f44336';
-                    } else {
-                        // 同じ数の反応
-                        backgroundColor = 'rgba(255, 193, 7, 0.2)'; // 黄色系
-                        borderColor = '#ffc107';
-                    }
-                }
-                
-                // 特に注目度が高い投稿（リアクション10以上）
-                if (reactionTotal >= 10) {
-                    borderColor = '#ff9800';
-                }
-                
-                content += `
-                    <div class="post-item" style="
-                        background: ${backgroundColor};
-                        border-left-color: ${borderColor};
-                        ${reactionTotal >= 5 ? 'border-left-width: 4px;' : ''}
-                    ">
-                        <div class="post-meta">
-                            👤 ${post.nickname || 'Unknown'}<br>
-                            ⏰ ${post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}<br>
-                            ${reactionTotal > 0 ? `👍${positive} 👎${negative}` : ''}
-                        </div>
-                        <div class="post-content">${post.msg || '(空のメッセージ)'}</div>
-                    </div>
-                `;
-            }
-        });
 
-        return content;
-    };
 
-    // === docId > 0: 見出しレベル別表示のコンテンツ生成 ===
-    const generateSectionContent = (sortedPosts, sectionId) => {
-        /* 将来実装予定の機能:
-         * 1. 見出し（#、##、###）による投稿の階層分析
-         * 2. sectionIdに対応する見出しレベルの投稿を抽出
-         * 3. 階層構造に応じたナビゲーション生成
-         * 4. セクション間のリンク機能
-         * 
-         * 実装例:
-         * - docId=1: # レベル1見出しのセクション
-         * - docId=2: ## レベル2見出しのセクション
-         * - docId=N: 投稿順のN番目のセクション
-         */
-        
-        return `
-            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #6c757d;">
-                <h3 style="margin: 0 0 10px 0; color: #495057;">📑 セクション ${sectionId} - 開発準備中</h3>
-                <p style="margin: 0; color: #666; font-size: 14px;">
-                    <strong>投稿総数:</strong> ${sortedPosts.length}件 | 
-                    <strong>実装予定:</strong> 見出しレベル別表示
-                </p>
-            </div>
-            <div style="text-align: center; padding: 50px; color: #666;">
-                <h2>🚧 機能開発中</h2>
-                <p>見出しレベル別の表示機能を実装中です</p>
-                <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; text-align: left; max-width: 400px; margin: 20px auto;">
-                    <h4 style="margin: 0 0 10px 0; color: #495057;">実装予定機能:</h4>
-                    <ul style="margin: 0; padding-left: 20px; color: #666;">
-                        <li>見出し（#）による自動セクション分割</li>
-                        <li>階層的なナビゲーション</li>
-                        <li>セクション間のリンク機能</li>
-                        <li>投稿内容のフィルタリング</li>
-                    </ul>
-                </div>
-                <button onclick="window.location.href='/document/${currentSpaceId}/0'" style="
-                    padding: 12px 24px; 
-                    background: #6c757d; 
-                    color: white; 
-                    border: none; 
-                    border-radius: 6px; 
-                    cursor: pointer;
-                    font-size: 14px;
-                ">
-                    📄 全投稿を表示
-                </button>
-            </div>
-        `;
-    };
+
+
 
     return (
         <div style={{
@@ -526,7 +335,7 @@ const DocumentPage = () => {
                     lineHeight: '1.6',
                     color: '#333'
                 }}>
-                    <div dangerouslySetInnerHTML={{ __html: generateDocumentContent() }} />
+                    {renderJSXContent()}
                 </div>
             </div>
         </div>
