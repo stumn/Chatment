@@ -6,7 +6,6 @@ import usePostStore from '../store/postStore';
 const DocumentList = () => {
 
     const { spaceId } = useParams();
-    console.log('Current space ID:', spaceId);
 
     // postStoreからデータを取得
     const posts = usePostStore((state) => state.posts);
