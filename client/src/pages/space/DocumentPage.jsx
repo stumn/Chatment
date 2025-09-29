@@ -216,7 +216,7 @@ const DocumentPage = () => {
     };
 
     return (
-        <div className="font-sans bg-white mx-auto p-8 rounded-xl shadow-2xl max-w-4xl min-h-screen">
+        <div className="font-sans bg-white mx-auto p-8 rounded-xl shadow-2xl max-w-4xl min-h-screen my-8">
             <div id="document-header" className="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 sticky top-0 bg-white z-10">
                 <div id='document-info'>
                     <div id="document-title" className="bg-gray-50 px-4 py-3 rounded-md text-sm text-gray-600 border-l-4 border-gray-500 mb-2">
