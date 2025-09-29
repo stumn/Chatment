@@ -10,7 +10,6 @@ import { Suspense, lazy } from 'react';
 const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
 const ChatApp = lazy(() => import('./pages/space/ChatApp'));
 const DocumentPage = lazy(() => import('./pages/space/DocumentPage'));
-// const SpaceLogPage = lazy(() => import('./pages/space/SpaceLogPage')); // Phase 5で削除予定
 
 function App() {
   return (

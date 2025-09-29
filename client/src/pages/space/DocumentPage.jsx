@@ -33,6 +33,13 @@ const DocumentPage = () => {
     
     // === URLパラメータバリデーション ===
     useEffect(() => {
+        console.log('[DocumentPage] URL Parameters:', { 
+            spaceId: spaceId, 
+            docId: docId, 
+            parsedSpaceId: currentSpaceId, 
+            parsedDocId: currentDocId 
+        });
+        
         // spaceIdのバリデーション
         if (!currentSpaceId || isNaN(currentSpaceId)) {
             const errorMsg = `🚫 無効なスペースID: "${spaceId}"\n\n` +
@@ -56,7 +63,7 @@ const DocumentPage = () => {
                           `・1以上: セクション別表示（今後実装予定）`;
             }
             
-            console.error('Invalid docId:', { provided: docId, parsed: currentDocId });
+            console.error('Invalid docId:', { provided: docId, parsed: currentDocId, isNaN: isNaN(currentDocId) });
             setError(errorMsg);
             return;
         }
@@ -453,7 +460,11 @@ const DocumentPage = () => {
                             marginLeft: '16px'
                         }}>
                             {isLoading ? '読み込み中...' : `${posts.length}件の投稿`}
+                            {/* 最終投稿日時の表示（アクティブ/終了済み共通） */}
+                            {spaceData?.lastActivity && ` | 最終投稿: ${new Date(spaceData.lastActivity).toLocaleString('ja-JP')}`}
+                            {/* 終了済みスペースの場合は終了日時も表示 */}
                             {spaceData?.finishedAt && ` | 終了日時: ${new Date(spaceData.finishedAt).toLocaleString('ja-JP')}`}
+                            {/* セクション表示（docId > 0の場合） */}
                             {docId && parseInt(docId) > 0 && ` | セクション: ${docId}`}
                         </div>
                     </div>
