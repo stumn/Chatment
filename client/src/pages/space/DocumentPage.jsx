@@ -21,7 +21,7 @@ const DocumentPage = () => {
     const { spaceId, docId } = useParams();
     const currentSpaceId = parseInt(spaceId, 10);
     const currentDocId = parseInt(docId, 10);
-    
+
     // === 状態管理 ===
     const [posts, setPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,44 +31,44 @@ const DocumentPage = () => {
     // === バリデーション ===
     const isValidDocId = !isNaN(currentDocId) && currentDocId >= 0;
     // 将来拡張: docIdの上限チェック、特定値の予約など
-    
+
     // === URLパラメータバリデーション ===
     useEffect(() => {
-        console.log('[DocumentPage] URL Parameters:', { 
-            spaceId: spaceId, 
-            docId: docId, 
-            parsedSpaceId: currentSpaceId, 
-            parsedDocId: currentDocId 
+        console.log('[DocumentPage] URL Parameters:', {
+            spaceId: spaceId,
+            docId: docId,
+            parsedSpaceId: currentSpaceId,
+            parsedDocId: currentDocId
         });
-        
+
         // spaceIdのバリデーション
         if (!currentSpaceId || isNaN(currentSpaceId)) {
             const errorMsg = `🚫 無効なスペースID: "${spaceId}"\n\n` +
-                           `正の整数を指定してください。\n` +
-                           `例: /document/1/0`;
+                `正の整数を指定してください。\n` +
+                `例: /document/1/0`;
             console.error('Invalid spaceId:', { provided: spaceId, parsed: currentSpaceId });
             setError(errorMsg);
             return;
         }
-        
+
         // docIdのバリデーション  
         if (!isValidDocId) {
             let errorMsg = `🚫 無効なドキュメントID: "${docId}"\n\n`;
-            
+
             if (isNaN(currentDocId)) {
                 errorMsg += `数値を指定してください。\n` +
-                          `例: /document/${currentSpaceId}/0 （全投稿表示）`;
+                    `例: /document/${currentSpaceId}/0 （全投稿表示）`;
             } else if (currentDocId < 0) {
                 errorMsg += `0以上の整数を指定してください。\n` +
-                          `・0: 全投稿表示\n` +
-                          `・1以上: セクション別表示（今後実装予定）`;
+                    `・0: 全投稿表示\n` +
+                    `・1以上: セクション別表示（今後実装予定）`;
             }
-            
+
             console.error('Invalid docId:', { provided: docId, parsed: currentDocId, isNaN: isNaN(currentDocId) });
             setError(errorMsg);
             return;
         }
-        
+
         // バリデーション通過時はエラーをクリア
         setError(null);
     }, [spaceId, docId, currentSpaceId, currentDocId, isValidDocId]);
@@ -81,7 +81,7 @@ const DocumentPage = () => {
             try {
                 const response = await fetch(`/api/spaces/${currentSpaceId}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     setSpaceData(data.space);
                 } else {
@@ -106,22 +106,22 @@ const DocumentPage = () => {
         try {
             setIsLoading(true);
             setError(null);
-            
+
             // 常にスペース別APIエンドポイントを使用
             const response = await fetch(`/api/spaces/${currentSpaceId}/posts`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success && data.posts) {
                 setPosts(data.posts);
             } else {
                 throw new Error(data.error || '投稿データの取得に失敗しました');
             }
-            
+
         } catch (err) {
             console.error('DocumentPage: Error fetching posts:', err);
             setError(err.message || 'データの取得に失敗しました');
@@ -179,7 +179,7 @@ const DocumentPage = () => {
                     </div>
                 );
             }
-            
+
             // その他のエラー（API通信エラーなど）
             return (
                 <div className="text-center py-12 text-red-600">
@@ -207,136 +207,57 @@ const DocumentPage = () => {
 
         // 正常時：PostsListコンポーネントを使用
         return (
-            <PostsList 
-                posts={posts} 
-                docId={currentDocId} 
-                spaceId={currentSpaceId} 
+            <PostsList
+                posts={posts}
+                docId={currentDocId}
+                spaceId={currentSpaceId}
             />
         );
     };
 
-
-
-
-
-
-
     return (
-        <div style={{
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif',
-            margin: '0',
-            padding: '0',
-            background: '#f5f5f5',
-            minHeight: '100vh'
-        }}>
-            <div style={{
-                background: 'white',
-                margin: '20px auto',
-                padding: '30px',
-                borderRadius: '12px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                maxWidth: '900px',
-                minHeight: 'calc(100vh - 40px)',
-                boxSizing: 'border-box'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderBottom: '2px solid #f0f0f0',
-                    paddingBottom: '15px',
-                    marginBottom: '25px',
-                    position: 'sticky',
-                    top: '0',
-                    background: 'white',
-                    zIndex: '10'
-                }}>
-                    <div>
-                        <div style={{
-                            background: '#f8f9fa',
-                            padding: '12px 16px',
-                            borderRadius: '6px',
-                            fontSize: '13px',
-                            color: '#495057',
-                            borderLeft: '4px solid #6c757d',
-                            marginBottom: '8px'
-                        }}>
-                            📄 {spaceData ? `${spaceData.name} (ID: ${currentSpaceId})` : `スペース ${currentSpaceId}`}
-                        </div>
-                        <div style={{
-                            fontSize: '12px',
-                            color: '#666',
-                            marginLeft: '16px'
-                        }}>
-                            {isLoading ? '読み込み中...' : `${posts.length}件の投稿`}
-                            {/* 最終投稿日時の表示（アクティブ/終了済み共通） */}
-                            {spaceData?.lastActivity && ` | 最終投稿: ${new Date(spaceData.lastActivity).toLocaleString('ja-JP')}`}
-                            {/* 終了済みスペースの場合は終了日時も表示 */}
-                            {spaceData?.finishedAt && ` | 終了日時: ${new Date(spaceData.finishedAt).toLocaleString('ja-JP')}`}
-                            {/* セクション表示（docId > 0の場合） */}
-                            {docId && parseInt(docId) > 0 && ` | セクション: ${docId}`}
-                        </div>
+        <div className="font-sans bg-white mx-auto p-8 rounded-xl shadow-2xl max-w-4xl min-h-screen">
+            <div id="document-header" className="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 sticky top-0 bg-white z-10">
+                <div id='document-info'>
+                    <div id="document-title" className="bg-gray-50 px-4 py-3 rounded-md text-sm text-gray-600 border-l-4 border-gray-500 mb-2">
+                        📄 {spaceData ? `${spaceData.name} (ID: ${currentSpaceId})` : `スペース ${currentSpaceId}`}
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        {!isLoading && (
-                            <button
-                                onClick={fetchPostsFromAPI}
-                                style={{
-                                    background: '#4caf50',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 15px',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    transition: 'background 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.background = '#45a049';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.background = '#4caf50';
-                                }}
-                            >
-                                🔄 再読み込み
-                            </button>
-                        )}
+                    <div id="document-meta" className="text-xs text-gray-500 ml-4">
+                        {isLoading ? '読み込み中...' : `${posts.length}件の投稿`}
+                        {/* 最終投稿日時の表示（アクティブ/終了済み共通） */}
+                        {spaceData?.lastActivity && ` | 最終投稿: ${new Date(spaceData.lastActivity).toLocaleString('ja-JP')}`}
+                        {/* 終了済みスペースの場合は終了日時も表示 */}
+                        {spaceData?.finishedAt && ` | 終了日時: ${new Date(spaceData.finishedAt).toLocaleString('ja-JP')}`}
+                        {/* セクション表示（docId > 0の場合） */}
+                        {docId && parseInt(docId) > 0 && ` | セクション: ${docId}`}
+                    </div>
+                </div>
+                <div id="document-actions" className="flex gap-3 items-center">
+                    {!isLoading && (
                         <button
-                            onClick={() => {
-                                // 新しいタブを閉じる、またはブラウザの戻る機能を使用
-                                if (window.history.length > 1) {
-                                    window.history.back();
-                                } else {
-                                    window.close();
-                                }
-                            }}
-                            style={{
-                                background: '#ff4757',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 15px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                transition: 'background 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.background = '#ff3838';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.background = '#ff4757';
-                            }}
+                            onClick={fetchPostsFromAPI}
+                            className="bg-green-500 hover:bg-green-600 text-white border-none px-4 py-2 rounded-md cursor-pointer text-sm transition-colors duration-200"
                         >
-                            ✕ 閉じる
+                            🔄 再読み込み
                         </button>
-                    </div>
+                    )}
+                    <button
+                        onClick={() => {
+                            // 新しいタブを閉じる、またはブラウザの戻る機能を使用
+                            if (window.history.length > 1) {
+                                window.history.back();
+                            } else {
+                                window.close();
+                            }
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white border-none px-4 py-2 rounded-md cursor-pointer text-sm transition-colors duration-200"
+                    >
+                        ✕ 閉じる
+                    </button>
                 </div>
-                <div style={{
-                    lineHeight: '1.6',
-                    color: '#333'
-                }}>
-                    {renderJSXContent()}
-                </div>
+            </div>
+            <div id="document-content" className="leading-relaxed text-gray-800">
+                {renderJSXContent()}
             </div>
         </div>
     );
