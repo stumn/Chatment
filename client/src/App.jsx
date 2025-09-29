@@ -1,6 +1,7 @@
 // File: client/src/App.jsx
 // スペースID必須のチャットアプリケーション
-// /spaces/:spaceId でChatAppを表示し、/ は /admin にリダイレクト
+// /spaces/:spaceId でChatApp、/document/:spaceId/:docId で統一ドキュメント表示
+// / は /admin にリダイレクト
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
@@ -9,7 +10,7 @@ import { Suspense, lazy } from 'react';
 const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
 const ChatApp = lazy(() => import('./pages/space/ChatApp'));
 const DocumentPage = lazy(() => import('./pages/space/DocumentPage'));
-const SpaceLogPage = lazy(() => import('./pages/space/SpaceLogPage'));
+// const SpaceLogPage = lazy(() => import('./pages/space/SpaceLogPage')); // Phase 5で削除予定
 
 function App() {
   return (
@@ -29,11 +30,8 @@ function App() {
           {/* スペースチャット - 整数型スペースID対応 */}
           <Route path="/spaces/:spaceId" element={<ChatApp />} />
           
-          {/* ドキュメント表示 - スペースID + ドキュメントID */}
+          {/* ドキュメント表示 - 統一エンドポイント（スペースID + ドキュメントID） */}
           <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
-          
-          {/* 終了済みスペースのログ表示 */}
-          <Route path="/log/:spaceId/:docId" element={<SpaceLogPage />} />
           
           {/* ルートアクセスは管理画面にリダイレクト */}
           <Route path="/" element={<Navigate to="/admin" replace />} />

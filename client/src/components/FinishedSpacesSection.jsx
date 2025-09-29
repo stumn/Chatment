@@ -35,7 +35,7 @@ const FinishedSpaceRow = ({ space }) => {
 
   const handleViewDocument = () => {
     // 新しいタブで終了済みスペースのログ閲覧ページを開く
-    const logUrl = `/log/${space.id}/0`;
+    const logUrl = `/document/${space.id}/0`;
     window.open(logUrl, '_blank');
   };
 
@@ -49,14 +49,7 @@ const FinishedSpaceRow = ({ space }) => {
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
-        <a
-          href={`/log/${space.id}`}
-          className="text-blue-600 no-underline hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {space.name}
-        </a>
+        {space.name}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
         <span className="relative inline-block mr-2 dropdown-container">
