@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AddSpaceModal from '../../components/AddSpaceModal';
 import FinishedSpacesSection from '../../components/FinishedSpacesSection';
 import ActiveSpacesSection from '../../components/ActiveSpacesSection';
+import SpaceStatistics from '../../components/SpaceStatistics';
 import useSpaceStore from '../../store/spaceStore';
 
 const styles = {
@@ -189,73 +190,16 @@ function SpaceApp() {
     }
   };
 
-  // 統計情報を計算
-  const statistics = {
-    totalSpaces: activeSpaces.length + finishedSpaces.length,
-    activeCount: activeSpaces.length,
-    finishedCount: finishedSpaces.length,
-    totalRooms: activeSpaces.reduce((total, space) => total + (space.roomCount || 0), 0),
-    totalParticipants: activeSpaces.reduce((total, space) => total + (space.participantCount || 0), 0)
-  };
-
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h1 style={styles.title}>コミュニケーションスペース管理</h1>
 
         {/* 統計情報表示 */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px'
-        }}>
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#f0f9ff',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#0369a1' }}>{statistics.totalSpaces}</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>総スペース数</div>
-          </div>
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#f0fdf4',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>{statistics.activeCount}</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>アクティブ</div>
-          </div>
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#fef2f2',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626' }}>{statistics.finishedCount}</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>終了済み</div>
-          </div>
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#475569' }}>{statistics.totalRooms}</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>総ルーム数</div>
-          </div>
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#fefce8',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ca8a04' }}>{statistics.totalParticipants}</div>
-            <div style={{ fontSize: '14px', color: '#6b7280' }}>総参加者数</div>
-          </div>
-        </div>
+        <SpaceStatistics 
+          activeSpaces={activeSpaces}
+          finishedSpaces={finishedSpaces}
+        />
 
         {/* 成功メッセージ表示 */}
         {successMessage && (
