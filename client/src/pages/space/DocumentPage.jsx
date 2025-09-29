@@ -20,9 +20,12 @@ const DocumentPage = () => {
                 
                 if (data.success) {
                     setSpaceData(data.space);
+                } else {
+                    throw new Error(data.error || 'スペース情報の取得に失敗しました');
                 }
             } catch (error) {
                 console.error('スペース情報取得中にエラーが発生しました:', error);
+                setError(error.message);
             }
         };
 
@@ -35,12 +38,8 @@ const DocumentPage = () => {
             setIsLoading(true);
             setError(null);
             
-            // スペース別APIエンドポイントからpostsを取得
-            const apiEndpoint = currentSpaceId && !isNaN(currentSpaceId) 
-                ? `/api/spaces/${currentSpaceId}/posts` 
-                : '/api/posts';
-            
-            const response = await fetch(apiEndpoint);
+            // 常にスペース別APIエンドポイントを使用
+            const response = await fetch(`/api/spaces/${currentSpaceId}/posts`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -49,9 +48,9 @@ const DocumentPage = () => {
             const data = await response.json();
             
             if (data.success && data.posts) {
-                setPosts(data.posts); // 直接local stateに設定
+                setPosts(data.posts);
             } else {
-                throw new Error(data.error || 'Failed to retrieve posts data');
+                throw new Error(data.error || '投稿データの取得に失敗しました');
             }
             
         } catch (err) {
@@ -242,7 +241,7 @@ const DocumentPage = () => {
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif',
             margin: '0',
             padding: '0',
-            background: '#DCDDE0',
+            background: '#f5f5f5',
             minHeight: '100vh'
         }}>
             <div style={{
@@ -269,15 +268,15 @@ const DocumentPage = () => {
                 }}>
                     <div>
                         <div style={{
-                            background: '#e3f2fd',
+                            background: '#f8f9fa',
                             padding: '12px 16px',
                             borderRadius: '6px',
                             fontSize: '13px',
-                            color: '#1976d2',
-                            borderLeft: '4px solid #2196f3',
+                            color: '#495057',
+                            borderLeft: '4px solid #6c757d',
                             marginBottom: '8px'
                         }}>
-                            📄 {spaceData ? `${spaceData.name} (ID: ${currentSpaceId})` : `スペース ${currentSpaceId}`} - ドキュメント表示
+                            📄 {spaceData ? `${spaceData.name} (ID: ${currentSpaceId})` : `スペース ${currentSpaceId}`}
                         </div>
                         <div style={{
                             fontSize: '12px',
@@ -285,7 +284,8 @@ const DocumentPage = () => {
                             marginLeft: '16px'
                         }}>
                             {isLoading ? '読み込み中...' : `${posts.length}件の投稿`}
-                            {docId && ` | ドキュメントID: ${docId}`}
+                            {spaceData?.finishedAt && ` | 終了日時: ${new Date(spaceData.finishedAt).toLocaleString('ja-JP')}`}
+                            {docId && parseInt(docId) > 0 && ` | セクション: ${docId}`}
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
