@@ -50,10 +50,13 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
           入場
         </button>
         <button
-          className="px-4 py-2 !bg-red-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-red-600 transition-colors duration-150"
+          className={`px-4 py-2 text-white border-none rounded text-sm font-medium mr-2 transition-colors duration-150 ${
+            space.id === 1 
+              ? '!bg-neutral-500 !cursor-not-allowed' 
+              : '!bg-red-500 cursor-pointer hover:!bg-red-600'
+          }`}
           onClick={handleFinishSpace}
           disabled={space.id === 1}
-          style={space.id === 1 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
         >
           終了
         </button>
