@@ -256,6 +256,80 @@ async function deactivateSpace(spaceId) {
     }
 }
 
+// --- スペースを終了状態にする ---
+async function finishSpace(spaceId) {
+    try {
+        if (spaceId === DEFAULT_SPACE_ID) {
+            throw new Error('デフォルトスペースは終了できません');
+        }
+
+        const result = await Space.findOneAndUpdate(
+            { id: spaceId },
+            { 
+                $set: { 
+                    isFinished: true, 
+                    finishedAt: new Date(),
+                    isActive: false // 終了時に非アクティブ化も行う
+                } 
+            },
+            { new: true }
+        );
+
+        if (!result) {
+            throw new Error(`スペースが見つかりません: ${spaceId}`);
+        }
+
+        console.log(`🏁 [spaceOperation] スペースを終了: ${spaceId}`);
+        return result.toObject();
+
+    } catch (error) {
+        handleErrors(error, `スペース終了中にエラーが発生しました: ${spaceId}`);
+        return null;
+    }
+}
+
+// --- 終了済みスペース一覧を取得 ---
+async function getFinishedSpaces() {
+    try {
+        console.time('getFinishedSpaces');
+
+        const spaces = await Space.find({ isFinished: true })
+            .sort({ finishedAt: -1 })
+            .lean()
+            .exec();
+
+        console.timeEnd('getFinishedSpaces');
+        console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得`);
+
+        return spaces;
+
+    } catch (error) {
+        handleErrors(error, '終了済みスペース取得中にエラーが発生しました');
+        return [];
+    }
+}
+
+// --- 全スペース一覧を取得（管理者用） ---
+async function getAllSpaces() {
+    try {
+        console.time('getAllSpaces');
+
+        const spaces = await Space.find({})
+            .sort({ createdAt: -1 })
+            .lean()
+            .exec();
+
+        console.timeEnd('getAllSpaces');
+        console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得`);
+
+        return spaces;
+
+    } catch (error) {
+        handleErrors(error, '全スペース取得中にエラーが発生しました');
+        return [];
+    }
+}
+
 module.exports = {
     DEFAULT_SPACE_ID,
     initializeDefaultSpace,
@@ -266,5 +340,8 @@ module.exports = {
     updateSpaceStats,
     getRoomsBySpace,
     getPostsBySpace,
-    deactivateSpace
+    deactivateSpace,
+    finishSpace,
+    getFinishedSpaces,
+    getAllSpaces
 };

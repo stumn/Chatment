@@ -13,6 +13,21 @@ const TableHeader = ({ columns }) => (
 
 // アクティブなスペースの行をレンダリングするコンポーネント
 const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) => {
+  const handleFinishSpace = () => {
+    if (space.id === 1) {
+      alert('デフォルトスペースは終了できません。');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `スペース「${space.name}」を終了しますか？\n\n終了後は再び開始することはできませんが、ドキュメントの閲覧は可能です。`
+    );
+    
+    if (confirmed) {
+      onFinishSpace(space.id);
+    }
+  };
+
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
@@ -24,7 +39,9 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
         </a>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '説明なし'}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.options || 'オプションなし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
+        {space.roomCount || 0} ルーム / {space.participantCount || 0} 参加者
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
           className="px-4 py-2 !bg-emerald-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-emerald-600 transition-colors duration-150"
@@ -34,7 +51,9 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
         </button>
         <button
           className="px-4 py-2 !bg-red-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-red-600 transition-colors duration-150"
-          onClick={() => onFinishSpace(space.id)}
+          onClick={handleFinishSpace}
+          disabled={space.id === 1}
+          style={space.id === 1 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
         >
           終了
         </button>
@@ -73,7 +92,7 @@ const ActiveSpacesSection = ({
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-        <TableHeader columns={['スペース名', '説明', 'オプション', 'アクション']} />
+        <TableHeader columns={['スペース名', '説明', 'ステータス', 'アクション']} />
         <tbody>
           {activeSpaces.length > 0 ? (
             activeSpaces.map(space => (

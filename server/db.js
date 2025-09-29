@@ -91,6 +91,8 @@ const spaceSchema = new mongoose.Schema({
     // スペース設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
     isPrivate: { type: Boolean, default: false }, // プライベートスペース
+    isFinished: { type: Boolean, default: false }, // 終了フラグ
+    finishedAt: { type: Date, default: null }, // 終了日時
     
     // 作成者情報
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

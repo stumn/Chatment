@@ -25,6 +25,13 @@ const FinishedSpaceRow = ({ space }) => {
     window.open(docUrl, '_blank');
   };
 
+  // 終了日時のフォーマット
+  const formatFinishedAt = (finishedAt) => {
+    if (!finishedAt) return '不明';
+    const date = new Date(finishedAt);
+    return date.toLocaleDateString('ja-JP') + ' ' + date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
@@ -69,7 +76,8 @@ const FinishedSpaceRow = ({ space }) => {
           <span className="text-gray-400">ファイルなし</span>
         )}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.options || 'オプションなし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '説明なし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
           className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
@@ -94,7 +102,7 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
       <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したコミュニケーションスペース</h2>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', 'ファイル', 'オプション', 'アクション']} />
+          <TableHeader columns={['スペース名', '説明', '終了日時', 'アクション']} />
           <tbody>
             {finishedSpaces.length > 0 ? (
               finishedSpaces.map(space => (

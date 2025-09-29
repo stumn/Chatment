@@ -120,6 +120,7 @@ function SpaceApp() {
   // アクション関数を取得
   const setCurrentSpace = useSpaceStore(state => state.setCurrentSpace);
   const fetchSpaces = useSpaceStore(state => state.fetchSpaces);
+  const fetchAllSpaces = useSpaceStore(state => state.fetchAllSpaces);
   const addSpace = useSpaceStore(state => state.addSpace);
   const finishSpace = useSpaceStore(state => state.finishSpace);
   const restoreCurrentSpaceFromStorage = useSpaceStore(state => state.restoreCurrentSpaceFromStorage);
@@ -127,6 +128,7 @@ function SpaceApp() {
 
   // ローカル状態（モーダル表示のため）
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // 初期化時にデータを取得
   useEffect(() => {
@@ -135,15 +137,15 @@ function SpaceApp() {
         // ローカルストレージから選択済みスペースを復元
         restoreCurrentSpaceFromStorage();
         
-        // スペース一覧を取得
-        await fetchSpaces();
+        // 管理者用全スペース一覧を取得
+        await fetchAllSpaces();
       } catch (error) {
         console.error('初期化エラー:', error);
       }
     };
 
     initializeStore();
-  }, [fetchSpaces, restoreCurrentSpaceFromStorage]);
+  }, [fetchAllSpaces, restoreCurrentSpaceFromStorage]);
 
   // コミュニケーションスペースを追加する関数
   const handleAddSpace = async (newSpace) => {
@@ -151,6 +153,8 @@ function SpaceApp() {
       await addSpace(newSpace);
       // モーダルを閉じる
       setIsAddModalOpen(false);
+      setSuccessMessage('新しいスペースが作成されました');
+      setTimeout(() => setSuccessMessage(''), 3000); // 3秒後に消去
     } catch (error) {
       console.error('スペース追加エラー:', error);
       // エラーが発生してもモーダルは閉じる（ユーザーが再試行できるよう）
@@ -178,19 +182,109 @@ function SpaceApp() {
   const handleFinishSpace = async (spaceId) => {
     try {
       await finishSpace(spaceId);
-      // 成功通知（TODO: 実装）
-      // showNotification('スペースが終了されました', 'success');
+      setSuccessMessage('スペースが終了されました');
+      setTimeout(() => setSuccessMessage(''), 3000); // 3秒後に消去
     } catch (error) {
       console.error('スペース終了エラー:', error);
-      // エラー通知（TODO: 実装）
-      // showNotification('スペースの終了に失敗しました', 'error');
     }
+  };
+
+  // 統計情報を計算
+  const statistics = {
+    totalSpaces: activeSpaces.length + finishedSpaces.length,
+    activeCount: activeSpaces.length,
+    finishedCount: finishedSpaces.length,
+    totalRooms: activeSpaces.reduce((total, space) => total + (space.roomCount || 0), 0),
+    totalParticipants: activeSpaces.reduce((total, space) => total + (space.participantCount || 0), 0)
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h1 style={styles.title}>コミュニケーションスペース管理</h1>
+
+        {/* 統計情報表示 */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#f0f9ff',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#0369a1' }}>{statistics.totalSpaces}</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>総スペース数</div>
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#f0fdf4',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669' }}>{statistics.activeCount}</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>アクティブ</div>
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#fef2f2',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626' }}>{statistics.finishedCount}</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>終了済み</div>
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#475569' }}>{statistics.totalRooms}</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>総ルーム数</div>
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#fefce8',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ca8a04' }}>{statistics.totalParticipants}</div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>総参加者数</div>
+          </div>
+        </div>
+
+        {/* 成功メッセージ表示 */}
+        {successMessage && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #86efac',
+            borderRadius: '4px',
+            color: '#059669',
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>{successMessage}</span>
+            <button
+              onClick={() => setSuccessMessage('')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#059669',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* エラーメッセージ表示 */}
         {error && (

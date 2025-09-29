@@ -16,7 +16,11 @@ const {
   getPostsBySpace,
   deactivateSpace,
   updateSpaceStats,
-  migrateExistingDataToSpace
+  migrateExistingDataToSpace,
+  // 管理者機能
+  finishSpace,
+  getFinishedSpaces,
+  getAllSpaces
 } = require('./dbOperation');
 
 // パフォーマンス測定エンドポイント
@@ -360,6 +364,68 @@ router.delete('/spaces/:spaceId', async (req, res) => {
     });
   } catch (error) {
     console.error('Deactivate space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペースを終了状態にする（管理者機能）
+router.post('/spaces/:spaceId/finish', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId);
+    const finishedSpace = await finishSpace(spaceId);
+
+    if (!finishedSpace) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found or cannot be finished'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: finishedSpace
+    });
+  } catch (error) {
+    console.error('Finish space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 終了済みスペース一覧を取得（管理者機能）
+router.get('/admin/spaces/finished', async (req, res) => {
+  try {
+    const finishedSpaces = await getFinishedSpaces();
+
+    res.json({
+      success: true,
+      spaces: finishedSpaces
+    });
+  } catch (error) {
+    console.error('Get finished spaces API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 全スペース一覧を取得（管理者機能）
+router.get('/admin/spaces', async (req, res) => {
+  try {
+    const allSpaces = await getAllSpaces();
+
+    res.json({
+      success: true,
+      spaces: allSpaces
+    });
+  } catch (error) {
+    console.error('Get all spaces API error:', error);
     res.status(500).json({
       success: false,
       error: error.message

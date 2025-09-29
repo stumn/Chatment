@@ -80,8 +80,8 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       const data = await response.json();
       
       if (data.success) {
-        const activeSpaces = data.spaces.filter(space => space.isActive);
-        const finishedSpaces = data.spaces.filter(space => !space.isActive);
+        const activeSpaces = data.spaces.filter(space => space.isActive && !space.isFinished);
+        const finishedSpaces = data.spaces.filter(space => space.isFinished);
         
         set({
           activeSpaces,
@@ -96,6 +96,42 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       }
     } catch (error) {
       console.error('スペース一覧取得エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
+   * 管理者用: 全スペース一覧を取得
+   */
+  fetchAllSpaces: async () => {
+    const { setLoading, setError, clearError } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      const response = await fetch('/api/admin/spaces');
+      const data = await response.json();
+      
+      if (data.success) {
+        const activeSpaces = data.spaces.filter(space => space.isActive && !space.isFinished);
+        const finishedSpaces = data.spaces.filter(space => space.isFinished);
+        
+        set({
+          activeSpaces,
+          finishedSpaces,
+          isLoading: false
+        });
+        
+        console.log('✅ 管理者用全スペース一覧を取得しました:', data.spaces.length);
+        return data.spaces;
+      } else {
+        throw new Error(data.error || '全スペース一覧の取得に失敗しました');
+      }
+    } catch (error) {
+      console.error('全スペース一覧取得エラー:', error);
       setError(error.message);
       setLoading(false);
       throw error;
@@ -173,19 +209,19 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
     clearError();
     
     try {
-      // TODO: バックエンドAPIでスペースを終了する処理
-      // const response = await fetch(`/api/spaces/${spaceId}/finish`, {
-      //   method: 'POST'
-      // });
+      // バックエンドAPIでスペースを終了する処理
+      const response = await fetch(`/api/spaces/${spaceId}/finish`, {
+        method: 'POST'
+      });
       
-      // 現在はフロントエンドでの処理のみ
-      const state = get();
-      const spaceToFinish = state.activeSpaces.find(space => space.id === spaceId);
+      const data = await response.json();
       
-      if (spaceToFinish) {
+      if (data.success) {
+        const finishedSpace = data.space;
+        
         set((state) => ({
           activeSpaces: state.activeSpaces.filter(space => space.id !== spaceId),
-          finishedSpaces: [...state.finishedSpaces, { ...spaceToFinish, isActive: false }],
+          finishedSpaces: [...state.finishedSpaces, finishedSpace],
           isLoading: false
         }));
 
@@ -194,10 +230,10 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           setCurrentSpace(null);
         }
 
-        console.log('✅ スペースが終了されました:', spaceToFinish.name);
-        return true;
+        console.log('✅ スペースが終了されました:', finishedSpace.name);
+        return finishedSpace;
       } else {
-        throw new Error('終了するスペースが見つかりません');
+        throw new Error(data.error || 'スペースの終了に失敗しました');
       }
     } catch (error) {
       console.error('スペース終了エラー:', error);
