@@ -42,6 +42,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         nickname: payload.nickname,
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
+        spaceId: payload.spaceId, // spaceIdを追加
       });
 
       // 新規行追加の結果を整形

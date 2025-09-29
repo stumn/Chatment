@@ -14,7 +14,7 @@ async function getPostsByDisplayOrder() {
 }
 
 // --- 新規行追加 ---
-async function addDocRow({ nickname, msg = '', displayOrder }) {
+async function addDocRow({ nickname, msg = '', displayOrder, spaceId }) {
     try {
         let order = displayOrder;
         if (!Number.isFinite(order)) {
@@ -26,6 +26,7 @@ async function addDocRow({ nickname, msg = '', displayOrder }) {
             nickname,
             msg,
             displayOrder: order,
+            spaceId, // spaceIdを追加
             source: 'document', // ドキュメントソースを明示的に指定
             previousData: {
                 nickname,

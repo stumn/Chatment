@@ -56,7 +56,7 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
                     transition: 'width 0.3s ease' // スムーズな幅変更
                 }}>
 
-                <ResizablePanels appController={appController} />
+                <ResizablePanels appController={appController} spaceId={spaceId} />
 
                 <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 

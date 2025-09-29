@@ -10,7 +10,7 @@ import useAppStore from "../store/appStore";
 import usePostStore from "../store/postStore";
 import useRoomStore from "../store/roomStore";
 
-export default function ResizablePanels({ appController }) {
+export default function ResizablePanels({ appController, spaceId }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -41,6 +41,7 @@ export default function ResizablePanels({ appController }) {
     const documentFunctions = {
         document: appController.document,
         chat: appController.chat.send, // sendChatMessage
+        spaceId: spaceId, // spaceIdを追加
     };
 
     // Chat操作用の関数群を抽出  

@@ -65,6 +65,7 @@ const DocRow = ({ data, index, style }) => {
             insertAfterId: message.id, // このメッセージの後に挿入したいという意図を伝える
             prevDisplayOrder: message.displayOrder, // ここでdisplayOrderを指定
             datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
+            spaceId: documentFunctions.spaceId, // spaceIdを追加
         };
 
         console.log('handleAddBelow called for message:', data);
