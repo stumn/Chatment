@@ -55,8 +55,12 @@ async function initializeDefaultRooms() {
                 console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
             } else {
                 // ルームが存在しない場合は新規作成
-                createRoom(roomData);
-                console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
+                try {
+                    await createRoom(roomData);
+                    console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
+                } catch (error) {
+                    console.error(`❌ [dbOperation] デフォルトルーム作成失敗: ${roomData.name} (${roomData.id})`, error.message);
+                }
             }
         }
 
