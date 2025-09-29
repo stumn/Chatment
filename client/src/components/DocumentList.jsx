@@ -5,7 +5,8 @@ import usePostStore from '../store/postStore';
 
 const DocumentList = () => {
 
-    const { id } = useParams();
+    const { spaceId } = useParams();
+    console.log('Current space ID:', spaceId);
 
     // postStoreからデータを取得
     const posts = usePostStore((state) => state.posts);
@@ -15,13 +16,13 @@ const DocumentList = () => {
 
     // ドキュメント情報（1つだけ、全件データ）
     const documentData = {
-        id: 'posts-all',
+        id: 0,
         name: '全投稿データ'
     };
 
     const openDocumentWindow = () => {
         // 新しいタブでドキュメントページを開く（React Routerを使用）
-        const documentUrl = `/document/${id}`;
+        const documentUrl = `/document/${spaceId}/${documentData.id}`;
         window.open(documentUrl, '_blank');
     };
 

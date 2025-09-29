@@ -19,10 +19,24 @@ const FinishedSpaceRow = ({ space }) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
+  // 外部クリック時にドロップダウンを閉じる
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    if (openDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown]);
+
   const handleViewDocument = () => {
-    // 新しいタブでドキュメント閲覧ページ（全ルーム全投稿）を開く
-    const docUrl = `/spaces/${space.id}/0`;
-    window.open(docUrl, '_blank');
+    // 新しいタブで終了済みスペースのログ閲覧ページを開く
+    const logUrl = `/log/${space.id}/0`;
+    window.open(logUrl, '_blank');
   };
 
   // 終了日時のフォーマット
@@ -36,45 +50,51 @@ const FinishedSpaceRow = ({ space }) => {
     <tr>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
         <a
-          href={`/log/${space.id}/`}
+          href={`/log/${space.id}`}
           className="text-blue-600 no-underline hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           {space.name}
         </a>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
-        {space.files && Object.keys(space.files).length > 0 ? (
-          Object.keys(space.files).map(fileType => (
-            <span key={fileType} className="relative inline-block mr-2">
-              <button
-                className="px-3 py-1 text-blue-500 bg-transparent border-none cursor-pointer text-sm hover:text-blue-700 transition-colors duration-150"
-                type="button"
-                onClick={() => handleDropdownToggle(fileType)}
+        <span className="relative inline-block mr-2 dropdown-container">
+          <button
+            className="px-3 py-1 text-blue-500 bg-transparent border-none cursor-pointer text-sm hover:text-blue-700 transition-colors duration-150"
+            type="button"
+            onClick={() => handleDropdownToggle('export')}
+          >
+            エクスポート
+            <svg className="inline-block ml-1 w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
+            </svg>
+          </button>
+          <ul
+            className={`absolute left-0 mt-2 py-1 w-32 bg-white rounded-md shadow-lg z-10 border ${openDropdown === 'export' ? 'block' : 'hidden'}`}
+          >
+            <li>
+              <a
+                href={`/api/spaces/${space.id}/export/csv`}
+                className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
+                download
+                onClick={() => setOpenDropdown(null)}
               >
-                {fileType}
-                <svg className="inline-block ml-1 w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </button>
-              <ul
-                className={`absolute left-0 mt-2 py-1 w-32 bg-white rounded-md shadow-lg z-10 ${openDropdown === fileType ? 'block' : 'hidden'}`}
+                📄 CSV
+              </a>
+            </li>
+            <li>
+              <a
+                href={`/api/spaces/${space.id}/export/json`}
+                className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
+                download
+                onClick={() => setOpenDropdown(null)}
               >
-                {space.files[fileType].map(format => (
-                  <li key={format}>
-                    <a
-                      href={`/log/${space.id}/${fileType}.${format}`}
-                      className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
-                    >
-                      {format}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </span>
-          ))
-        ) : (
-          <span className="text-gray-400">ファイルなし</span>
-        )}
+                📄 JSON
+              </a>
+            </li>
+          </ul>
+        </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '説明なし'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
@@ -102,7 +122,7 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
       <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したコミュニケーションスペース</h2>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', '説明', '終了日時', 'アクション']} />
+          <TableHeader columns={['スペース名', 'エクスポート', '説明', '終了日時', 'アクション']} />
           <tbody>
             {finishedSpaces.length > 0 ? (
               finishedSpaces.map(space => (
@@ -110,7 +130,7 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200 text-center text-gray-400">
+                <td colSpan="5" className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200 text-center text-gray-400">
                   終了したスペースはありません
                 </td>
               </tr>

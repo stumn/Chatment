@@ -9,6 +9,7 @@ import { Suspense, lazy } from 'react';
 const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
 const ChatApp = lazy(() => import('./pages/space/ChatApp'));
 const DocumentPage = lazy(() => import('./pages/space/DocumentPage'));
+const SpaceLogPage = lazy(() => import('./pages/space/SpaceLogPage'));
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
           
           {/* ドキュメント表示 - スペースID + ドキュメントID */}
           <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
+          
+          {/* 終了済みスペースのログ表示 */}
+          <Route path="/log/:spaceId/:docId" element={<SpaceLogPage />} />
           
           {/* ルートアクセスは管理画面にリダイレクト */}
           <Route path="/" element={<Navigate to="/admin" replace />} />

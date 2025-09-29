@@ -214,7 +214,7 @@ async function getPostsBySpace(spaceId, limit = 100) {
         console.time(`getPostsBySpace-${spaceId}`);
 
         const posts = await Post.find({ spaceId })
-            .sort({ createdAt: -1 })
+            .sort({ displayOrder: 1, createdAt: 1 }) // ドキュメント表示順で並び替え
             .limit(limit)
             .lean()
             .exec();

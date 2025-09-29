@@ -458,4 +458,79 @@ router.post('/migrate-to-spaces', async (req, res) => {
   }
 });
 
+// スペースのデータをCSV形式でエクスポート
+router.get('/spaces/:spaceId/export/csv', async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    
+    const posts = await getPostsBySpace(spaceId, 10000); // 大量データに対応
+    
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No posts found for this space'
+      });
+    }
+
+    // CSVヘッダー
+    let csvContent = 'ID,投稿者,内容,投稿日時,ルームID,表示順序,ポジティブ反応,ネガティブ反応\n';
+    
+    // データ行を追加
+    posts.forEach(post => {
+      const row = [
+        post._id || '',
+        `"${(post.nickname || '').replace(/"/g, '""')}"`, // CSVエスケープ
+        `"${(post.msg || '').replace(/"/g, '""')}"`,
+        post.createdAt ? new Date(post.createdAt).toISOString() : '',
+        post.roomId || '',
+        post.displayOrder || 0,
+        post.positive || 0,
+        post.negative || 0
+      ].join(',');
+      csvContent += row + '\n';
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="space_${spaceId}_posts.csv"`);
+    res.send('\ufeff' + csvContent); // BOM付きで日本語対応
+    
+  } catch (error) {
+    console.error('CSV export API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペースのデータをJSON形式でエクスポート
+router.get('/spaces/:spaceId/export/json', async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    
+    const [space, posts] = await Promise.all([
+      getSpaceById(spaceId),
+      getPostsBySpace(spaceId, 10000)
+    ]);
+
+    const exportData = {
+      space: space,
+      posts: posts,
+      exportedAt: new Date().toISOString(),
+      totalPosts: posts.length
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="space_${spaceId}_data.json"`);
+    res.json(exportData);
+    
+  } catch (error) {
+    console.error('JSON export API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
