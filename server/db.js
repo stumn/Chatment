@@ -132,7 +132,32 @@ const spaceSchema = new mongoose.Schema({
             allowAnonymous: { type: Boolean, default: true }
         },
         maxRooms: { type: Number, default: 50 }, // 最大ルーム数
-        theme: { type: String, default: 'default' } // テーマ設定
+        theme: { type: String, default: 'default' }, // テーマ設定
+        
+        // サブルーム設定
+        subRoomSettings: {
+            enabled: { type: Boolean, default: false }, // サブルーム機能有効/無効
+            rooms: [{
+                name: { 
+                    type: String, 
+                    required: true, 
+                    maxlength: 10, 
+                    minlength: 1,
+                    validate: {
+                        validator: function(v) {
+                            // 禁止文字チェック
+                            const forbiddenChars = /[\/\\<>"'&]/;
+                            // 予約語チェック
+                            const reservedWords = ['admin', 'system', 'api'];
+                            return !forbiddenChars.test(v) && !reservedWords.includes(v.toLowerCase());
+                        },
+                        message: 'ルーム名に使用できない文字または予約語が含まれています'
+                    }
+                },
+                description: { type: String, maxlength: 50, default: '' }
+            }],
+            maxRooms: { type: Number, default: 10, max: 10 } // 最大ルーム数（サブルーム機能用）
+        }
     }
 }, options);
 
