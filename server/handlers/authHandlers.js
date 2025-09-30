@@ -8,23 +8,34 @@ const { SOCKET_EVENTS } = require('../constants');
 
 // --- ログインハンドラー ---
 async function handleLogin(socket, userInfo) {
-  const { nickname, status, ageGroup } = userInfo;
-  console.log('🙋login:', nickname, status, ageGroup, socket.id);
+  const { nickname, status, ageGroup, spaceId } = userInfo;
+  console.log('🙋login:', nickname, status, ageGroup, 'spaceId:', spaceId, socket.id);
 
   try {
 
-    // nickname, status, ageGroupが必須
-    if (!nickname || !status || !ageGroup) {
-      console.error('Invalid user info:', userInfo);
+    // nickname, status, ageGroup, spaceIdが必須
+    if (!nickname || !status || !ageGroup || !spaceId) {
+      const errorMsg = 'ログイン情報が不完全です。nickname, status, ageGroup, spaceIdが必要です。';
+      console.error(errorMsg, userInfo);
+      socket.emit('login_error', { 
+        message: errorMsg,
+        missing: {
+          nickname: !nickname,
+          status: !status, 
+          ageGroup: !ageGroup,
+          spaceId: !spaceId
+        }
+      });
       return;
     }
 
-    // ユーザをDBへ保存（TODO: nickname, status, ageGroupが全く同じ場合、同じユーザとして扱うためのロジックを追加）
-    const newUser = await saveUser(nickname, status, ageGroup, socket.id);
+    // ユーザをDBへ保存（スペース検証付き）
+    const newUser = await saveUser(nickname, status, ageGroup, socket.id, spaceId);
 
     // TODO: ちゃんと確認する
     socket.userId = newUser._id.toString();
     socket.nickname = nickname;
+    socket.spaceId = spaceId; // socketにspaceIdも保存
 
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
@@ -45,7 +56,22 @@ async function handleLogin(socket, userInfo) {
       } catch (e) { console.error(e); }
     });
 
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error('ログインエラー:', e);
+    
+    // スペース関連のエラーかチェック
+    if (e.message.includes('スペースID') || e.message.includes('存在しません') || e.message.includes('利用できません')) {
+      socket.emit('login_error', { 
+        message: 'スペースエラー: ' + e.message,
+        type: 'SPACE_ERROR'
+      });
+    } else {
+      socket.emit('login_error', { 
+        message: 'ログイン処理中にエラーが発生しました',
+        type: 'GENERAL_ERROR'
+      });
+    }
+  }
 }
 
 module.exports = {

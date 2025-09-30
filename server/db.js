@@ -40,8 +40,28 @@ const userSchema = new mongoose.Schema({
     nickname: String,
     status: String, // 属性
     ageGroup: String, // 年代
-    socketId: []
+    socketId: [],
+    
+    // スペースID（ユーザーはスペースごとに別レコードとして管理）
+    spaceId: { type: Number, required: true, index: true },
+    
+    // ログイン履歴
+    loginHistory: [{
+        socketId: String,
+        loginAt: { type: Date, default: Date.now },
+        ipAddress: String, // 将来的にIPアドレスも記録できる
+        userAgent: String  // 将来的にブラウザ情報も記録できる
+    }],
+    
+    // 最後のログイン日時（クエリ最適化用）
+    lastLoginAt: { type: Date, default: Date.now }
 }, options);
+
+// Userコレクション用のインデックス
+userSchema.index({ nickname: 1, status: 1, ageGroup: 1, spaceId: 1 }); // スペース別同一ユーザー検索用
+userSchema.index({ spaceId: 1, lastLoginAt: -1 }); // スペース別最終ログイン順ソート用
+userSchema.index({ spaceId: 1 }); // スペース別ユーザー一覧用
+userSchema.index({ 'loginHistory.loginAt': -1 }); // ログイン履歴検索用
 
 const User = mongoose.model("User", userSchema);
 

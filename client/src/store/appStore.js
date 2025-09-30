@@ -7,7 +7,8 @@ const useAppStore = create((set) => ({
   userInfo: {
     nickname: undefined,
     status: undefined,
-    ageGroup: undefined
+    ageGroup: undefined, 
+    spaceId: undefined, // spaceIdも保持
   },
 
   // ユーザー自身のパネルの高さ
@@ -20,12 +21,13 @@ const useAppStore = create((set) => ({
   isTocOpen: true,
 
   // アクション: ユーザー情報を設定する
-  setUserInfo: ({ nickname, status, ageGroup, userId }) => set((state) => ({
+  setUserInfo: ({ nickname, status, ageGroup, userId, spaceId }) => set((state) => ({
     userInfo: {
       nickname,
       status,
       ageGroup,
       userId, // userIdも保持
+      spaceId // spaceIdも保持
     }
   })),
 

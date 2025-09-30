@@ -1,6 +1,7 @@
 // File: client/src/BeforeLogin.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -21,6 +22,10 @@ function BeforeLogin({ open, onLogin }) {
     const [nickname, setNickname] = useState('');
     const [status, setStatus] = useState('');
     const [ageGroup, setAgeGroup] = useState('');
+    
+    // react-router-dom でURLパラメータからspaceIdを取得する
+    const { spaceId } = useParams();
+    console.log('Current spaceId from URL:', spaceId);
 
     // コンポーネントマウント時にローカルストレージから前回の入力値を読み込む
     useEffect(() => {
@@ -50,7 +55,7 @@ function BeforeLogin({ open, onLogin }) {
         localStorage.setItem('userInfo', JSON.stringify({ nickname, status, ageGroup }));
 
         // 収集したデータを親コンポーネントに渡す
-        onLogin({ nickname, status, ageGroup });
+        onLogin({ nickname, status, ageGroup, spaceId });
     };
 
     // 年代の選択肢
