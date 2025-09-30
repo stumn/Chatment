@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AddSpaceModal from '../../components/AddSpaceModal';
-import FinishedSpacesSection from '../../components/FinishedSpacesSection';
-import ActiveSpacesSection from '../../components/ActiveSpacesSection';
-import SpaceStatistics from '../../components/SpaceStatistics';
-import { LoadingMessage, SuccessMessage, ErrorMessage } from '../../components/ui/AlertMessage';
-import useSpaceStore from '../../store/spaceStore';
+import AddSpaceModal from '../../components/admin/AddSpaceModal';
+import FinishedSpacesSection from '../../components/admin/FinishedSpacesSection';
+import ActiveSpacesSection from '../../components/admin/ActiveSpacesSection';
+import SpaceStatistics from '../../components/admin/SpaceStatistics';
+import { LoadingMessage, SuccessMessage, ErrorMessage } from '../../components/shared/AlertMessage';
+import useSpaceStore from '../../store/admin/spaceStore';
 
 function SpaceApp() {
   // react-router-domのナビゲート機能
