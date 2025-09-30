@@ -31,9 +31,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
   const handleSubmit = (e) => {
     e.preventDefault();
     setError(''); // エラーをクリア
-    
-    console.log(`📝 [InputForm] メッセージ送信開始 ルーム: ${activeRoomId} (${currentRoom?.name})`);
-    console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"`);
+
+    console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"ルーム: ${activeRoomId} (${currentRoom?.name})`);
 
     // バリデーション付きでメッセージ送信
     const result = sendChatMessage(handleName, message, activeRoomId);
@@ -52,9 +51,9 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
       setError(''); // エラーをクリア
-      
+
       const result = sendChatMessage(handleName, message, activeRoomId);
-      
+
       if (result.success) {
         setMessage('');
       } else {
@@ -68,12 +67,12 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
   return (
     <div id="InputFormBorder"
       style={{
-        width: textBoxWidth, 
-        position: 'absolute', 
+        width: textBoxWidth,
+        position: 'absolute',
         bottom: '1.5rem',
-        backgroundColor: 'white', 
-        padding: '8px', 
-        border: '1.5px solid lightgray', 
+        backgroundColor: 'white',
+        padding: '8px',
+        border: '1.5px solid lightgray',
         borderRadius: '8px',
       }}
     >
@@ -83,7 +82,7 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
           {error}
         </Alert>
       )}
-      
+
       <Stack
         id="input-form"
         direction="row"

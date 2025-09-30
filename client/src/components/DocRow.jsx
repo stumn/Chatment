@@ -56,9 +56,6 @@ const DocRow = ({ data, index, style }) => {
     // 新規行追加
     const handleAddBelow = () => {
         if (setShouldScroll) setShouldScroll(false);
-
-        console.log('handleAddBelow displayOrder:', message.displayOrder + message.msg);
-
         const data = {
             nickname: userInfo.id || 'Undefined', // userInfo.nicknameも考慮
             msg: '',
@@ -67,10 +64,6 @@ const DocRow = ({ data, index, style }) => {
             datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
             spaceId: documentFunctions.spaceId, // spaceIdを追加
         };
-
-        console.log('handleAddBelow called for message:', data);
-
-        // 新しい行を挿入したいメッセージのIDをサーバーに送信
         add && add(data);
     };
 
