@@ -81,7 +81,7 @@ function ChatApp() {
   } else { // ログイン前
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <BeforeLogin open={open} onLogin={setUserInfo} />
+        <BeforeLogin open={open} onLogin={setUserInfo} spaceId={spaceId} />
       </Suspense>
     );
   }

@@ -17,15 +17,11 @@ import MenuItem from '@mui/material/MenuItem';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 const defaultTheme = createTheme();
 
-function BeforeLogin({ open, onLogin }) {
+function BeforeLogin({ open, onLogin, spaceId }) {
     // 各フォーム要素の状態を管理
     const [nickname, setNickname] = useState('');
     const [status, setStatus] = useState('');
     const [ageGroup, setAgeGroup] = useState('');
-    
-    // react-router-dom でURLパラメータからspaceIdを取得する
-    const { spaceId } = useParams();
-    console.log('Current spaceId from URL:', spaceId);
 
     // コンポーネントマウント時にローカルストレージから前回の入力値を読み込む
     useEffect(() => {
