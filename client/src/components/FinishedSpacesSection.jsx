@@ -89,7 +89,7 @@ const FinishedSpaceRow = ({ space }) => {
           </ul>
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '説明なし'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '―'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
