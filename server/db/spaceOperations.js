@@ -116,13 +116,20 @@ async function getSpaceById(spaceId) {
 // --- 新しいスペースを作成 ---
 async function createSpace(spaceData) {
     try {
-        const { id, name, description, createdByNickname, createdBy, settings = {} } = spaceData;
+        const { id, name, description, createdByNickname, createdBy, settings = {}, subRoomSettings } = spaceData;
 
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
         if (existingSpace) {
             throw new Error(`スペースID ${id} は既に存在します`);
         }
+
+        // subRoomSettings のデフォルト値設定
+        const finalSubRoomSettings = {
+            enabled: subRoomSettings?.enabled || false,
+            rooms: subRoomSettings?.rooms || [{ name: '全体', description: '全ての投稿を表示' }],
+            maxRooms: subRoomSettings?.maxRooms || 10
+        };
 
         // 新しいスペースを作成
         const newSpace = await Space.create({
@@ -138,15 +145,16 @@ async function createSpace(spaceData) {
                     allowAnonymous: settings.defaultRoomSettings?.allowAnonymous !== false
                 },
                 maxRooms: settings.maxRooms || 50,
-                theme: settings.theme || 'default'
+                theme: settings.theme || 'default',
+                subRoomSettings: finalSubRoomSettings
             }
         });
 
         console.log(`🌍 [spaceOperation] 新しいスペース作成: ${name} (${id})`);
 
-        // スペース作成後、デフォルトルームを作成
-        const defaultRooms = await createDefaultRoomsForSpace(id);
-        console.log(`🏠 [spaceOperation] スペース ${id} のデフォルトルーム作成完了: ${defaultRooms.length}件`);
+        // 統合されたルーム作成関数を使用
+        const createdRooms = await createDefaultRoomsForSpace(id);
+        console.log(`🏠 [spaceOperation] スペース ${id} のルーム作成完了: ${createdRooms.length}件`);
 
         return newSpace.toObject();
 

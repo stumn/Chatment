@@ -1,0 +1,52 @@
+{
+  "test_cases": [
+    {
+      "name": "サブルーム無効のスペース",
+      "data": {
+        "id": 1,
+        "name": "シンプルスペース",
+        "description": "サブルーム機能を使わないスペース",
+        "createdByNickname": "test_user",
+        "subRoomSettings": {
+          "enabled": false
+        }
+      },
+      "expected_rooms": ["space1-main"]
+    },
+    {
+      "name": "サブルーム有効のスペース（3ルーム）",
+      "data": {
+        "id": 2,
+        "name": "議論スペース",
+        "description": "議論用のスペース",
+        "createdByNickname": "test_user",
+        "subRoomSettings": {
+          "enabled": true,
+          "rooms": [
+            {"name": "メイン", "description": "メインの議論"},
+            {"name": "技術", "description": "技術的な話題"},
+            {"name": "雑談", "description": "カジュアルな話題"}
+          ]
+        }
+      },
+      "expected_rooms": ["space2-main", "space2-room1", "space2-room2"]
+    },
+    {
+      "name": "バリデーションエラーケース",
+      "data": {
+        "id": 3,
+        "name": "エラーテスト",
+        "description": "バリデーションエラーのテスト",
+        "createdByNickname": "test_user",
+        "subRoomSettings": {
+          "enabled": true,
+          "rooms": [
+            {"name": "admin", "description": "予約語テスト"},
+            {"name": "test/room", "description": "禁止文字テスト"}
+          ]
+        }
+      },
+      "expected_error": true
+    }
+  ]
+}

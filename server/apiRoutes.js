@@ -269,7 +269,7 @@ router.get('/spaces/:spaceId', async (req, res) => {
 // 新しいスペース作成
 router.post('/spaces', async (req, res) => {
   try {
-    const { id, name, description, createdByNickname, settings } = req.body;
+    const { id, name, description, createdByNickname, settings, subRoomSettings } = req.body;
 
     if (!id || !name || !createdByNickname) {
       return res.status(400).json({
@@ -278,12 +278,70 @@ router.post('/spaces', async (req, res) => {
       });
     }
 
+    // subRoomSettingsのバリデーション
+    if (subRoomSettings && subRoomSettings.enabled) {
+      if (!subRoomSettings.rooms || !Array.isArray(subRoomSettings.rooms)) {
+        return res.status(400).json({
+          success: false,
+          error: 'subRoomSettings.rooms must be an array when enabled'
+        });
+      }
+
+      // ルーム名のバリデーション
+      for (let i = 0; i < subRoomSettings.rooms.length; i++) {
+        const room = subRoomSettings.rooms[i];
+        if (!room.name || room.name.length < 1 || room.name.length > 10) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name ${i + 1} must be between 1-10 characters`
+          });
+        }
+
+        // 禁止文字チェック
+        const forbiddenChars = /[\/\\<>"'&]/;
+        if (forbiddenChars.test(room.name)) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name "${room.name}" contains forbidden characters`
+          });
+        }
+
+        // 予約語チェック
+        const reservedWords = ['admin', 'system', 'api'];
+        if (reservedWords.includes(room.name.toLowerCase())) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name "${room.name}" is reserved`
+          });
+        }
+      }
+
+      // ルーム名の重複チェック
+      const roomNames = subRoomSettings.rooms.map(room => room.name.toLowerCase());
+      const uniqueNames = new Set(roomNames);
+      if (roomNames.length !== uniqueNames.size) {
+        return res.status(400).json({
+          success: false,
+          error: 'Duplicate room names are not allowed'
+        });
+      }
+
+      // ルーム数制限チェック
+      if (subRoomSettings.rooms.length > 10) {
+        return res.status(400).json({
+          success: false,
+          error: 'Maximum 10 rooms allowed'
+        });
+      }
+    }
+
     const newSpace = await createSpace({
       id: parseInt(id), // 整数に変換
       name,
       description,
       createdByNickname,
-      settings
+      settings,
+      subRoomSettings // subRoomSettingsを追加
     });
 
     if (!newSpace) {

@@ -198,76 +198,94 @@ async function getActiveRoomsBySpaceId(spaceId) {
 // --- スペース固有のデフォルトルームを作成 ---
 async function createDefaultRoomsForSpace(spaceId) {
     try {
-        console.log(`🏠 [roomManagement] スペース ${spaceId} のデフォルトルーム作成開始`);
+        console.log(`🏠 [roomManagement] スペース ${spaceId} のルーム作成開始`);
 
-        const defaultRooms = [
-            {
-                id: `space${spaceId}-main`, // スペース固有のルームID
-                spaceId: spaceId,
-                name: '全体',
-                description: '全ての投稿を表示',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            },
-            {
-                id: `space${spaceId}-room1`, // スペース固有のルームID
-                spaceId: spaceId,
-                name: 'サブルーム1',
-                description: 'サブルーム1',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            },
-            {
-                id: `space${spaceId}-room2`, // スペース固有のルームID
-                spaceId: spaceId,
-                name: 'サブルーム2',
-                description: 'サブルーム2',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            }
-        ];
+        // スペース情報を取得してsubRoomSettingsを確認
+        const { Space } = require('../db');
+        const space = await Space.findOne({ id: spaceId });
+        
+        if (!space) {
+            console.error(`❌ [roomManagement] スペースが見つかりません: ${spaceId}`);
+            return [];
+        }
 
+        const subRoomSettings = space.settings?.subRoomSettings;
         const createdRooms = [];
 
-        for (const roomData of defaultRooms) {
-            // 既存ルームのチェック
-            const existingRoom = await Room.findOne({ id: roomData.id });
+        // subRoomSettingsが存在しない場合はデフォルトの「全体」ルームのみ作成
+        if (!subRoomSettings || !subRoomSettings.enabled || !subRoomSettings.rooms || subRoomSettings.rooms.length === 0) {
+            console.log(`📝 [roomManagement] サブルーム無効 - 全体ルームのみ作成`);
+            
+            const mainRoomId = `space${spaceId}-main`;
+            const existingRoom = await Room.findOne({ id: mainRoomId });
+            
             if (existingRoom) {
-                console.log(`🔄 [roomManagement] 既存ルーム確認: ${roomData.name} (${roomData.id})`);
+                console.log(`🔄 [roomManagement] 既存全体ルーム確認: ${existingRoom.name}`);
+                createdRooms.push(existingRoom.toObject());
+            } else {
+                const newRoom = await Room.create({
+                    id: mainRoomId,
+                    spaceId: spaceId,
+                    name: '全体',
+                    description: '全ての投稿を表示',
+                    createdByNickname: 'システム',
+                    isActive: true,
+                    messageCount: 0,
+                    lastActivity: new Date(),
+                    settings: {
+                        autoDeleteMessages: false,
+                        messageRetentionDays: 30,
+                        allowAnonymous: true
+                    }
+                });
+                console.log(`✅ [roomManagement] 全体ルーム作成: ${newRoom.name}`);
+                createdRooms.push(newRoom.toObject());
+            }
+            
+            return createdRooms;
+        }
+
+        // subRoomSettingsに基づいてルームを作成
+        console.log(`📝 [roomManagement] サブルーム有効 - 設定に基づいてルーム作成`);
+        
+        for (let i = 0; i < subRoomSettings.rooms.length; i++) {
+            const roomData = subRoomSettings.rooms[i];
+            const roomId = i === 0 ? `space${spaceId}-main` : `space${spaceId}-room${i}`;
+            
+            // 既存ルームのチェック
+            const existingRoom = await Room.findOne({ id: roomId });
+            if (existingRoom) {
+                console.log(`🔄 [roomManagement] 既存ルーム確認: ${roomData.name} (${roomId})`);
                 createdRooms.push(existingRoom.toObject());
                 continue;
             }
 
             // 新しいルームを作成
             const newRoom = await Room.create({
-                ...roomData,
+                id: roomId,
+                spaceId: spaceId,
+                name: roomData.name,
+                description: roomData.description || '',
+                createdByNickname: 'システム',
                 isActive: true,
-                createdAt: new Date(),
                 messageCount: 0,
-                lastActivity: new Date()
+                lastActivity: new Date(),
+                settings: {
+                    autoDeleteMessages: false,
+                    messageRetentionDays: 30,
+                    allowAnonymous: true
+                }
             });
 
-            console.log(`✅ [roomManagement] 新規ルーム作成: ${roomData.name} (${roomData.id})`);
+            console.log(`✅ [roomManagement] 新規ルーム作成: ${roomData.name} (${roomId})`);
             createdRooms.push(newRoom.toObject());
         }
 
-        console.log(`🏠 [roomManagement] スペース ${spaceId} のデフォルトルーム作成完了: ${createdRooms.length}件`);
+        console.log(`🏠 [roomManagement] スペース ${spaceId} のルーム作成完了: ${createdRooms.length}件`);
         return createdRooms;
 
     } catch (error) {
-        handleErrors(error, `スペース ${spaceId} のデフォルトルーム作成中にエラーが発生しました`);
+        handleErrors(error, `スペース ${spaceId} のルーム作成中にエラーが発生しました`);
         return [];
     }
 }
