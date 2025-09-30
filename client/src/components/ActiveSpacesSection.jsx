@@ -14,7 +14,7 @@ const TableHeader = ({ columns }) => (
 // アクティブなスペースの行をレンダリングするコンポーネント
 const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) => {
   const handleFinishSpace = () => {
-    if (space.id === 1) {
+    if (space.id === 0) {
       alert('デフォルトスペースは終了できません。');
       return;
     }

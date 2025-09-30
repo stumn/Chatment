@@ -3,7 +3,7 @@ const { Space, Room, Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { createDefaultRoomsForSpace } = require('./roomManagement'); // 追加
 
-const DEFAULT_SPACE_ID = 1; // デフォルトスペースは整数の1
+const DEFAULT_SPACE_ID = 0; // デフォルトスペースは整数の0
 
 // --- デフォルトスペースを初期化 ---
 async function initializeDefaultSpace() {

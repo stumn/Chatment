@@ -62,16 +62,19 @@ initializeSocketHandlers(io);
 // サーバー起動時にデフォルトスペース・ルームを初期化（DB経由）
 const initializeRoomsFromDatabase = async () => {
   try {
-    console.log('� [server] データベースからスペース・ルーム初期化開始');
+    console.log('🔧 [server] データベースからスペース・ルーム初期化開始');
 
-    // 1. デフォルトスペースを初期化
-    await initializeDefaultSpace();
+    // 自動初期化を一時停止（手動DB更新のため）
+    // TODO: 手動DB更新完了後に必要に応じて有効化
+    
+    // 1. デフォルトスペースを初期化 - コメントアウト
+    // await initializeDefaultSpace();
 
-    // 2. 既存データをスペース構造に移行
-    await migrateExistingDataToSpace();
+    // 2. 既存データをスペース構造に移行 - コメントアウト  
+    // await migrateExistingDataToSpace();
 
-    // 3. データベースにデフォルトルームを作成
-    await initializeDefaultRooms();
+    // 3. データベースにデフォルトルームを作成 - コメントアウト
+    // await initializeDefaultRooms();
 
     // データベースからアクティブなルームを取得してメモリに読み込み
     const dbRooms = await getActiveRooms();

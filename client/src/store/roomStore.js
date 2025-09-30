@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-const DEFAULT_ROOM_ID = 'room-0'; // デフォルトのルームID
+const DEFAULT_ROOM_ID = 'space0-main'; // デフォルトのルームID
 
 const useRoomStore = create((set, get) => ({
     // 現在アクティブなルームID
@@ -13,11 +13,9 @@ const useRoomStore = create((set, get) => ({
 
     // ルーム履歴読み込み状態（最適化用）
     roomHistoryLoaded: {
-        'room-0': false,
-        'room-1': false,
-        'room-2': false,
-        'room-3': false,
-        'room-4': false,
+        'space0-main': false,
+        'space0-room1': false,
+        'space0-room2': false,
     },
 
     // ルーム切り替え中の状態
