@@ -40,18 +40,18 @@ async function handleLogin(socket, userInfo) {
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
 
-    // チャット履歴取得ハンドラー（過去チャットログ 但し、ルーム機能を使うときは使われない）
+    // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
     socket.on(SOCKET_EVENTS.FETCH_HISTORY, async () => {
       try {
-        const messages = await getPastLogs(nickname);
+        const messages = await getPastLogs(nickname, spaceId);
         socket.emit('history', messages);
       } catch (e) { console.error(e); }
     });
 
-    // ドキュメント用取得ハンドラー
+    // ドキュメント用取得ハンドラー（スペース別のドキュメント）
     socket.on(SOCKET_EVENTS.FETCH_DOCS, async () => {
       try {
-        const docs = await getPostsByDisplayOrder();
+        const docs = await getPostsByDisplayOrder(spaceId);
         socket.emit('docs', docs);
       } catch (e) { console.error(e); }
     });

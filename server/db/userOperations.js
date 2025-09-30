@@ -79,12 +79,14 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
     }
 }
 
-// --- ログイン時・過去ログをDBから取得（ルーム機能を使うときは使われない） ---
-async function getPastLogs(nickname) {
+// --- ログイン時・過去ログをDBから取得（スペース別） ---
+async function getPastLogs(nickname, spaceId = null) {
     try {
-
+        // スペース指定がある場合はそのスペースのログのみ取得
+        const query = spaceId ? { spaceId } : {};
+        
         // 過去ログを取得
-        let posts = await Post.find({});
+        let posts = await Post.find(query);
 
         // 過去ログを整形
         const pastLogs = await processXlogs(posts);
