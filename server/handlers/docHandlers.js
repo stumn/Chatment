@@ -35,7 +35,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       }
 
       // 現在の行の並び順を取得(TODO: DB関連の処理が多いので、docOperationへの移行を検討)
-      const posts = await getPostsByDisplayOrder();
+      const posts = await getPostsByDisplayOrder(payload.spaceId);
 
       // DB保存
       const newPost = await addDocRow({
@@ -104,7 +104,8 @@ function setupDocHandlers(socket, io, lockedRows) {
         movedPostId,
         movedPostDisplayOrder,
         prev,
-        next
+        next,
+        spaceId
       } = payload;
 
       // prevとnext から新しいdisplayOrderを計算
@@ -113,8 +114,8 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DB更新
       await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-      // 全クライアントに並び替えをブロードキャスト
-      const posts = await getPostsByDisplayOrder(movedPostDisplayOrder);
+      // 全クライアントに並び替えをブロードキャスト（スペース別）
+      const posts = await getPostsByDisplayOrder(spaceId);
 
       // 並び替え情報に実行者の情報を含めて送信
       io.emit(SOCKET_EVENTS.DOC_REORDER, {

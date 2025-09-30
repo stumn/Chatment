@@ -7,11 +7,11 @@ const {
 
 const { SOCKET_EVENTS } = require('../constants');
 
-// --- displayOrderの最後尾を取得（ヘルパー） ---
-async function getLastDisplayOrder() {
+// --- displayOrderの最後尾を取得（ヘルパー）（スペース別） ---
+async function getLastDisplayOrder(spaceId = null) {
   try {
 
-    const posts = await getPostsByDisplayOrder();
+    const posts = await getPostsByDisplayOrder(spaceId);
     const lastPost = posts[posts.length - 1];
     return lastPost ? lastPost.displayOrder + 1 : 1;
 
@@ -23,8 +23,8 @@ function setupChatHandlers(socket, io, rooms) {
 
   socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId = 1 }) => {
     try {
-      // displayOrderの最後尾を取得
-      const displayOrder = await getLastDisplayOrder();
+      // displayOrderの最後尾を取得（スペース別）
+      const displayOrder = await getLastDisplayOrder(spaceId);
 
       // チャットメッセージデータ（ルーム情報とスペース情報も含める）
       const messageData = {

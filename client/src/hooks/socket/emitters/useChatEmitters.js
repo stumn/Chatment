@@ -3,10 +3,13 @@ import { validUserId } from '../utils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
   const emitChatMessage = (nickname, message, userId, roomId = null) => {
+    const { userInfo } = useAppStore.getState();
+    
     const messageData = {
       nickname,
       message,
       userId,
+      spaceId: userInfo.spaceId, // spaceIdを追加
       ...(roomId && { roomId }) // roomIdがある場合のみ追加
     };
 
@@ -15,7 +18,7 @@ export const useChatEmitters = (socket, emitLog) => {
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message, roomId }
+      detail: { nickname, message, roomId, spaceId: userInfo.spaceId }
     });
   };
 

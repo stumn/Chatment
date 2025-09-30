@@ -160,22 +160,26 @@ router.post('/rooms', async (req, res) => {
   }
 });
 
-// 全ポストデータ取得エンドポイント
+// 全ポストデータ取得エンドポイント（スペース指定可能）
 router.get('/posts', async (req, res) => {
   try {
     console.time('posts-api');
     
-    // displayOrder順で全投稿を取得
-    const posts = await getPostsByDisplayOrder();
+    // クエリパラメータからspaceIdを取得
+    const { spaceId } = req.query;
+    
+    // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
+    const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
     
     console.timeEnd('posts-api');
-    console.log(`Posts API: Retrieved ${posts.length} posts`);
+    console.log(`Posts API: Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
       posts: posts,
-      count: posts.length
+      count: posts.length,
+      spaceId: spaceId || null
     });
   } catch (error) {
     console.error('Posts API error:', error);
@@ -190,27 +194,28 @@ router.get('/posts', async (req, res) => {
 router.get('/posts/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
+    const { spaceId } = req.query;
     console.time(`posts-room-${roomId}-api`);
     
-    // 現在はroomId指定による絞り込みは未実装
-    // 全データを返すが、将来的にはルーム指定対応を追加予定
-    const posts = await getPostsByDisplayOrder();
+    // スペース指定による絞り込み対応
+    const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
     
     console.timeEnd(`posts-room-${roomId}-api`);
-    console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts`);
+    console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
-      roomId: roomId,
       posts: posts,
-      count: posts.length
+      count: posts.length,
+      roomId: roomId,
+      spaceId: spaceId || null
     });
   } catch (error) {
-    console.error(`Posts API (Room ${req.params.roomId}) error:`, error);
+    console.error(`Posts API (Room ${roomId}) error:`, error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to retrieve posts data for room'
+      error: error.message || 'Failed to retrieve room posts data'
     });
   }
 });
