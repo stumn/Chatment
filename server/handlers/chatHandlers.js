@@ -53,7 +53,7 @@ function setupChatHandlers(socket, io, rooms) {
       }
 
       // ログ記録
-      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId } });
+      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId }, spaceId });
 
     } catch (e) { console.error(e); }
   });

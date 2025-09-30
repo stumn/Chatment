@@ -8,7 +8,7 @@ export const useBasicEmitters = (socket, emitLog) => {
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       action: 'login',
-      detail: { user: userInfo && userInfo.nickname }
+      detail: { user: userInfo && userInfo.nickname, spaceId: userInfo.spaceId }
     });
   };
 

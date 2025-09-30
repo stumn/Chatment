@@ -1,6 +1,7 @@
 // spaceOperations.js
 const { Space, Room, Post } = require('../db');
 const { handleErrors } = require('../utils');
+const { createDefaultRoomsForSpace } = require('./roomManagement'); // 追加
 
 const DEFAULT_SPACE_ID = 1; // デフォルトスペースは整数の1
 
@@ -142,6 +143,11 @@ async function createSpace(spaceData) {
         });
 
         console.log(`🌍 [spaceOperation] 新しいスペース作成: ${name} (${id})`);
+
+        // スペース作成後、デフォルトルームを作成
+        const defaultRooms = await createDefaultRoomsForSpace(id);
+        console.log(`🏠 [spaceOperation] スペース ${id} のデフォルトルーム作成完了: ${defaultRooms.length}件`);
+
         return newSpace.toObject();
 
     } catch (error) {

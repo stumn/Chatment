@@ -172,9 +172,111 @@ async function createRoom(roomData) {
     }
 }
 
+// --- スペース固有のアクティブなルーム一覧を取得 ---
+async function getActiveRoomsBySpaceId(spaceId) {
+    try {
+        console.time('getActiveRoomsBySpaceId');
+
+        // 指定されたスペースIDのアクティブなルームを取得（roomIdの昇順でソート）
+        const rooms = await Room.find({ 
+            isActive: true,
+            spaceId: spaceId 
+        }).sort({ id: 1 }).lean().exec();
+
+        console.timeEnd('getActiveRoomsBySpaceId');
+
+        console.log(`🏠 [dbOperation] スペース ${spaceId} のアクティブルーム取得: ${rooms.length}件`);
+
+        return rooms;
+
+    } catch (error) {
+        handleErrors(error, `スペース ${spaceId} のアクティブルーム取得中にエラーが発生しました`);
+        return [];
+    }
+}
+
+// --- スペース固有のデフォルトルームを作成 ---
+async function createDefaultRoomsForSpace(spaceId) {
+    try {
+        console.log(`🏠 [roomManagement] スペース ${spaceId} のデフォルトルーム作成開始`);
+
+        const defaultRooms = [
+            {
+                id: `room-0-${spaceId}`, // スペース固有のルームID
+                spaceId: spaceId,
+                name: '全体',
+                description: '全ての投稿を表示',
+                createdByNickname: 'システム',
+                settings: {
+                    autoDeleteMessages: false,
+                    messageRetentionDays: 30,
+                    allowAnonymous: true
+                }
+            },
+            {
+                id: `room-1-${spaceId}`, // スペース固有のルームID
+                spaceId: spaceId,
+                name: 'サブルーム1',
+                description: 'サブルーム1',
+                createdByNickname: 'システム',
+                settings: {
+                    autoDeleteMessages: false,
+                    messageRetentionDays: 30,
+                    allowAnonymous: true
+                }
+            },
+            {
+                id: `room-2-${spaceId}`, // スペース固有のルームID
+                spaceId: spaceId,
+                name: 'サブルーム2',
+                description: 'サブルーム2',
+                createdByNickname: 'システム',
+                settings: {
+                    autoDeleteMessages: false,
+                    messageRetentionDays: 30,
+                    allowAnonymous: true
+                }
+            }
+        ];
+
+        const createdRooms = [];
+
+        for (const roomData of defaultRooms) {
+            // 既存ルームのチェック
+            const existingRoom = await Room.findOne({ id: roomData.id });
+            if (existingRoom) {
+                console.log(`🔄 [roomManagement] 既存ルーム確認: ${roomData.name} (${roomData.id})`);
+                createdRooms.push(existingRoom.toObject());
+                continue;
+            }
+
+            // 新しいルームを作成
+            const newRoom = await Room.create({
+                ...roomData,
+                isActive: true,
+                createdAt: new Date(),
+                messageCount: 0,
+                lastActivity: new Date()
+            });
+
+            console.log(`✅ [roomManagement] 新規ルーム作成: ${roomData.name} (${roomData.id})`);
+            createdRooms.push(newRoom.toObject());
+        }
+
+        console.log(`🏠 [roomManagement] スペース ${spaceId} のデフォルトルーム作成完了: ${createdRooms.length}件`);
+        return createdRooms;
+
+    } catch (error) {
+        handleErrors(error, `スペース ${spaceId} のデフォルトルーム作成中にエラーが発生しました`);
+        return [];
+    }
+}
+
 module.exports = {
     initializeDefaultRooms,
+    createDefaultRoomsForSpace, // 新しい関数を追加
     getActiveRooms,
+    getActiveRoomsBySpaceId,
     getRoomById,
     updateRoomStats,
     createRoom

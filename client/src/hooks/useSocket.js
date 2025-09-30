@@ -51,13 +51,42 @@ export default function useSocket() {
     // heightChangeハンドラーは状態更新のため、ここで定義
     const handleHeightChange = (data) => setHeightArray(data);
 
+    // 認証完了後の処理を拡張
+    const enhancedHandleConnectOK = (userInfo) => {
+      // 既存の処理を実行
+      basicHandlers.handleConnectOK(userInfo);
+      
+      // 認証完了後にルーム関連の処理を実行
+      console.log('🔐 認証完了後の処理を開始:', userInfo);
+      
+      // ルーム一覧を取得（一覧取得後にルーム参加処理は別途ハンドラーで実行）
+      roomEmitters.emitGetRoomList();
+    };
+
+    // ルーム一覧受信時に最初のルームに自動参加する処理を拡張
+    const enhancedHandleRoomList = (data) => {
+      // 既存の処理を実行
+      roomHandlers.handleRoomList(data);
+      
+      // ルーム一覧を受信したら、最初のルームに自動参加
+      if (data.rooms && Array.isArray(data.rooms) && data.rooms.length > 0) {
+        const firstRoom = data.rooms[0];
+        console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
+        roomEmitters.emitJoinRoom(firstRoom.id);
+      } else {
+        console.warn('⚠️ 利用可能なルームが見つかりませんでした');
+      }
+    };
+
     // すべてのハンドラーをマージ
     const allHandlers = {
       ...basicHandlers,
+      handleConnectOK: enhancedHandleConnectOK, // 拡張されたハンドラーを使用
       ...chatHandlers,
       ...docHandlers,
       ...lockHandlers,
       ...roomHandlers,
+      handleRoomList: enhancedHandleRoomList, // 拡張されたルーム一覧ハンドラーを使用
       handleHeightChange, // 状態更新のため個別定義
     };
 
@@ -77,9 +106,9 @@ export default function useSocket() {
       });
     };
 
-    // useEffectの依存配列は空にして、初回マウント時のみ実行
+    // useEffectの依存配列に必要なものを追加
     // 万一useSocketが複数回呼ばれても、リスナーが多重登録されないため。
-  }, []);
+  }, [basicHandlers, chatHandlers, docHandlers, lockHandlers, roomHandlers, roomEmitters]);
 
   return {
     // 基本

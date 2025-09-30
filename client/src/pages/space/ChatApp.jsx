@@ -52,13 +52,6 @@ function ChatApp() {
     // TODO: spaceIdをソケット通信に含めてスペースコンテキストを送信
     socketFunctions.emitLoginName(userInfo);
 
-    // TODO: スペース固有のルーム一覧を取得する機能を実装
-    // ログイン後にルーム一覧を取得し、デフォルトルームに参加
-    emitGetRoomList();
-    
-    // TODO: room-0ではなくスペース固有のデフォルトルームに参加
-    emitJoinRoom(DEFAULT_ROOM_ID); // デフォルトルームに参加
-
     setOpen(false);
   }, [userInfo, isLoggedIn, spaceId]); // spaceIdを依存配列に追加
 

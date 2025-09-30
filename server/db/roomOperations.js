@@ -5,13 +5,19 @@ const { processXlogs } = require('./userOperations');
 
 // ルーム機能用の最適化されたデータベース操作
 
-// --- ルーム別履歴取得（最適化版）---
-async function getRoomHistory(roomId) {
+// --- ルーム別履歴取得（最適化版・スペース対応）---
+async function getRoomHistory(roomId, spaceId = null) {
     try {
+        // クエリ条件を構築
+        const query = { roomId };
+        if (spaceId) {
+            query.spaceId = spaceId;
+        }
+        
         // ルームの投稿を取得（新しい順・パフォーマンス向上のためleanクエリ）
-        const posts = await Post.find({ roomId }).sort({ createdAt: -1 }).lean().exec();
+        const posts = await Post.find(query).sort({ createdAt: -1 }).lean().exec();
 
-        console.log(`📚 [dbOperation] ${roomId}の履歴取得完了: ${posts.length}件`);
+        console.log(`📚 [dbOperation] ${roomId}の履歴取得完了${spaceId ? ` (スペース${spaceId})` : ''}: ${posts.length}件`);
 
         // 時系列順に並び替えて返す（古い順）
         const sortedPosts = posts.reverse();
@@ -89,10 +95,15 @@ async function getRoomMessageCounts() {
     }
 }
 
-// --- インデックス使用状況の確認（開発用）---
-async function explainRoomQuery(roomId) {
+// --- インデックス使用状況の確認（開発用・スペース対応）---
+async function explainRoomQuery(roomId, spaceId = null) {
     try {
-        const explanation = await Post.find({ roomId })
+        const query = { roomId };
+        if (spaceId) {
+            query.spaceId = spaceId;
+        }
+        
+        const explanation = await Post.find(query)
             .sort({ createdAt: -1 })
             .limit(50)
             .explain('executionStats');

@@ -57,7 +57,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       io.emit(SOCKET_EVENTS.DOC_ADD, data);
 
       // ログ記録
-      saveLog({ userId: newPost.userId, action: 'doc-add', detail: data });
+      saveLog({ userId: newPost.userId, action: 'doc-add', detail: data, spaceId: payload.spaceId });
 
     } catch (e) { console.error(e); }
   });
@@ -90,7 +90,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       unlockRowByPostId(lockedRows, io, payload.id);
 
       // ログ記録
-      saveLog({ userId: null, action: 'doc-edit', detail: payload });
+      saveLog({ userId: null, action: 'doc-edit', detail: payload, spaceId: payload.spaceId });
 
     } catch (e) { console.error(e); }
   });
@@ -130,7 +130,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       unlockRowByPostId(lockedRows, io, movedPostId);
 
       // ログ記録
-      saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
+      saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload, spaceId });
 
     } catch (e) { console.error(e); }
   });
