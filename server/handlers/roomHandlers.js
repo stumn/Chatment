@@ -1,5 +1,6 @@
 const {
   getActiveRooms,
+  getActiveRoomsBySpaceId,
   getRoomHistory,
   explainRoomQuery,
   saveLog
@@ -147,11 +148,21 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   });
 
   // その他のルーム関連ハンドラー...
-  socket.on('get-room-list', async () => {
+  socket.on('get-room-list', async (data) => {
     try {
-      console.log('📋 [server] ルーム一覧要求');
+      const { spaceId } = data || {};
+      console.log(`📋 [server] ルーム一覧要求 (spaceId: ${spaceId})`);
 
-      const dbRooms = await getActiveRooms();
+      let dbRooms;
+      if (spaceId !== undefined && spaceId !== null) {
+        // スペースIDが指定されている場合はそのスペースのルームのみ取得
+        dbRooms = await getActiveRoomsBySpaceId(spaceId);
+        console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
+      } else {
+        // スペースIDが指定されていない場合は全ルーム取得（後方互換性）
+        dbRooms = await getActiveRooms();
+        console.log(`🏠 [server] 全ルーム取得: ${dbRooms.length}件`);
+      }
 
       const roomList = dbRooms.map(dbRoom => {
         const memoryRoom = rooms.get(dbRoom.id);
@@ -159,6 +170,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
           id: dbRoom.id,
           name: dbRoom.name,
           description: dbRoom.description,
+          spaceId: dbRoom.spaceId, // spaceIdを含める
           participantCount: memoryRoom ? memoryRoom.participants.size : 0,
           messageCount: dbRoom.messageCount || 0,
           lastActivity: dbRoom.lastActivity,
@@ -168,7 +180,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         };
       });
 
-      socket.emit('room-list', { rooms: roomList });
+      socket.emit('room-list', { rooms: roomList, spaceId });
 
       console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)`);
 

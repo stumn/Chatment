@@ -48,8 +48,8 @@ export const useRoomEmitters = (socket, emitLog) => {
 
   const emitGetRoomList = () => {
     const { userInfo } = useAppStore.getState();
-    console.log('Requesting room list');
-    socket.emit('get-room-list');
+    console.log('Requesting room list', userInfo);
+    socket.emit('get-room-list', userInfo);
 
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
@@ -90,7 +90,7 @@ export const useRoomEmitters = (socket, emitLog) => {
     roomId === 'room-0'
       ? socket.emit('fetch-history', { roomId, startTime })
       : socket.emit('fetch-room-history', { roomId, startTime });
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
