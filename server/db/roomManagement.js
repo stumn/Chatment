@@ -220,7 +220,6 @@ async function createDefaultRoomsForSpace(spaceId) {
 }
 
 module.exports = {
-    initializeDefaultRooms,
     createDefaultRoomsForSpace, // 新しい関数を追加
     getActiveRooms,
     getActiveRoomsBySpaceId,
