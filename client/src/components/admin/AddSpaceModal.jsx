@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SubRoomSettings from './SubRoomSettings';
 
 /**
  * コミュニケーションスペースを追加するためのモーダルコンポーネント
@@ -12,6 +13,11 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     const [spaceName, setSpaceName] = useState('');
     const [spaceDescription, setSpaceDescription] = useState('');
     const [spaceOptions, setSpaceOptions] = useState('');
+    const [subRoomSettings, setSubRoomSettings] = useState({
+        enabled: false,
+        rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+        maxRooms: 10
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -24,13 +30,19 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                     id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
                     name: spaceName,
                     description: spaceDescription,
-                    options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`
+                    options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`,
+                    subRoomSettings: subRoomSettings
                 });
 
                 // フォームをリセット
                 setSpaceName('');
                 setSpaceDescription('');
                 setSpaceOptions('');
+                setSubRoomSettings({
+                    enabled: false,
+                    rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+                    maxRooms: 10
+                });
                 onClose();
             } catch (error) {
                 console.error('スペース追加エラー:', error);
@@ -46,6 +58,11 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
             setSpaceName('');
             setSpaceDescription('');
             setSpaceOptions('');
+            setSubRoomSettings({
+                enabled: false,
+                rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+                maxRooms: 10
+            });
             onClose();
         }
     };
@@ -58,7 +75,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
             onClick={handleClose}
         >
             <div 
-                className="bg-white p-6 rounded-lg w-96 max-w-[90%]" 
+                className="bg-white p-6 rounded-lg w-[600px] max-w-[90%] max-h-[90vh] overflow-y-auto" 
                 onClick={(e) => e.stopPropagation()}
             >
                 <h3 className="mb-4 text-lg font-semibold">
@@ -83,13 +100,11 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             onChange={(e) => setSpaceDescription(e.target.value)}
                             disabled={isSubmitting}
                         />
-                        <input
-                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            type="text"
-                            placeholder="オプション（例：#hashtag）"
-                            value={spaceOptions}
-                            onChange={(e) => setSpaceOptions(e.target.value)}
-                            disabled={isSubmitting}
+
+                        {/* サブルーム設定 */}
+                        <SubRoomSettings
+                            subRoomSettings={subRoomSettings}
+                            onChange={setSubRoomSettings}
                         />
 
                         <div className="flex justify-end gap-2 mt-4">
@@ -102,7 +117,8 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                                 キャンセル
                             </button>
                             <button
-                                type="submit"
+                                type="button"
+                                onClick={handleSubmit}
                                 className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 disabled:!bg-blue-300 disabled:cursor-not-allowed transition-colors duration-150"
                                 disabled={isSubmitting}
                             >
