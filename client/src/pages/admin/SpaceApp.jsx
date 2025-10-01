@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddSpaceModal from '../../components/admin/AddSpaceModal';
+import EditSpaceModal from '../../components/admin/EditSpaceModal';
 import FinishedSpacesSection from '../../components/admin/FinishedSpacesSection';
 import ActiveSpacesSection from '../../components/admin/ActiveSpacesSection';
 import SpaceStatistics from '../../components/admin/SpaceStatistics';
@@ -23,12 +24,15 @@ function SpaceApp() {
   const fetchSpaces = useSpaceStore(state => state.fetchSpaces);
   const fetchAllSpaces = useSpaceStore(state => state.fetchAllSpaces);
   const addSpace = useSpaceStore(state => state.addSpace);
+  const updateSpace = useSpaceStore(state => state.updateSpace);
   const finishSpace = useSpaceStore(state => state.finishSpace);
   const restoreCurrentSpaceFromStorage = useSpaceStore(state => state.restoreCurrentSpaceFromStorage);
   const clearError = useSpaceStore(state => state.clearError);
 
   // ローカル状態（モーダル表示のため）
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSpace, setEditingSpace] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   // 初期化時にデータを取得
@@ -59,6 +63,29 @@ function SpaceApp() {
     } catch (error) {
       console.error('スペース追加エラー:', error);
       // エラーが発生してもモーダルは閉じる（ユーザーが再試行できるよう）
+    }
+  };
+
+  // コミュニケーションスペースを編集する関数
+  const handleEditSpace = (space) => {
+    setEditingSpace(space);
+    setIsEditModalOpen(true);
+  };
+
+  // スペース更新処理
+  const handleUpdateSpace = async (updatedSpace) => {
+    try {
+      await updateSpace(updatedSpace);
+      // モーダルを閉じる
+      setIsEditModalOpen(false);
+      setEditingSpace(null);
+      setSuccessMessage('スペースが更新されました');
+      setTimeout(() => setSuccessMessage(''), 3000); // 3秒後に消去
+      
+      // スペース一覧を再取得
+      await fetchAllSpaces();
+    } catch (error) {
+      console.error('スペース更新エラー:', error);
     }
   };
 
@@ -121,6 +148,7 @@ function SpaceApp() {
           selectedSpace={currentSpace}
           onSelectSpace={handleSelectSpace}
           onFinishSpace={handleFinishSpace}
+          onEditSpace={handleEditSpace}
           onAddSpaceClick={() => setIsAddModalOpen(true)}
         />
 
@@ -137,6 +165,17 @@ function SpaceApp() {
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onAdd={handleAddSpace}
+        />
+
+        {/* スペース編集モーダル */}
+        <EditSpaceModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingSpace(null);
+          }}
+          onUpdate={handleUpdateSpace}
+          space={editingSpace}
         />
       </div>
   );

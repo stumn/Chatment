@@ -208,6 +208,60 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
   },
 
   /**
+   * スペースを更新する
+   */
+  updateSpace: async (spaceData) => {
+    const { setLoading, setError, clearError } = get();
+    
+    setLoading(true);
+    clearError();
+    
+    try {
+      const response = await fetch(`/api/spaces/${spaceData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: spaceData.name,
+          description: spaceData.description,
+          subRoomSettings: spaceData.subRoomSettings
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // ストアの状態を更新 - IDの型を確認して正確に比較
+        set((state) => ({
+          activeSpaces: state.activeSpaces.map(space => {
+            const spaceId = parseInt(space.id);
+            const updateId = parseInt(spaceData.id);
+            return spaceId === updateId ? { ...space, ...data.space } : space;
+          }),
+          finishedSpaces: state.finishedSpaces.map(space => {
+            const spaceId = parseInt(space.id);
+            const updateId = parseInt(spaceData.id);
+            return spaceId === updateId ? { ...space, ...data.space } : space;
+          }),
+          isLoading: false
+        }));
+        
+        console.log('✅ スペースが更新されました:', data.space);
+        console.log('🔄 ストア更新完了 - activeSpaces count:', get().activeSpaces.length);
+        return data.space;
+      } else {
+        throw new Error(data.error || 'スペースの更新に失敗しました');
+      }
+    } catch (error) {
+      console.error('スペース更新エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
    * スペースを終了する
    */
   finishSpace: async (spaceId) => {
@@ -245,44 +299,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       }
     } catch (error) {
       console.error('スペース終了エラー:', error);
-      setError(error.message);
-      setLoading(false);
-      throw error;
-    }
-  },
-
-  /**
-   * スペース情報を更新
-   */
-  updateSpace: async (spaceId, updateData) => {
-    const { setLoading, setError, clearError } = get();
-    
-    setLoading(true);
-    clearError();
-    
-    try {
-      // TODO: バックエンドAPIでスペース情報を更新
-      // const response = await fetch(`/api/spaces/${spaceId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(updateData)
-      // });
-      
-      // 現在はフロントエンドでの処理のみ
-      set((state) => ({
-        activeSpaces: state.activeSpaces.map(space =>
-          space.id === spaceId ? { ...space, ...updateData } : space
-        ),
-        finishedSpaces: state.finishedSpaces.map(space =>
-          space.id === spaceId ? { ...space, ...updateData } : space
-        ),
-        isLoading: false
-      }));
-      
-      console.log('✅ スペース情報が更新されました:', spaceId);
-      return true;
-    } catch (error) {
-      console.error('スペース更新エラー:', error);
       setError(error.message);
       setLoading(false);
       throw error;

@@ -164,6 +164,89 @@ async function createSpace(spaceData) {
     }
 }
 
+// --- スペースを更新 ---
+async function updateSpace(spaceId, updateData) {
+    try {
+        const { name, description, subRoomSettings } = updateData;
+
+        // 既存のスペースを取得
+        const existingSpace = await Space.findOne({ id: spaceId });
+        if (!existingSpace) {
+            throw new Error(`スペースID ${spaceId} が見つかりません`);
+        }
+
+        // 更新データを準備
+        const updateFields = {};
+        
+        if (name !== undefined) {
+            updateFields.name = name;
+        }
+        
+        if (description !== undefined) {
+            updateFields.description = description;
+        }
+
+        // subRoomSettings が提供された場合の処理
+        if (subRoomSettings) {
+            const finalSubRoomSettings = {
+                enabled: subRoomSettings.enabled || false,
+                rooms: subRoomSettings.rooms || [{ name: '全体', description: '全ての投稿を表示' }],
+                maxRooms: subRoomSettings.maxRooms || 10
+            };
+
+            // settings.subRoomSettings を更新
+            updateFields['settings.subRoomSettings'] = finalSubRoomSettings;
+
+            // サブルーム機能が有効で新しいルームが追加された場合、実際のルームも作成
+            if (finalSubRoomSettings.enabled) {
+                const existingRooms = await Room.find({ spaceId, isActive: true }).select('name').lean();
+                const existingRoomNames = existingRooms.map(r => r.name);
+                
+                for (const roomData of finalSubRoomSettings.rooms) {
+                    if (!existingRoomNames.includes(roomData.name)) {
+                        // 新しいルームを作成
+                        await Room.create({
+                            name: roomData.name,
+                            description: roomData.description,
+                            spaceId: spaceId,
+                            isActive: true,
+                            createdBy: 'system',
+                            settings: {
+                                autoDeleteMessages: false,
+                                messageRetentionDays: 30,
+                                allowAnonymous: true
+                            }
+                        });
+                        console.log(`🏠 [spaceOperation] 新規ルーム作成: ${roomData.name} (スペース: ${spaceId})`);
+                    }
+                }
+            }
+        }
+
+        // スペースを更新
+        const updatedSpace = await Space.findOneAndUpdate(
+            { id: spaceId },
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedSpace) {
+            throw new Error(`スペースID ${spaceId} の更新に失敗しました`);
+        }
+
+        console.log(`🔄 [spaceOperation] スペース更新: ${name} (${spaceId})`);
+        
+        // 統計情報を更新
+        await updateSpaceStats(spaceId);
+
+        return updatedSpace.toObject();
+
+    } catch (error) {
+        handleErrors(error, `スペース更新中にエラーが発生しました: ${spaceId}`);
+        return null;
+    }
+}
+
 // --- スペースの統計情報を更新 ---
 async function updateSpaceStats(spaceId) {
     try {
@@ -351,6 +434,7 @@ module.exports = {
     getActiveSpaces,
     getSpaceById,
     createSpace,
+    updateSpace,
     updateSpaceStats,
     getRoomsBySpace,
     getPostsBySpace,

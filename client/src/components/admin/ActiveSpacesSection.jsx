@@ -12,7 +12,7 @@ const TableHeader = ({ columns }) => (
 );
 
 // アクティブなスペースの行をレンダリングするコンポーネント
-const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) => {
+const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace, onEditSpace }) => {
   const handleFinishSpace = () => {
     if (space.id === 0) {
       alert('デフォルトスペースは終了できません。');
@@ -45,6 +45,12 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
           入場
         </button>
         <button
+          className="px-4 py-2 !bg-orange-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-orange-600 transition-colors duration-150"
+          onClick={() => onEditSpace(space)}
+        >
+          編集
+        </button>
+        <button
           className={`px-4 py-2 text-white border-none rounded text-sm font-medium mr-2 transition-colors duration-150 ${space.id === 1
               ? '!bg-neutral-500 !cursor-not-allowed'
               : '!bg-red-500 cursor-pointer hover:!bg-red-600'
@@ -67,6 +73,7 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace }) 
  * @param {Object} props.selectedSpace - 現在選択されているスペース
  * @param {Function} props.onSelectSpace - スペースを選択する関数
  * @param {Function} props.onFinishSpace - スペースを終了する関数
+ * @param {Function} props.onEditSpace - スペースを編集する関数
  * @param {Function} props.onAddSpaceClick - 新しいスペースを追加するボタンのクリックハンドラ
  */
 const ActiveSpacesSection = ({
@@ -74,6 +81,7 @@ const ActiveSpacesSection = ({
   selectedSpace,
   onSelectSpace,
   onFinishSpace,
+  onEditSpace,
   onAddSpaceClick
 }) => {
   return (
@@ -99,6 +107,7 @@ const ActiveSpacesSection = ({
                   selectedSpace={selectedSpace}
                   onSelectSpace={onSelectSpace}
                   onFinishSpace={onFinishSpace}
+                  onEditSpace={onEditSpace}
                 />
               ))
             ) : (

@@ -6,8 +6,9 @@ import React, { useState, useEffect } from 'react';
  * @param {Object} props - コンポーネントのプロップス
  * @param {Object} props.subRoomSettings - 現在のサブルーム設定
  * @param {Function} props.onChange - 設定変更時のコールバック
+ * @param {boolean} props.readOnlyMode - 読み取り専用モード（既存ルーム名変更不可）
  */
-const SubRoomSettings = ({ subRoomSettings, onChange }) => {
+const SubRoomSettings = ({ subRoomSettings, onChange, readOnlyMode = false }) => {
     const [enabled, setEnabled] = useState(subRoomSettings?.enabled || false);
     const [mainRoomName, setMainRoomName] = useState('');
     const [subRoomsText, setSubRoomsText] = useState('');
@@ -70,6 +71,14 @@ const SubRoomSettings = ({ subRoomSettings, onChange }) => {
         notifyChange(enabled, mainRoomName, newText);
     };
 
+    // 新規ルーム追加（編集モード専用）
+    const handleNewRoomsChange = (newRoomsText) => {
+        // 既存のサブルームと新規ルームを結合
+        const combinedText = subRoomsText + (subRoomsText && newRoomsText ? '\n' : '') + newRoomsText;
+        setSubRoomsText(combinedText);
+        notifyChange(enabled, mainRoomName, combinedText);
+    };
+
     // 現在のルーム数を計算
     const currentRoomCount = parseRoomsFromText(mainRoomName, subRoomsText).length;
 
@@ -107,30 +116,54 @@ const SubRoomSettings = ({ subRoomSettings, onChange }) => {
                     <div className="items-center">
                         <label className="block text-sm text-gray-600 mb-2">
                             メインルーム（すべての投稿が表示される通常チャット）
+                            {readOnlyMode && <span className="text-xs text-orange-600 ml-2">※編集時は変更不可</span>}
                         </label>
                         <textarea
                             required
                             value={mainRoomName}
                             onChange={(e) => handleMainRoomNameChange(e.target.value)}
                             maxLength={10}
-                            className="w-full text-sm p-2 border border-gray-300 rounded focus:border-blue-500 text-left"
-                            placeholder="全体"
+                            className={`w-full text-sm p-2 border border-gray-300 rounded focus:border-blue-500 text-left ${
+                                readOnlyMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                            }`}
+                            placeholder={mainRoomName || '全体'}
                             rows={1}
+                            disabled={readOnlyMode}
                         />
                     </div>
+
+                    {/* 既存ルーム一覧（編集モード時のみ表示） */}
+                    {readOnlyMode && subRoomsText && (
+                        <div className="text-left">
+                            <label className="block text-sm text-gray-600 mb-2 text-left">
+                                既存のサブルーム
+                                <span className="text-xs text-orange-600 ml-2">※編集時は変更不可</span>
+                            </label>
+                            <div className="w-full text-sm p-2 border border-gray-200 rounded bg-gray-50 text-left">
+                                {subRoomsText.split('\n').filter(name => name.trim()).map((roomName, index) => (
+                                    <div key={index} className="py-1 text-gray-700">
+                                        {roomName.trim()}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* サブルーム設定 */}
                     <div className="text-left">
                         <label className="block text-sm text-gray-600 mb-2 text-left">
-                            サブルーム（改行区切りで入力）
+                            {readOnlyMode ? '新規サブルーム（追加のみ可能）' : 'サブルーム（改行区切りで入力）'}
                         </label>
                         <textarea
                             required
-                            value={subRoomsText}
-                            onChange={(e) => handleSubRoomsTextChange(e.target.value)}
-                            rows={6}
+                            value={readOnlyMode ? '' : subRoomsText}
+                            onChange={(e) => readOnlyMode ? handleNewRoomsChange(e.target.value) : handleSubRoomsTextChange(e.target.value)}
+                            rows={readOnlyMode ? 3 : 6}
                             className="w-full text-sm p-2 border border-gray-300 rounded focus:border-blue-500 text-left"
-                            placeholder={`雑談\n質問・相談\nお知らせ\n\n（1行につき1つのルームとして作成されます）`}
+                            placeholder={readOnlyMode 
+                                ? `新しいルーム1\n新しいルーム2\n\n（既存ルームは変更できません）`
+                                : `雑談\n質問・相談\nお知らせ\n\n（1行につき1つのルームとして作成されます）`
+                            }
                             style={{ 
                                 whiteSpace: 'pre-wrap',
                                 fontFamily: 'inherit',
@@ -140,7 +173,12 @@ const SubRoomSettings = ({ subRoomSettings, onChange }) => {
                             autoComplete="off"
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1 text-left">
-                            <span>💡 Enterキーで改行、各行が1つのルームになります</span>
+                            <span>
+                                {readOnlyMode 
+                                    ? '💡 新規ルームのみ追加可能、既存ルームは変更できません'
+                                    : '💡 Enterキーで改行、各行が1つのルームになります'
+                                }
+                            </span>
                             <span>
                                 {currentRoomCount}ルーム
                             </span>

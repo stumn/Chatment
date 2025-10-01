@@ -12,6 +12,7 @@ const {
   getActiveSpaces,
   getSpaceById,
   createSpace,
+  updateSpace,
   getRoomsBySpace,
   getPostsBySpace,
   deactivateSpace,
@@ -358,6 +359,104 @@ router.post('/spaces', async (req, res) => {
 
   } catch (error) {
     console.error('Create space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペース更新
+router.put('/spaces/:spaceId', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId);
+    const { name, description, subRoomSettings } = req.body;
+
+    if (!spaceId || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Required fields: spaceId, name'
+      });
+    }
+
+    // subRoomSettingsのバリデーション
+    if (subRoomSettings && subRoomSettings.enabled) {
+      if (!subRoomSettings.rooms || !Array.isArray(subRoomSettings.rooms)) {
+        return res.status(400).json({
+          success: false,
+          error: 'subRoomSettings.rooms must be an array when enabled'
+        });
+      }
+
+      // ルーム名のバリデーション
+      for (let i = 0; i < subRoomSettings.rooms.length; i++) {
+        const room = subRoomSettings.rooms[i];
+        if (!room.name || room.name.length < 1 || room.name.length > 10) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name ${i + 1} must be between 1-10 characters`
+          });
+        }
+
+        // 禁止文字チェック
+        const forbiddenChars = /[\/\\<>"'&]/;
+        if (forbiddenChars.test(room.name)) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name "${room.name}" contains forbidden characters`
+          });
+        }
+
+        // 予約語チェック
+        const reservedWords = ['admin', 'system', 'api'];
+        if (reservedWords.includes(room.name.toLowerCase())) {
+          return res.status(400).json({
+            success: false,
+            error: `Room name "${room.name}" is reserved`
+          });
+        }
+      }
+
+      // ルーム名の重複チェック
+      const roomNames = subRoomSettings.rooms.map(room => room.name.toLowerCase());
+      const uniqueNames = new Set(roomNames);
+      if (roomNames.length !== uniqueNames.size) {
+        return res.status(400).json({
+          success: false,
+          error: 'Duplicate room names are not allowed'
+        });
+      }
+
+      // ルーム数制限チェック
+      if (subRoomSettings.rooms.length > 10) {
+        return res.status(400).json({
+          success: false,
+          error: 'Maximum 10 rooms allowed'
+        });
+      }
+    }
+
+    // スペース更新処理（この関数は dbOperation.js に追加する必要があります）
+    const updatedSpace = await updateSpace(spaceId, {
+      name,
+      description,
+      subRoomSettings
+    });
+
+    if (!updatedSpace) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found or update failed'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: updatedSpace
+    });
+
+  } catch (error) {
+    console.error('Update space API error:', error);
     res.status(500).json({
       success: false,
       error: error.message

@@ -3,51 +3,55 @@ import BaseModal from './ui/BaseModal';
 import SubRoomSettings from './SubRoomSettings';
 
 /**
- * コミュニケーションスペースを追加するためのモーダルコンポーネント
+ * コミュニケーションスペースを編集するためのモーダルコンポーネント
  * 
  * @param {Object} props - コンポーネントのプロップス
  * @param {boolean} props.isOpen - モーダルの表示状態
  * @param {Function} props.onClose - モーダルを閉じる関数
- * @param {Function} props.onAdd - スペースを追加する関数
+ * @param {Function} props.onUpdate - スペースを更新する関数
+ * @param {Object} props.space - 編集対象のスペースデータ
  */
-const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
-    const [spaceName, setSpaceName] = useState('');
-    const [spaceDescription, setSpaceDescription] = useState('');
-    const [spaceOptions, setSpaceOptions] = useState('');
-    const [subRoomSettings, setSubRoomSettings] = useState({
-        enabled: false,
-        rooms: [{ name: '全体', description: '全ての投稿を表示' }],
-        maxRooms: 10
-    });
+const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
+    const [spaceName, setSpaceName] = useState(space?.name || '');
+    const [spaceDescription, setSpaceDescription] = useState(space?.description || '');
+    const [subRoomSettings, setSubRoomSettings] = useState(
+        space?.subRoomSettings || {
+            enabled: false,
+            rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+            maxRooms: 10
+        }
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // spaceが変更された時に状態を更新
+    React.useEffect(() => {
+        if (space) {
+            setSpaceName(space.name || '');
+            setSpaceDescription(space.description || '');
+            setSubRoomSettings(space.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+                maxRooms: 10
+            });
+        }
+    }, [space]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (spaceName.trim() && !isSubmitting) {
+        if (spaceName.trim() && !isSubmitting && space) {
             setIsSubmitting(true);
 
             try {
-                await onAdd({
-                    id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
+                await onUpdate({
+                    id: space.id,
                     name: spaceName,
                     description: spaceDescription,
-                    options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`,
                     subRoomSettings: subRoomSettings
                 });
 
-                // フォームをリセット
-                setSpaceName('');
-                setSpaceDescription('');
-                setSpaceOptions('');
-                setSubRoomSettings({
-                    enabled: false,
-                    rooms: [{ name: '全体', description: '全ての投稿を表示' }],
-                    maxRooms: 10
-                });
                 onClose();
             } catch (error) {
-                console.error('スペース追加エラー:', error);
-                // TODO: エラーメッセージを表示する
+                console.error('スペース更新エラー:', error);
             } finally {
                 setIsSubmitting(false);
             }
@@ -56,14 +60,16 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
 
     const handleClose = () => {
         if (!isSubmitting) {
-            setSpaceName('');
-            setSpaceDescription('');
-            setSpaceOptions('');
-            setSubRoomSettings({
-                enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }],
-                maxRooms: 10
-            });
+            // フォームをリセット
+            if (space) {
+                setSpaceName(space.name || '');
+                setSpaceDescription(space.description || '');
+                setSubRoomSettings(space.subRoomSettings || {
+                    enabled: false,
+                    rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+                    maxRooms: 10
+                });
+            }
             onClose();
         }
     };
@@ -72,7 +78,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
         <BaseModal
             isOpen={isOpen}
             onClose={handleClose}
-            title="新しいコミュニケーションスペースを追加"
+            title="コミュニケーションスペースを編集"
             maxWidth="600px"
             isSubmitting={isSubmitting}
         >
@@ -96,7 +102,7 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                         disabled={isSubmitting}
                     />
 
-                    {/* サブルーム設定 */}
+                    {/* サブルーム設定（読み取り専用モード） */}
                     <SubRoomSettings
                         subRoomSettings={subRoomSettings}
                         onChange={setSubRoomSettings}
@@ -117,15 +123,13 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                             className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 disabled:!bg-blue-300 disabled:cursor-not-allowed transition-colors duration-150"
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? '追加中...' : '追加'}
+                            {isSubmitting ? '更新中...' : '更新'}
                         </button>
                     </div>
-
                 </div>
-
             </form>
         </BaseModal>
     );
 };
 
-export default AddSpaceModal;
+export default EditSpaceModal;
