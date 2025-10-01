@@ -77,10 +77,6 @@ const roomSchema = new mongoose.Schema({
     isPrivate: { type: Boolean, default: false }, // プライベートルーム
     maxParticipants: { type: Number, default: 100 }, // 最大参加者数
     
-    // 作成者情報
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdByNickname: { type: String, required: true },
-    
     // 統計情報（パフォーマンス向上のため）
     messageCount: { type: Number, default: 0 }, // メッセージ数
     participantCount: { type: Number, default: 0 }, // 現在の参加者数
@@ -113,10 +109,6 @@ const spaceSchema = new mongoose.Schema({
     isPrivate: { type: Boolean, default: false }, // プライベートスペース
     isFinished: { type: Boolean, default: false }, // 終了フラグ
     finishedAt: { type: Date, default: null }, // 終了日時
-    
-    // 作成者情報
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdByNickname: { type: String, required: true },
     
     // 統計情報（パフォーマンス向上のため）
     roomCount: { type: Number, default: 0 }, // ルーム数
@@ -164,7 +156,6 @@ const spaceSchema = new mongoose.Schema({
 // Spaceコレクション用のインデックス
 spaceSchema.index({ isActive: 1, createdAt: -1 }); // アクティブスペース一覧用
 spaceSchema.index({ lastActivity: -1 }); // アクティビティ順ソート用
-spaceSchema.index({ createdBy: 1 }); // 作成者別取得用
 
 const Space = mongoose.model("Space", spaceSchema);
 

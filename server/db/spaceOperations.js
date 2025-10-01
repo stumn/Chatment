@@ -20,7 +20,6 @@ async function initializeDefaultSpace() {
             id: DEFAULT_SPACE_ID,
             name: 'デフォルトスペース',
             description: '既存データ用のメインスペース',
-            createdByNickname: 'system',
             settings: {
                 defaultRoomSettings: {
                     autoDeleteMessages: false,
@@ -116,7 +115,7 @@ async function getSpaceById(spaceId) {
 // --- 新しいスペースを作成 ---
 async function createSpace(spaceData) {
     try {
-        const { id, name, description, createdByNickname, createdBy, settings = {}, subRoomSettings } = spaceData;
+        const { id, name, description, settings = {}, subRoomSettings } = spaceData;
 
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
@@ -136,8 +135,6 @@ async function createSpace(spaceData) {
             id,
             name,
             description,
-            createdByNickname,
-            createdBy,
             settings: {
                 defaultRoomSettings: {
                     autoDeleteMessages: settings.defaultRoomSettings?.autoDeleteMessages || false,
@@ -210,7 +207,6 @@ async function updateSpace(spaceId, updateData) {
                             description: roomData.description,
                             spaceId: spaceId,
                             isActive: true,
-                            createdBy: 'system',
                             settings: {
                                 autoDeleteMessages: false,
                                 messageRetentionDays: 30,

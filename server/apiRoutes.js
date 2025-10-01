@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  getAllRoomsWithStats, 
-  getRoomMessageCounts, 
+const {
+  getAllRoomsWithStats,
+  getRoomMessageCounts,
   explainRoomQuery,
   getActiveRooms,
   getRoomById,
@@ -121,12 +121,12 @@ router.get('/rooms/:roomId', async (req, res) => {
 // 新しいルーム作成
 router.post('/rooms', async (req, res) => {
   try {
-    const { id, name, description, createdByNickname, settings } = req.body;
+    const { id, name, description, settings } = req.body;
 
-    if (!id || !name || !createdByNickname) {
+    if (!id || !name) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: id, name, createdByNickname'
+        error: 'Required fields: id, name'
       });
     }
 
@@ -134,7 +134,6 @@ router.post('/rooms', async (req, res) => {
       id,
       name,
       description,
-      createdByNickname,
       settings
     });
 
@@ -165,13 +164,13 @@ router.post('/rooms', async (req, res) => {
 router.get('/posts', async (req, res) => {
   try {
     console.time('posts-api');
-    
+
     // クエリパラメータからspaceIdを取得
     const { spaceId } = req.query;
-    
+
     // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
     const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
-    
+
     console.timeEnd('posts-api');
     console.log(`Posts API: Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
@@ -197,10 +196,10 @@ router.get('/posts/:roomId', async (req, res) => {
     const { roomId } = req.params;
     const { spaceId } = req.query;
     console.time(`posts-room-${roomId}-api`);
-    
+
     // スペース指定による絞り込み対応
     const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
-    
+
     console.timeEnd(`posts-room-${roomId}-api`);
     console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
@@ -270,12 +269,12 @@ router.get('/spaces/:spaceId', async (req, res) => {
 // 新しいスペース作成
 router.post('/spaces', async (req, res) => {
   try {
-    const { id, name, description, createdByNickname, settings, subRoomSettings } = req.body;
+    const { id, name, description, settings, subRoomSettings } = req.body;
 
-    if (!id || !name || !createdByNickname) {
+    if (!id || !name) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: id, name, createdByNickname'
+        error: 'Required fields: id, name'
       });
     }
 
@@ -340,7 +339,6 @@ router.post('/spaces', async (req, res) => {
       id: parseInt(id), // 整数に変換
       name,
       description,
-      createdByNickname,
       settings,
       subRoomSettings // subRoomSettingsを追加
     });
@@ -469,7 +467,7 @@ router.get('/spaces/:spaceId/rooms', async (req, res) => {
   try {
     const spaceId = parseInt(req.params.spaceId); // 整数に変換
     const rooms = await getRoomsBySpace(spaceId);
-    
+
     res.json({
       success: true,
       spaceId: spaceId,
@@ -491,7 +489,7 @@ router.get('/spaces/:spaceId/posts', async (req, res) => {
     const spaceId = parseInt(req.params.spaceId); // 整数に変換
     const limit = parseInt(req.query.limit) || 100;
     const posts = await getPostsBySpace(spaceId, limit);
-    
+
     res.json({
       success: true,
       spaceId: spaceId,
@@ -599,7 +597,7 @@ router.get('/admin/spaces', async (req, res) => {
 router.post('/migrate-to-spaces', async (req, res) => {
   try {
     const result = await migrateExistingDataToSpace();
-    
+
     if (result) {
       res.json({
         success: true,
@@ -624,9 +622,9 @@ router.post('/migrate-to-spaces', async (req, res) => {
 router.get('/spaces/:spaceId/export/csv', async (req, res) => {
   try {
     const { spaceId } = req.params;
-    
+
     const posts = await getPostsBySpace(spaceId, 10000); // 大量データに対応
-    
+
     if (!posts || posts.length === 0) {
       return res.status(404).json({
         success: false,
@@ -636,7 +634,7 @@ router.get('/spaces/:spaceId/export/csv', async (req, res) => {
 
     // CSVヘッダー
     let csvContent = 'ID,投稿者,内容,投稿日時,ルームID,表示順序,ポジティブ反応,ネガティブ反応\n';
-    
+
     // データ行を追加
     posts.forEach(post => {
       const row = [
@@ -655,7 +653,7 @@ router.get('/spaces/:spaceId/export/csv', async (req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="space_${spaceId}_posts.csv"`);
     res.send('\ufeff' + csvContent); // BOM付きで日本語対応
-    
+
   } catch (error) {
     console.error('CSV export API error:', error);
     res.status(500).json({
@@ -669,7 +667,7 @@ router.get('/spaces/:spaceId/export/csv', async (req, res) => {
 router.get('/spaces/:spaceId/export/json', async (req, res) => {
   try {
     const { spaceId } = req.params;
-    
+
     const [space, posts] = await Promise.all([
       getSpaceById(spaceId),
       getPostsBySpace(spaceId, 10000)
@@ -685,7 +683,7 @@ router.get('/spaces/:spaceId/export/json', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="space_${spaceId}_data.json"`);
     res.json(exportData);
-    
+
   } catch (error) {
     console.error('JSON export API error:', error);
     res.status(500).json({

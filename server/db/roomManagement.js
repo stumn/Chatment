@@ -2,73 +2,6 @@
 const { Room } = require('../db');
 const { handleErrors } = require('../utils');
 
-// --- デフォルトルームを初期化 ---
-async function initializeDefaultRooms() {
-    try {
-        const DEFAULT_SPACE_ID = 0; // デフォルトスペースID
-
-        const defaultRooms = [
-            {
-                id: 'space0-main',
-                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
-                name: '全体',
-                description: '全ての投稿を表示',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            },
-            {
-                id: 'space0-room1',
-                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
-                name: 'サブルーム1',
-                description: 'サブルーム1',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 90,
-                    allowAnonymous: true
-                }
-            },
-            {
-                id: 'space0-room2',
-                spaceId: DEFAULT_SPACE_ID, // スペースIDを追加
-                name: 'サブルーム2',
-                description: 'サブルーム2',
-                createdByNickname: 'システム',
-                settings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                }
-            },
-        ];
-
-        for (const roomData of defaultRooms) {
-
-            // 既存のルームがあるかチェック
-            const existingRoom = await Room.findOne({ id: roomData.id });
-
-            if (existingRoom) {
-                console.log(`🔄 [dbOperation] 既存ルーム確認: ${existingRoom.name} (${existingRoom.id})`);
-            } else {
-                // ルームが存在しない場合は新規作成
-                try {
-                    await createRoom(roomData);
-                    console.log(`✅ [dbOperation] デフォルトルーム作成: ${roomData.name} (${roomData.id})`);
-                } catch (error) {
-                    console.error(`❌ [dbOperation] デフォルトルーム作成失敗: ${roomData.name} (${roomData.id})`, error.message);
-                }
-            }
-        }
-
-    } catch (error) {
-        handleErrors(error, 'デフォルトルーム初期化中にエラーが発生しました');
-    }
-}
-
 // --- アクティブなルーム一覧を取得 ---
 async function getActiveRooms() {
     try {
@@ -141,7 +74,7 @@ async function updateRoomStats(roomId, updates = {}) {
 async function createRoom(roomData) {
     try {
         // roomDataのデストラクション
-        const { id, spaceId = 0, name, description, createdByNickname, createdBy, settings = {} } = roomData;
+        const { id, spaceId = 0, name, description, settings = {} } = roomData;
 
         // 重複チェック
         const existingRoom = await Room.findOne({ id });
@@ -153,8 +86,6 @@ async function createRoom(roomData) {
             spaceId, // スペースIDを追加
             name,
             description,
-            createdByNickname,
-            createdBy,
             settings: {
                 autoDeleteMessages: settings.autoDeleteMessages || false,
                 messageRetentionDays: settings.messageRetentionDays || 30,
@@ -228,7 +159,6 @@ async function createDefaultRoomsForSpace(spaceId) {
                     spaceId: spaceId,
                     name: '全体',
                     description: '全ての投稿を表示',
-                    createdByNickname: 'システム',
                     isActive: true,
                     messageCount: 0,
                     lastActivity: new Date(),
@@ -266,7 +196,6 @@ async function createDefaultRoomsForSpace(spaceId) {
                 spaceId: spaceId,
                 name: roomData.name,
                 description: roomData.description || '',
-                createdByNickname: 'システム',
                 isActive: true,
                 messageCount: 0,
                 lastActivity: new Date(),

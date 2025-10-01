@@ -164,7 +164,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           id: spaceData.id,
           name: spaceData.name,
           description: spaceData.description,
-          createdByNickname: 'admin', // TODO: 実際のユーザー名を使用
           settings: {
             defaultRoomSettings: {
               autoDeleteMessages: false,
