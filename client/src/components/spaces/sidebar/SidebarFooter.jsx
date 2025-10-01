@@ -1,6 +1,7 @@
 // File: client/src/components/sidebar/SidebarFooter.jsx
 
 import React from 'react';
+import useSubRoomControl from '../../../hooks/useSubRoomControl';
 
 /**
  * サイドバーのフッター部分（サブルーム一覧）
@@ -9,15 +10,47 @@ import React from 'react';
  * @param {string} props.activeRoomId - アクティブなルームID
  * @param {boolean} props.isColorfulMode - カラフルモードの状態
  * @param {boolean} props.switchingRoom - ルーム切り替え中かどうか
- * @param {Function} props.onRoomClick - ルームクリック時のハンドラ
+ * @param {Function} props.handleRoomClick - ルームクリック時のハンドラ
  */
 const SidebarFooter = ({ 
     rooms, 
     activeRoomId, 
     isColorfulMode, 
     switchingRoom, 
-    onRoomClick 
+    handleRoomClick 
 }) => {
+    // サブルーム制御ロジックを取得
+    const {
+        shouldShowRoomList,
+        displayInfo,
+        isSubRoomEnabled,
+        mainRoom,
+        subRooms,
+        logCurrentState
+    } = useSubRoomControl();
+
+    // デバッグ用: 現在の状態をログ出力
+    React.useEffect(() => {
+        logCurrentState();
+    }, [shouldShowRoomList, rooms.length]);
+
+    // サブルーム機能が無効、またはルームが1つ以下の場合は非表示
+    if (!shouldShowRoomList) {
+        console.log('🔍 [SidebarFooter] サブルーム一覧を非表示:', {
+            shouldShowRoomList,
+            isSubRoomEnabled: isSubRoomEnabled(),
+            roomCount: rooms.length,
+            displayInfo
+        });
+        return null;
+    }
+
+    console.log('🔍 [SidebarFooter] サブルーム一覧を表示:', {
+        shouldShowRoomList,
+        roomCount: rooms.length,
+        mainRoom: mainRoom?.name,
+        subRoomCount: subRooms.length
+    });
     return (
         <div className="flex-shrink-0 px-6 pb-6 bg-gray-100 border-t border-gray-200 max-h-[30vh] overflow-y-auto">
             {/* サブルーム一覧セクション */}
@@ -35,7 +68,7 @@ const SidebarFooter = ({
                     {rooms.sort((a, b) => a.id.localeCompare(b.id)).map(room => (
                         <button
                             key={room.id}
-                            onClick={() => onRoomClick(room.id)}
+                            onClick={() => handleRoomClick(room.id)}
                             className={`w-full p-3 bg-transparent border-none rounded-lg cursor-pointer transition-all duration-200 text-left font-inherit flex justify-between items-center sb-room-button ${activeRoomId === room.id ? 'active' : ''
                                 } ${isColorfulMode ? 'colorful-mode' : ''} ${switchingRoom ? 'switching' : ''
                                 }`}
@@ -49,7 +82,7 @@ const SidebarFooter = ({
                                     </div>
                                 )}
                                 <span className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                                    {room.participantCount}人
+                                    {room.participantCount || 0}人
                                 </span>
                             </div>
                         </button>

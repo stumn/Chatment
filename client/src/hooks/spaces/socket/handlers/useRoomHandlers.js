@@ -99,11 +99,18 @@ export const useRoomHandlers = (emitLog) => {
   };
 
   const handleRoomList = (data) => {
-    // data: { rooms: [{ id, name, description, participantCount }] }
+    // data: { rooms: [{ id, name, description, participantCount }], spaceId, spaceInfo }
     console.log('Room list received:', data);
 
     if (data.rooms && Array.isArray(data.rooms)) {
-      useRoomStore.getState().setRooms(data.rooms);
+      // スペース情報も含まれている場合は同時に更新
+      if (data.spaceInfo) {
+        console.log('🌍 [roomHandlers] スペース情報も同時更新:', data.spaceInfo);
+        useRoomStore.getState().updateRoomsAndSpaceInfo(data.rooms, data.spaceInfo);
+      } else {
+        // ルーム一覧のみ更新（後方互換性）
+        useRoomStore.getState().setRooms(data.rooms);
+      }
     }
   };
 

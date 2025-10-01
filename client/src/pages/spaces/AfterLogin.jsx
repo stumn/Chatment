@@ -5,6 +5,7 @@ import InputForm from '../../components/spaces/InputForm'
 import Telomere from '../../components/spaces/Telomere';
 import Sidebar from '../../components/spaces/Sidebar';
 import DocumentList from '../../components/spaces/DocumentList';
+import SpaceSwitcher from '../../components/dev/SpaceSwitcher'; // テスト用コンポーネント
 
 import sizeStore from '../../store/shared/sizeStore';
 import useAppStore from '../../store/spaces/appStore';
@@ -65,6 +66,9 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
             <DocumentList />
 
             <InputForm nickname={nickname} status={status} ageGroup={ageGroup} userId={userId} appController={appController} />
+            
+            {/* テスト用スペース切り替えコンポーネント */}
+            <SpaceSwitcher />
         </div>
     );
 }

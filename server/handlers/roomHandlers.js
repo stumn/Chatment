@@ -154,10 +154,30 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       console.log(`📋 [server] ルーム一覧要求 (spaceId: ${spaceId})`);
 
       let dbRooms;
+      let spaceInfo = null;
+
       if (spaceId !== undefined && spaceId !== null) {
         // スペースIDが指定されている場合はそのスペースのルームのみ取得
         dbRooms = await getActiveRoomsBySpaceId(spaceId);
         console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
+        
+        // スペース情報も取得してサブルーム設定を含める
+        const { Space } = require('../db');
+        const space = await Space.findOne({ id: spaceId }).lean();
+        if (space) {
+          spaceInfo = {
+            id: space.id,
+            name: space.name,
+            settings: {
+              subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体', description: '全ての投稿を表示' }],
+                maxRooms: 10
+              }
+            }
+          };
+          console.log(`🌍 [server] スペース情報取得: ${space.name}`);
+        }
       } else {
         // スペースIDが指定されていない場合は全ルーム取得（後方互換性）
         dbRooms = await getActiveRooms();
@@ -180,9 +200,14 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         };
       });
 
-      socket.emit('room-list', { rooms: roomList, spaceId });
+      // スペース情報も含めて送信
+      socket.emit('room-list', { 
+        rooms: roomList, 
+        spaceId,
+        spaceInfo: spaceInfo
+      });
 
-      console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)`);
+      console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)${spaceInfo ? ' + スペース情報' : ''}`);
 
     } catch (error) {
       console.error('Error in get-room-list:', error);
