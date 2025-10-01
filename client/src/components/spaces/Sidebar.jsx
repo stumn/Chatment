@@ -14,7 +14,6 @@ import '../../styles/sidebar.css';
 const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     // TODO: spaceIdに基づいてスペース固有の投稿データをフィルタリング
     // TODO: スペースタイトルや説明などの情報を表示
-    // TODO: 管理画面(/admin)への戻るリンクを追加
     const posts = usePostStore((state) => state.posts);
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
     const toggleColorfulMode = useAppStore((state) => state.toggleColorfulMode);
@@ -86,10 +85,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
         console.log(`📊 [TableOfContents] 現在のアクティブルーム: ${activeRoomId}`);
 
         // 同じルームの場合は何もしない
-        if (activeRoomId === roomId) {
-            console.log(`✅ [TableOfContents] 既に ${roomId} にいるため処理スキップ`);
-            return;
-        }
+        if (activeRoomId === roomId) return;
 
         // 切り替え中の状態を設定
         setSwitchingRoom(true);
@@ -120,7 +116,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
 
     if (!isOpen) {
         return (
-            <SidebarClosed 
+            <SidebarClosed
                 onToggle={onToggle}
                 latestHeading={latestHeading}
                 activeRoom={activeRoom}
@@ -131,21 +127,21 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
 
     return (
         <div className={'sb-sidebar-container open'}>
-            <SidebarHeader 
+            <SidebarHeader
                 onToggle={onToggle}
                 spaceId={spaceId}
                 userInfo={userInfo}
                 isColorfulMode={isColorfulMode}
                 toggleColorfulMode={toggleColorfulMode}
             />
-            
-            <SidebarContent 
+
+            <SidebarContent
                 tocData={tocData}
                 handleItemClick={handleItemClick}
                 isColorfulMode={isColorfulMode}
             />
-            
-            <SidebarFooter 
+
+            <SidebarFooter
                 rooms={rooms}
                 activeRoomId={activeRoomId}
                 handleRoomClick={handleRoomClick}

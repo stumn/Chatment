@@ -15,7 +15,7 @@ import '../../styles/Doc.css';
 const DocRow = ({ data, index, style }) => {
 
     // dataから必要な情報を抽出
-    const { docMessages, userInfo, documentFunctions, setShouldScroll, listRef } = data;
+    const { docMessages, userInfo, documentFunctions, listRef } = data;
 
     const message = docMessages[index];
 
@@ -55,7 +55,6 @@ const DocRow = ({ data, index, style }) => {
 
     // 新規行追加
     const handleAddBelow = () => {
-        if (setShouldScroll) setShouldScroll(false);
         const data = {
             nickname: userInfo.id || 'Undefined', // userInfo.nicknameも考慮
             msg: '',
@@ -128,9 +127,6 @@ const DocRow = ({ data, index, style }) => {
 
     // 行削除
     const handleDelete = () => {
-
-        // 削除時はスクロール抑制
-        if (setShouldScroll) setShouldScroll(false);
 
         // 削除の変更状態を記録
         usePostStore.getState().setChangeState(message.id, 'deleted', userInfo?.nickname || 'Unknown');

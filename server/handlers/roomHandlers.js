@@ -217,8 +217,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
   socket.on('fetch-room-history', async ({ roomId }) => {
     try {
-      console.log(`📚 [server] ${roomId} の履歴要求`);
-
       if (!roomId) {
         socket.emit('room-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
         return;
@@ -226,12 +224,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
       const messages = await getRoomHistory(roomId, 50);
 
-      socket.emit('room-history', {
-        roomId,
-        messages: messages
-      });
-
-      console.log(`✅ [server] ${roomId} 履歴送信完了 (${messages.length}件)`);
+      socket.emit('room-history', { roomId, messages });
 
       if (process.env.NODE_ENV === 'development') {
         await explainRoomQuery(roomId);

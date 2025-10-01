@@ -27,13 +27,7 @@ export const useDocumentData = () => {
 
     // === URLパラメータバリデーション ===
     useEffect(() => {
-        console.log('[useDocumentData] URL Parameters:', {
-            spaceId: spaceId,
-            docId: docId,
-            parsedSpaceId: currentSpaceId,
-            parsedDocId: currentDocId
-        });
-
+        
         // spaceIdのバリデーション
         if (!currentSpaceId || isNaN(currentSpaceId)) {
             const errorMsg = `🚫 無効なスペースID: "${spaceId}"\n\n` +

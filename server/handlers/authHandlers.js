@@ -43,7 +43,7 @@ async function handleLogin(socket, userInfo) {
     // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
     socket.on(SOCKET_EVENTS.FETCH_HISTORY, async () => {
       try {
-        const messages = await getPastLogs(nickname, spaceId);
+        const messages = await getPastLogs(spaceId);
         socket.emit('history', messages);
       } catch (e) { console.error(e); }
     });

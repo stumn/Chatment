@@ -3,6 +3,7 @@ import useRoomStore from '../../../../store/spaces/roomStore';
 import { validUserId } from '../utils/socketUtils';
 
 export const useRoomEmitters = (socket, emitLog) => {
+
   const emitJoinRoom = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId || !userInfo) return;
@@ -87,7 +88,7 @@ export const useRoomEmitters = (socket, emitLog) => {
     console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
     const startTime = performance.now(); // パフォーマンス測定開始
 
-    roomId === 'room-0'
+    roomId === 'room-0' // ここはサーバ処理でも良さそう
       ? socket.emit('fetch-history', { roomId, startTime })
       : socket.emit('fetch-room-history', { roomId, startTime });
 

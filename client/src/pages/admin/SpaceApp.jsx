@@ -94,11 +94,11 @@ function SpaceApp() {
     <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto min-h-screen my-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">コミュニケーションスペース管理</h1>
 
-        {/* 統計情報表示 */}
+        {/* 統計情報表示
         <SpaceStatistics 
           activeSpaces={activeSpaces}
           finishedSpaces={finishedSpaces}
-        />
+        /> */}
 
         {/* メッセージ表示 */}
         <SuccessMessage 

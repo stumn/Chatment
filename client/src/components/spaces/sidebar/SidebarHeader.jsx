@@ -38,6 +38,7 @@ const SidebarHeader = ({
                 {spaceId && (
                     <div className="text-xs text-gray-600 font-bold mb-1">
                         Space: {spaceId}
+                        {/* space name も表示されるほうがいいかも */}
                     </div>
                 )}
                 <span className="text-lg text-gray-800">
@@ -54,7 +55,7 @@ const SidebarHeader = ({
                                     color="primary"
                                 />
                             }
-                            label="カラフルモード"
+                            label="リッチモード"
                             labelPlacement="start"
                             sx={{
                                 margin: 0,

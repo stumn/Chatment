@@ -15,9 +15,6 @@ const DocComments = ({ lines, documentFunctions }) => {
 
     const listRef = useRef(null);
 
-    // --- 新規行追加時の自動スクロール抑制用 ---
-    const [shouldScroll, setShouldScroll] = useState(true);
-
     // 変更状態管理のメソッドを取得
     const clearOldChangeStates = usePostStore((state) => state.clearOldChangeStates);
 
@@ -46,13 +43,6 @@ const DocComments = ({ lines, documentFunctions }) => {
 
         return () => clearInterval(interval);
     }, [clearOldChangeStates]);
-
-    // スクロールを最下部に（shouldScrollがtrueのときのみ）
-    useEffect(() => {
-        if (shouldScroll && listRef.current) {
-            listRef.current.scrollToItem(docMessages.length - 1, 'end');
-        }
-    }, [myHeight, lines.num, docMessages.length, shouldScroll]);
 
     // 各行の高さを計算（改行や長文も考慮）
     const getItemSize = (index) => {
@@ -149,7 +139,6 @@ const DocComments = ({ lines, documentFunctions }) => {
         docMessages: filteredDocMessages,
         userInfo,
         documentFunctions,
-        setShouldScroll,
         listRef,
     }), [filteredDocMessages, userInfo, documentFunctions]);
 

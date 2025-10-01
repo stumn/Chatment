@@ -20,9 +20,6 @@ import { useRoomEmitters } from '../spaces/socket/emitters/useRoomEmitters';
 import { createEmitLog } from '../spaces/socket/utils/socketUtils';
 import { createEventHandlerMap } from '../spaces/socket/utils/eventMap';
 
-// ❌ 問題: socketインスタンスがモジュールスコープで作成されているため、
-// アプリが再マウントされてもsocket接続が残り、メモリリークの原因になる可能性があります
-// ✅ 修正案: useEffect内でsocket接続を管理し、クリーンアップで切断する
 const socket = io();
 
 // --- socketインスタンスを外部参照用にexport ---
@@ -106,8 +103,6 @@ export default function useSocket() {
       });
     };
 
-    // useEffectの依存配列に必要なものを追加
-    // 万一useSocketが複数回呼ばれても、リスナーが多重登録されないため。
   }, [basicHandlers, chatHandlers, docHandlers, lockHandlers, roomHandlers, roomEmitters]);
 
   return {

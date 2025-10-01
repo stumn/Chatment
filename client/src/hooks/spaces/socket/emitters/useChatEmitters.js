@@ -9,7 +9,7 @@ export const useChatEmitters = (socket, emitLog) => {
       nickname,
       message,
       userId,
-      spaceId: userInfo.spaceId, // spaceIdを追加
+      spaceId: userInfo.spaceId,
       ...(roomId && { roomId }) // roomIdがある場合のみ追加
     };
 

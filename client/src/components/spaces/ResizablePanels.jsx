@@ -117,7 +117,7 @@ export default function ResizablePanels({ appController, spaceId }) {
         }
 
         lineCount = Math.round(lineCount / 1.8); // チャット行は2行構造なので調整係数を1.8に変更
-        lineCount++; // 最低でも1行は表示する
+        // lineCount++; // 最低でも1行は表示する
 
         return lineCount;
     };

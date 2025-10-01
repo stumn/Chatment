@@ -2,14 +2,15 @@ import useAppStore from '../../../../store/spaces/appStore';
 import { validUserId } from '../utils/socketUtils';
 
 export const useDocEmitters = (socket, emitLog) => {
+  
   const emitDocAdd = (payload) => {
-    const { userInfo } = useAppStore.getState();
-    console.log('emitDocAdd', payload);
+    // const { userInfo } = useAppStore.getState();
+    console.log('emitDocAdd', payload.spaceId, payload);
     
-    // spaceIdを追加
+    // spaceIdを追加(不要説)　ここでuserInfoを取得するから、元のpayloadにuser情報を載せないという手もある
     const payloadWithSpace = {
       ...payload,
-      spaceId: userInfo.spaceId
+      // spaceId: userInfo.spaceId
     };
     
     socket.emit('doc-add', payloadWithSpace);

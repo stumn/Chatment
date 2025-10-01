@@ -2,6 +2,7 @@ import useAppStore from '../../../../store/spaces/appStore';
 import { validUserId } from '../utils/socketUtils';
 
 export const useBasicEmitters = (socket, emitLog) => {
+  
   const emitLoginName = () => {
     const { userInfo } = useAppStore.getState();
     socket.emit('login', userInfo);
@@ -14,6 +15,7 @@ export const useBasicEmitters = (socket, emitLog) => {
 
   const emitHeightChange = (height) => {
     socket.emit('heightChange', height);
+    // emitLog 入れる
   };
 
   return {
