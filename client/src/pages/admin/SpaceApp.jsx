@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AddSpaceModal from '../../components/admin/AddSpaceModal';
-import EditSpaceModal from '../../components/admin/EditSpaceModal';
 import FinishedSpacesSection from '../../components/admin/FinishedSpacesSection';
 import ActiveSpacesSection from '../../components/admin/ActiveSpacesSection';
-import SpaceStatistics from '../../components/admin/SpaceStatistics';
-import { LoadingMessage, SuccessMessage, ErrorMessage } from '../../components/shared/AlertMessage';
+import SpaceMessageModal from './SpaceMessageModal';
 import useSpaceStore from '../../store/admin/spaceStore';
 import useResponsiveSize from '../../hooks/shared/useResponsiveSize';
 import sizeStore from '../../store/shared/sizeStore';
@@ -15,20 +12,17 @@ function SpaceApp() {
   const navigate = useNavigate();
 
   // Zustandストアから状態とアクションを取得
-  const currentSpace = useSpaceStore(state => state.currentSpace);
   const activeSpaces = useSpaceStore(state => state.activeSpaces);
   const finishedSpaces = useSpaceStore(state => state.finishedSpaces);
   const isLoading = useSpaceStore(state => state.isLoading);
   const error = useSpaceStore(state => state.error);
 
   // アクション関数を取得
-  const setCurrentSpace = useSpaceStore(state => state.setCurrentSpace);
   const fetchSpaces = useSpaceStore(state => state.fetchSpaces);
   const fetchAllSpaces = useSpaceStore(state => state.fetchAllSpaces);
   const addSpace = useSpaceStore(state => state.addSpace);
   const updateSpace = useSpaceStore(state => state.updateSpace);
   const finishSpace = useSpaceStore(state => state.finishSpace);
-  // const restoreCurrentSpaceFromStorage = useSpaceStore(state => state.restoreCurrentSpaceFromStorage);
   const clearError = useSpaceStore(state => state.clearError);
 
   // ローカル状態（モーダル表示のため）
@@ -98,9 +92,6 @@ function SpaceApp() {
 
   // スペースを選択する関数
   const handleSelectSpace = (space) => {
-    // Zustandストアを使用してスペースを選択
-    setCurrentSpace(space);
-
     // 新しいタブでスペース詳細ページを開く（整数型スペースID対応）
     const spaceUrl = `/spaces/${space.id}`;
     window.open(spaceUrl, '_blank');
@@ -124,42 +115,52 @@ function SpaceApp() {
     }
   };
 
+  // 編集モーダルを閉じるハンドラー
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingSpace(null);
+  };
+
   return (
-    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto my-8" 
+    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8" 
     style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">コミュニケーションスペース管理</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-10">コミュニケーションスペース管理</h1>
 
-      {/* 統計情報表示
-        <SpaceStatistics 
-          activeSpaces={activeSpaces}
-          finishedSpaces={finishedSpaces}
-        /> */}
-
-      {/* メッセージ表示 */}
-      <SuccessMessage
-        message={successMessage}
-        onClose={() => setSuccessMessage('')}
+      {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
+      <SpaceMessageModal
+        // メッセージ関連
+        successMessage={successMessage}
+        onSuccessMessageClose={() => setSuccessMessage('')}
+        error={error}
+        onErrorClear={clearError}
+        isLoading={isLoading}
+        
+        // 統計情報関連（将来的に使用）
+        activeSpaces={activeSpaces}
+        finishedSpaces={finishedSpaces}
+        
+        // 追加モーダル関連
+        isAddModalOpen={isAddModalOpen}
+        onAddModalClose={() => setIsAddModalOpen(false)}
+        onAddSpace={handleAddSpace}
+        
+        // 編集モーダル関連
+        isEditModalOpen={isEditModalOpen}
+        onEditModalClose={handleEditModalClose}
+        onUpdateSpace={handleUpdateSpace}
+        editingSpace={editingSpace}
       />
 
-      <ErrorMessage
-        message={error}
-        onClose={clearError}
-      />
-
-      <LoadingMessage
-        show={isLoading}
-        message="読み込み中..."
-      />
-
+      {/* アクティブスペース一覧 */}
       <ActiveSpacesSection
         activeSpaces={activeSpaces}
-        selectedSpace={currentSpace}
         onSelectSpace={handleSelectSpace}
         onFinishSpace={handleFinishSpace}
         onEditSpace={handleEditSpace}
         onAddSpaceClick={() => setIsAddModalOpen(true)}
       />
 
+      {/* 終了スペース一覧 */}
       <FinishedSpacesSection finishedSpaces={finishedSpaces} />
 
       {/* フッター */}
@@ -167,24 +168,6 @@ function SpaceApp() {
         <hr className="my-4 border-gray-200" />
         <p>© Mao NAKANO - Chatment </p>
       </div>
-
-      {/* スペース追加モーダル */}
-      <AddSpaceModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddSpace}
-      />
-
-      {/* スペース編集モーダル */}
-      <EditSpaceModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingSpace(null);
-        }}
-        onUpdate={handleUpdateSpace}
-        space={editingSpace}
-      />
     </div>
   );
 }

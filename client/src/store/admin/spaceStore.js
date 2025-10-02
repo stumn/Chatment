@@ -20,9 +20,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
   /** @type {Array} 終了したスペースの配列 */
   finishedSpaces: [],
   
-  /** @type {Object|null} 現在選択されているスペース */
-  currentSpace: null,
-  
   /** @type {boolean} データ読み込み中かどうか */
   isLoading: false,
   
@@ -50,20 +47,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
    */
   clearError: () => {
     set({ error: null });
-  },
-
-  /**
-   * 現在のスペースを設定
-   */
-  setCurrentSpace: (space) => {
-    set({ currentSpace: space });
-    
-    // ローカルストレージに保存
-    if (space) {
-      localStorage.setItem('selectedSpace', JSON.stringify(space));
-    } else {
-      localStorage.removeItem('selectedSpace');
-    }
   },
 
   /**
@@ -252,7 +235,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
    * スペースを終了する
    */
   finishSpace: async (spaceId) => {
-    const { setLoading, setError, clearError, currentSpace, setCurrentSpace } = get();
+    const { setLoading, setError, clearError } = get();
     
     setLoading(true);
     clearError();
@@ -274,11 +257,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           isLoading: false
         }));
 
-        // 現在選択されているスペースが終了された場合はクリア
-        if (currentSpace?.id === spaceId) {
-          setCurrentSpace(null);
-        }
-
         return finishedSpace;
       } else {
         throw new Error(data.error || 'スペースの終了に失敗しました');
@@ -298,11 +276,9 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
     set({
       activeSpaces: [],
       finishedSpaces: [],
-      currentSpace: null,
       isLoading: false,
       error: null
     });
-    localStorage.removeItem('selectedSpace');
   },
 
   /**
@@ -313,8 +289,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
     return {
       totalSpaces: activeSpaces.length + finishedSpaces.length,
       activeCount: activeSpaces.length,
-      finishedCount: finishedSpaces.length,
-      hasCurrentSpace: !!get().currentSpace
+      finishedCount: finishedSpaces.length
     };
   }
 })));
