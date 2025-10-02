@@ -9,7 +9,6 @@ export const useRoomHandlers = (emitLog) => {
 
   const handleRoomJoined = (data) => {
     // data: { roomId, roomInfo, participants }
-    console.log('Room joined:', data);
 
     // 参加者数を更新
     if (data.roomInfo && data.roomInfo.participantCount) {
@@ -36,7 +35,6 @@ export const useRoomHandlers = (emitLog) => {
 
   const handleRoomLeft = (data) => {
     // data: { roomId, participantCount }
-    console.log('Room left:', data);
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
@@ -52,7 +50,6 @@ export const useRoomHandlers = (emitLog) => {
 
   const handleUserJoined = (data) => {
     // data: { roomId, userId, nickname, participantCount }
-    console.log('User joined room:', data);
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
@@ -67,7 +64,6 @@ export const useRoomHandlers = (emitLog) => {
 
   const handleUserLeft = (data) => {
     // data: { roomId, userId, nickname, participantCount }
-    console.log('User left room:', data);
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
@@ -100,7 +96,6 @@ export const useRoomHandlers = (emitLog) => {
 
   const handleRoomList = (data) => {
     // data: { rooms: [{ id, name, description, participantCount }], spaceId, spaceInfo }
-    console.log('Room list received:', data);
 
     if (data.rooms && Array.isArray(data.rooms)) {
       // スペース情報も含まれている場合は同時に更新
@@ -110,6 +105,16 @@ export const useRoomHandlers = (emitLog) => {
       } else {
         // ルーム一覧のみ更新（後方互換性）
         useRoomStore.getState().setRooms(data.rooms);
+      }
+      
+      // ルーム一覧を受信したら、最初のルームに自動参加
+      if (data.rooms.length > 0) {
+        const firstRoom = data.rooms[0];
+        console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
+        // emitLogを使用してルーム参加をサーバーに送信
+        emitLog('join-room', { roomId: firstRoom.id });
+      } else {
+        console.warn('⚠️ 利用可能なルームが見つかりませんでした');
       }
     }
   };

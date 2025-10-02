@@ -60,21 +60,6 @@ export default function useSocket() {
       roomEmitters.emitGetRoomList();
     };
 
-    // ルーム一覧受信時に最初のルームに自動参加する処理を拡張
-    const enhancedHandleRoomList = (data) => {
-      // 既存の処理を実行
-      roomHandlers.handleRoomList(data);
-      
-      // ルーム一覧を受信したら、最初のルームに自動参加
-      if (data.rooms && Array.isArray(data.rooms) && data.rooms.length > 0) {
-        const firstRoom = data.rooms[0];
-        console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
-        roomEmitters.emitJoinRoom(firstRoom.id);
-      } else {
-        console.warn('⚠️ 利用可能なルームが見つかりませんでした');
-      }
-    };
-
     // すべてのハンドラーをマージ
     const allHandlers = {
       ...basicHandlers,
@@ -83,7 +68,6 @@ export default function useSocket() {
       ...docHandlers,
       ...lockHandlers,
       ...roomHandlers,
-      handleRoomList: enhancedHandleRoomList, // 拡張されたルーム一覧ハンドラーを使用
       handleHeightChange, // 状態更新のため個別定義
     };
 
