@@ -69,12 +69,20 @@ async function migrateExistingDataToSpace() {
 // --- アクティブなスペース一覧を取得 ---
 async function getActiveSpaces() {
     try {
+        // まずアクティブスペースのIDを取得
+        const spaceIds = await Space.find({ isActive: true }).select('id').lean().exec();
+        
+        // 各スペースの統計情報を更新
+        console.log(`📊 [spaceOperation] ${spaceIds.length} アクティブスペースの統計情報を更新中...`);
+        await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
+
+        // 更新後のアクティブスペースデータを取得
         const spaces = await Space.find({ isActive: true })
             .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
-        console.log(`🌍 [spaceOperation] アクティブスペース ${spaces.length} 件を取得`);
+        console.log(`🌍 [spaceOperation] アクティブスペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
         // フロントエンド用にデータ構造を平坦化
         const flattenedSpaces = spaces.map(space => ({
@@ -274,6 +282,14 @@ async function updateSpaceStats(spaceId) {
         // メッセージ数を取得
         const totalMessageCount = await Post.countDocuments({ spaceId });
 
+        // 累計参加者数を取得（そのスペースで投稿したユニークなニックネーム数）
+        const participantCountResult = await Post.aggregate([
+            { $match: { spaceId } },
+            { $group: { _id: '$nickname' } },
+            { $group: { _id: null, count: { $sum: 1 } } }
+        ]);
+        const participantCount = participantCountResult.length > 0 ? participantCountResult[0].count : 0;
+
         // 最後のアクティビティを取得
         const lastPost = await Post.findOne({ spaceId })
             .sort({ createdAt: -1 })
@@ -284,6 +300,7 @@ async function updateSpaceStats(spaceId) {
         const updateData = {
             roomCount,
             totalMessageCount,
+            participantCount,
             ...(lastPost && { lastActivity: lastPost.createdAt })
         };
 
@@ -400,12 +417,20 @@ async function finishSpace(spaceId) {
 // --- 終了済みスペース一覧を取得 ---
 async function getFinishedSpaces() {
     try {
+        // まず終了済みスペースのIDを取得
+        const spaceIds = await Space.find({ isFinished: true }).select('id').lean().exec();
+        
+        // 各スペースの統計情報を更新
+        console.log(`📊 [spaceOperation] ${spaceIds.length} 終了済みスペースの統計情報を更新中...`);
+        await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
+
+        // 更新後の終了済みスペースデータを取得
         const spaces = await Space.find({ isFinished: true })
             .sort({ finishedAt: -1 })
             .lean()
             .exec();
 
-        console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得`);
+        console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
         // フロントエンド用にデータ構造を平坦化
         const flattenedSpaces = spaces.map(space => ({
@@ -427,12 +452,20 @@ async function getFinishedSpaces() {
 // --- 全スペース一覧を取得（管理者用） ---
 async function getAllSpaces() {
     try {
+        // まず全スペースのIDを取得
+        const spaceIds = await Space.find({}).select('id').lean().exec();
+        
+        // 各スペースの統計情報を更新
+        console.log(`📊 [spaceOperation] ${spaceIds.length} スペースの統計情報を更新中...`);
+        await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
+
+        // 更新後の全スペースデータを取得
         const spaces = await Space.find({})
             .sort({ createdAt: -1 })
             .lean()
             .exec();
 
-        console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得`);
+        console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
         // フロントエンド用にデータ構造を平坦化
         const flattenedSpaces = spaces.map(space => ({
