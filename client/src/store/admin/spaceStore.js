@@ -151,8 +151,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       // サブルーム設定のデフォルト値
       const defaultSubRoomSettings = {
         enabled: false,
-        rooms: [{ name: '全体', description: '全ての投稿を表示' }],
-        maxRooms: 10
+        rooms: [{ name: '全体', description: '全ての投稿を表示' }]
       };
 
       const response = await fetch('/api/spaces', {
@@ -165,12 +164,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           name: spaceData.name,
           description: spaceData.description,
           settings: {
-            defaultRoomSettings: {
-              autoDeleteMessages: false,
-              messageRetentionDays: 30,
-              allowAnonymous: true
-            },
-            maxRooms: 50,
             theme: 'default'
           },
           subRoomSettings: spaceData.subRoomSettings || defaultSubRoomSettings

@@ -117,12 +117,6 @@ const spaceSchema = new mongoose.Schema({
     
     // スペース固有の設定
     settings: {
-        defaultRoomSettings: {
-            autoDeleteMessages: { type: Boolean, default: false },
-            messageRetentionDays: { type: Number, default: 30 },
-            allowAnonymous: { type: Boolean, default: true }
-        },
-        maxRooms: { type: Number, default: 50 }, // 最大ルーム数
         theme: { type: String, default: 'default' }, // テーマ設定
         
         // サブルーム設定
@@ -145,9 +139,7 @@ const spaceSchema = new mongoose.Schema({
                         message: 'ルーム名に使用できない文字または予約語が含まれています'
                     }
                 },
-                description: { type: String, maxlength: 50, default: '' }
-            }],
-            maxRooms: { type: Number, default: 10, max: 10 } // 最大ルーム数（サブルーム機能用）
+            }]
         }
     }
 }, options);

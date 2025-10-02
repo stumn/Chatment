@@ -21,12 +21,6 @@ async function initializeDefaultSpace() {
             name: 'デフォルトスペース',
             description: '既存データ用のメインスペース',
             settings: {
-                defaultRoomSettings: {
-                    autoDeleteMessages: false,
-                    messageRetentionDays: 30,
-                    allowAnonymous: true
-                },
-                maxRooms: 100,
                 theme: 'default'
             }
         });
@@ -126,8 +120,7 @@ async function createSpace(spaceData) {
         // subRoomSettings のデフォルト値設定
         const finalSubRoomSettings = {
             enabled: subRoomSettings?.enabled || false,
-            rooms: subRoomSettings?.rooms || [{ name: '全体', description: '全ての投稿を表示' }],
-            maxRooms: subRoomSettings?.maxRooms || 10
+            rooms: subRoomSettings?.rooms || [{ name: '全体', description: '全ての投稿を表示' }]
         };
 
         // 新しいスペースを作成
@@ -136,12 +129,6 @@ async function createSpace(spaceData) {
             name,
             description,
             settings: {
-                defaultRoomSettings: {
-                    autoDeleteMessages: settings.defaultRoomSettings?.autoDeleteMessages || false,
-                    messageRetentionDays: settings.defaultRoomSettings?.messageRetentionDays || 30,
-                    allowAnonymous: settings.defaultRoomSettings?.allowAnonymous !== false
-                },
-                maxRooms: settings.maxRooms || 50,
                 theme: settings.theme || 'default',
                 subRoomSettings: finalSubRoomSettings
             }
@@ -187,8 +174,7 @@ async function updateSpace(spaceId, updateData) {
         if (subRoomSettings) {
             const finalSubRoomSettings = {
                 enabled: subRoomSettings.enabled || false,
-                rooms: subRoomSettings.rooms || [{ name: '全体', description: '全ての投稿を表示' }],
-                maxRooms: subRoomSettings.maxRooms || 10
+                rooms: subRoomSettings.rooms || [{ name: '全体', description: '全ての投稿を表示' }]
             };
 
             // settings.subRoomSettings を更新

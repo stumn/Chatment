@@ -171,8 +171,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
             settings: {
               subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }],
-                maxRooms: 10
+                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
               }
             }
           };

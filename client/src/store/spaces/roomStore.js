@@ -86,16 +86,19 @@ const useRoomStore = create((set, get) => ({
         return state.roomHistoryLoaded[roomId] || false;
     },
 
-    // サブルーム表示が必要かを判定
-    shouldShowSubRoomList: () => {
+    // サブルーム機能の有効性を判定（UI表示制御含む）
+    isSubRoomEnabled: (requireMultipleRooms = false) => {
         const { subRoomSettings, rooms } = get();
-        return subRoomSettings?.enabled && rooms.length > 1;
-    },
-
-    // 現在のスペースでサブルームが有効かを判定
-    isSubRoomEnabled: () => {
-        const { subRoomSettings } = get();
-        return subRoomSettings?.enabled || false;
+        const enabled = subRoomSettings?.enabled || false;
+        
+        if (!enabled) return false;
+        
+        // UI表示用: 複数ルームが必要な場合の追加チェック
+        if (requireMultipleRooms) {
+            return rooms.length > 1;
+        }
+        
+        return true;
     },
 
     // デフォルトルーム（全体）のIDを取得

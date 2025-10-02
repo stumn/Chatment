@@ -14,7 +14,6 @@ export const useSubRoomControl = () => {
     rooms, 
     subRoomSettings, 
     currentSpaceInfo,
-    shouldShowSubRoomList,
     isSubRoomEnabled,
     getDefaultRoomId
   } = useRoomStore();
@@ -23,19 +22,15 @@ export const useSubRoomControl = () => {
 
   // サブルーム一覧を表示するべきかを判定
   const shouldShowRoomList = useMemo(() => {
-    // サブルーム機能が無効の場合は表示しない
-    if (!isSubRoomEnabled()) {
-      console.log('🔍 [useSubRoomControl] サブルーム無効 - ルーム一覧非表示');
+    // サブルーム機能が有効かつ複数ルームが存在するかチェック
+    const shouldShow = isSubRoomEnabled(true); // requireMultipleRooms = true
+    
+    if (!shouldShow) {
+      console.log('🔍 [useSubRoomControl] サブルーム表示条件未満 - ルーム一覧非表示');
       return false;
     }
     
-    // ルームが1個以下の場合は表示しない（全体のみ）
-    if (rooms.length <= 1) {
-      console.log('🔍 [useSubRoomControl] ルーム数1以下 - ルーム一覧非表示');
-      return false;
-    }
-    
-    console.log('🔍 [useSubRoomControl] サブルーム有効 - ルーム一覧表示');
+    console.log('🔍 [useSubRoomControl] サブルーム表示条件満たす - ルーム一覧表示');
     return true;
   }, [rooms, isSubRoomEnabled]);
 
@@ -65,9 +60,7 @@ export const useSubRoomControl = () => {
     
     return {
       enabled: subRoomSettings.enabled,
-      maxRooms: subRoomSettings.maxRooms || 10,
-      roomCount: rooms.length,
-      availableSlots: (subRoomSettings.maxRooms || 10) - rooms.length
+      roomCount: rooms.length
     };
   }, [subRoomSettings, rooms]);
 
