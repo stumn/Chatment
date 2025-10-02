@@ -15,7 +15,7 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     const [spaceName, setSpaceName] = useState(space?.name || '');
     const [spaceDescription, setSpaceDescription] = useState(space?.description || '');
     const [subRoomSettings, setSubRoomSettings] = useState(
-        space?.subRoomSettings || {
+        space?.subRoomSettings || space?.settings?.subRoomSettings || {
             enabled: false,
             rooms: [{ name: '全体', description: '全ての投稿を表示' }]
         }
@@ -27,7 +27,7 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
         if (space) {
             setSpaceName(space.name || '');
             setSpaceDescription(space.description || '');
-            setSubRoomSettings(space.subRoomSettings || {
+            setSubRoomSettings(space.subRoomSettings || space.settings?.subRoomSettings || {
                 enabled: false,
                 rooms: [{ name: '全体', description: '全ての投稿を表示' }]
             });
