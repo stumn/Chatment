@@ -60,7 +60,6 @@ const userSchema = new mongoose.Schema({
 // Userコレクション用のインデックス
 userSchema.index({ nickname: 1, status: 1, ageGroup: 1, spaceId: 1 }); // スペース別同一ユーザー検索用
 userSchema.index({ spaceId: 1, lastLoginAt: -1 }); // スペース別最終ログイン順ソート用
-userSchema.index({ spaceId: 1 }); // スペース別ユーザー一覧用
 userSchema.index({ 'loginHistory.loginAt': -1 }); // ログイン履歴検索用
 
 const User = mongoose.model("User", userSchema);
@@ -202,11 +201,9 @@ const postSchema = new mongoose.Schema({
 // パフォーマンス最適化のためのインデックス設定
 postSchema.index({ spaceId: 1, roomId: 1, createdAt: -1 }); // スペース+ルーム別の時系列取得用
 postSchema.index({ spaceId: 1, displayOrder: 1 }); // スペース別ドキュメント表示用
-postSchema.index({ spaceId: 1, createdAt: -1 }); // スペース別時系列取得用
-postSchema.index({ roomId: 1, createdAt: -1 }); // ルーム別の時系列取得用（後方互換性）
-postSchema.index({ displayOrder: 1 }); // ドキュメント表示用（後方互換性）
-postSchema.index({ userId: 1 }); // ユーザー別取得用
-postSchema.index({ source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
+postSchema.index({ spaceId: 1, displayOrder: 1 }); // ドキュメント表示用（後方互換性）
+postSchema.index({ spaceId: 1, userId: 1 }); // ユーザー別取得用
+postSchema.index({ spaceId: 1, source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
 
 const Post = mongoose.model("Post", postSchema);
 
