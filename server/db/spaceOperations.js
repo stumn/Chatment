@@ -69,14 +69,11 @@ async function migrateExistingDataToSpace() {
 // --- アクティブなスペース一覧を取得 ---
 async function getActiveSpaces() {
     try {
-        console.time('getActiveSpaces');
-
         const spaces = await Space.find({ isActive: true })
             .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
-        console.timeEnd('getActiveSpaces');
         console.log(`🌍 [spaceOperation] アクティブスペース ${spaces.length} 件を取得`);
 
         // フロントエンド用にデータ構造を平坦化
@@ -186,11 +183,11 @@ async function updateSpace(spaceId, updateData) {
 
         // 更新データを準備
         const updateFields = {};
-        
+
         if (name !== undefined) {
             updateFields.name = name;
         }
-        
+
         if (description !== undefined) {
             updateFields.description = description;
         }
@@ -209,13 +206,13 @@ async function updateSpace(spaceId, updateData) {
             if (finalSubRoomSettings.enabled) {
                 const existingRooms = await Room.find({ spaceId, isActive: true }).select('name').lean();
                 const existingRoomNames = existingRooms.map(r => r.name);
-                
+
                 for (let i = 0; i < finalSubRoomSettings.rooms.length; i++) {
                     const roomData = finalSubRoomSettings.rooms[i];
                     if (!existingRoomNames.includes(roomData.name)) {
                         // ユニークなルームIDを生成（タイムスタンプベース）
                         const roomId = `space${spaceId}-room${Date.now()}-${i}`;
-                        
+
                         // 新しいルームを作成
                         await Room.create({
                             id: roomId,
@@ -247,7 +244,7 @@ async function updateSpace(spaceId, updateData) {
         }
 
         console.log(`🔄 [spaceOperation] スペース更新: ${name} (${spaceId})`);
-        
+
         // 統計情報を更新
         await updateSpaceStats(spaceId);
 
@@ -308,14 +305,11 @@ async function updateSpaceStats(spaceId) {
 // --- スペース別ルーム一覧を取得 ---
 async function getRoomsBySpace(spaceId) {
     try {
-        console.time(`getRoomsBySpace-${spaceId}`);
-
         const rooms = await Room.find({ spaceId, isActive: true })
             .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
-        console.timeEnd(`getRoomsBySpace-${spaceId}`);
         console.log(`🏠 [spaceOperation] スペース ${spaceId} のルーム ${rooms.length} 件を取得`);
 
         return rooms;
@@ -329,15 +323,12 @@ async function getRoomsBySpace(spaceId) {
 // --- スペース別投稿を取得 ---
 async function getPostsBySpace(spaceId, limit = 100) {
     try {
-        console.time(`getPostsBySpace-${spaceId}`);
-
         const posts = await Post.find({ spaceId })
             .sort({ displayOrder: 1, createdAt: 1 }) // ドキュメント表示順で並び替え
             .limit(limit)
             .lean()
             .exec();
 
-        console.timeEnd(`getPostsBySpace-${spaceId}`);
         console.log(`📝 [spaceOperation] スペース ${spaceId} の投稿 ${posts.length} 件を取得`);
 
         return posts;
@@ -383,12 +374,12 @@ async function finishSpace(spaceId) {
 
         const result = await Space.findOneAndUpdate(
             { id: spaceId },
-            { 
-                $set: { 
-                    isFinished: true, 
+            {
+                $set: {
+                    isFinished: true,
                     finishedAt: new Date(),
                     isActive: false // 終了時に非アクティブ化も行う
-                } 
+                }
             },
             { new: true }
         );
@@ -409,14 +400,11 @@ async function finishSpace(spaceId) {
 // --- 終了済みスペース一覧を取得 ---
 async function getFinishedSpaces() {
     try {
-        console.time('getFinishedSpaces');
-
         const spaces = await Space.find({ isFinished: true })
             .sort({ finishedAt: -1 })
             .lean()
             .exec();
 
-        console.timeEnd('getFinishedSpaces');
         console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得`);
 
         // フロントエンド用にデータ構造を平坦化
@@ -439,14 +427,11 @@ async function getFinishedSpaces() {
 // --- 全スペース一覧を取得（管理者用） ---
 async function getAllSpaces() {
     try {
-        console.time('getAllSpaces');
-
         const spaces = await Space.find({})
             .sort({ createdAt: -1 })
             .lean()
             .exec();
 
-        console.timeEnd('getAllSpaces');
         console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得`);
 
         // フロントエンド用にデータ構造を平坦化

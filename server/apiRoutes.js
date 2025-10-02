@@ -27,12 +27,8 @@ const {
 // パフォーマンス測定エンドポイント
 router.get('/room-stats', async (req, res) => {
   try {
-    console.time('room-stats-api');
-
     const stats = await getAllRoomsWithStats();
     const messageCounts = await getRoomMessageCounts();
-
-    console.timeEnd('room-stats-api');
 
     res.json({
       success: true,
@@ -161,15 +157,12 @@ router.post('/rooms', async (req, res) => {
 // 全ポストデータ取得エンドポイント（スペース指定可能）
 router.get('/posts', async (req, res) => {
   try {
-    console.time('posts-api');
-
     // クエリパラメータからspaceIdを取得
     const { spaceId } = req.query;
 
     // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
     const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
 
-    console.timeEnd('posts-api');
     console.log(`Posts API: Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
     res.json({
@@ -193,12 +186,10 @@ router.get('/posts/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
     const { spaceId } = req.query;
-    console.time(`posts-room-${roomId}-api`);
 
     // スペース指定による絞り込み対応
     const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
 
-    console.timeEnd(`posts-room-${roomId}-api`);
     console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
 
     res.json({

@@ -33,8 +33,6 @@ async function getRoomHistory(roomId, spaceId = null) {
 // --- 全ルーム一覧取得（パフォーマンス測定版）---
 async function getAllRoomsWithStats() {
     try {
-        console.time('getRoomsStats');
-
         // ルーム別の投稿数と最新投稿時刻を集計
         const roomStats = await Post.aggregate([
             {
@@ -57,8 +55,6 @@ async function getAllRoomsWithStats() {
                 }
             }
         ]);
-
-        console.timeEnd('getRoomsStats');
         console.log(`📊 [dbOperation] ルーム統計取得完了: ${roomStats.length}ルーム`);
 
         return roomStats;
@@ -71,8 +67,6 @@ async function getAllRoomsWithStats() {
 // --- パフォーマンス測定用: ルーム別メッセージ数取得 ---
 async function getRoomMessageCounts() {
     try {
-        console.time('getRoomMessageCounts');
-
         const counts = await Post.aggregate([
             {
                 $group: {
@@ -84,8 +78,6 @@ async function getRoomMessageCounts() {
                 $sort: { count: -1 }
             }
         ]);
-
-        console.timeEnd('getRoomMessageCounts');
         console.log('📈 [dbOperation] ルーム別メッセージ数:', counts);
 
         return counts;

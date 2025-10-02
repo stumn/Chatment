@@ -5,14 +5,8 @@ const { handleErrors } = require('../utils');
 // --- アクティブなルーム一覧を取得 ---
 async function getActiveRooms() {
     try {
-
-        // 処理時間の計測開始（timeで開始 → timeEndで終了・結果出力）
-        console.time('getActiveRooms');
-
         // アクティブなルームを取得（roomIdの昇順でソート）
         const rooms = await Room.find({ isActive: true }).sort({ id: 1 }).lean().exec();
-
-        console.timeEnd('getActiveRooms');
 
         console.log(`🏠 [dbOperation] アクティブルーム取得: ${rooms.length}件`);
 
@@ -106,15 +100,11 @@ async function createRoom(roomData) {
 // --- スペース固有のアクティブなルーム一覧を取得 ---
 async function getActiveRoomsBySpaceId(spaceId) {
     try {
-        console.time('getActiveRoomsBySpaceId');
-
         // 指定されたスペースIDのアクティブなルームを取得（roomIdの昇順でソート）
         const rooms = await Room.find({ 
             isActive: true,
             spaceId: spaceId 
         }).sort({ id: 1 }).lean().exec();
-
-        console.timeEnd('getActiveRoomsBySpaceId');
 
         console.log(`🏠 [dbOperation] スペース ${spaceId} のアクティブルーム取得: ${rooms.length}件`);
 
