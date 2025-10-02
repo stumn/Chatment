@@ -1,4 +1,5 @@
 import React from 'react';
+import DocumentViewButton from './ui/DocumentViewButton';
 
 // テーブルヘッダーコンポーネント
 const TableHeader = ({ columns }) => (
@@ -12,7 +13,7 @@ const TableHeader = ({ columns }) => (
 );
 
 // アクティブなスペースの行をレンダリングするコンポーネント
-const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace, onEditSpace }) => {
+const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) => {
   const handleFinishSpace = () => {
     if (space.id === 0) {
       alert('デフォルトスペースは終了できません。');
@@ -50,6 +51,7 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace, on
         >
           編集
         </button>
+        <DocumentViewButton spaceId={space.id} />
         <button
           className={`px-4 py-2 text-white border-none rounded text-sm font-medium mr-2 transition-colors duration-150 ${space.id === 1
               ? '!bg-neutral-500 !cursor-not-allowed'
@@ -70,7 +72,6 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace, on
  * 
  * @param {Object} props - コンポーネントのプロップス
  * @param {Array} props.activeSpaces - アクティブなスペースの配列
- * @param {Object} props.selectedSpace - 現在選択されているスペース
  * @param {Function} props.onSelectSpace - スペースを選択する関数
  * @param {Function} props.onFinishSpace - スペースを終了する関数
  * @param {Function} props.onEditSpace - スペースを編集する関数
@@ -78,7 +79,6 @@ const ActiveSpaceRow = ({ space, selectedSpace, onSelectSpace, onFinishSpace, on
  */
 const ActiveSpacesSection = ({
   activeSpaces = [],
-  selectedSpace,
   onSelectSpace,
   onFinishSpace,
   onEditSpace,
@@ -104,7 +104,6 @@ const ActiveSpacesSection = ({
                 <ActiveSpaceRow
                   key={space.id}
                   space={space}
-                  selectedSpace={selectedSpace}
                   onSelectSpace={onSelectSpace}
                   onFinishSpace={onFinishSpace}
                   onEditSpace={onEditSpace}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DocumentViewButton from './ui/DocumentViewButton';
 
 // テーブルヘッダーコンポーネント
 const TableHeader = ({ columns }) => (
@@ -19,7 +20,6 @@ const FinishedSpaceRow = ({ space }) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
-  // 外部クリック時にドロップダウンを閉じる
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.dropdown-container')) {
@@ -32,12 +32,6 @@ const FinishedSpaceRow = ({ space }) => {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [openDropdown]);
-
-  const handleViewDocument = () => {
-    // 新しいタブで終了済みスペースのログ閲覧ページを開く
-    const logUrl = `/document/${space.id}/0`;
-    window.open(logUrl, '_blank');
-  };
 
   // 終了日時のフォーマット
   const formatFinishedAt = (finishedAt) => {
@@ -92,12 +86,7 @@ const FinishedSpaceRow = ({ space }) => {
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '―'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
-        <button
-          className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
-          onClick={handleViewDocument}
-        >
-          ドキュメント閲覧
-        </button>
+        <DocumentViewButton spaceId={space.id} />
       </td>
     </tr>
   );
