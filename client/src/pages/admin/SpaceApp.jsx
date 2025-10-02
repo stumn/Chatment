@@ -7,6 +7,8 @@ import ActiveSpacesSection from '../../components/admin/ActiveSpacesSection';
 import SpaceStatistics from '../../components/admin/SpaceStatistics';
 import { LoadingMessage, SuccessMessage, ErrorMessage } from '../../components/shared/AlertMessage';
 import useSpaceStore from '../../store/admin/spaceStore';
+import useResponsiveSize from '../../hooks/shared/useResponsiveSize';
+import sizeStore from '../../store/shared/sizeStore';
 
 function SpaceApp() {
   // react-router-domのナビゲート機能
@@ -18,7 +20,7 @@ function SpaceApp() {
   const finishedSpaces = useSpaceStore(state => state.finishedSpaces);
   const isLoading = useSpaceStore(state => state.isLoading);
   const error = useSpaceStore(state => state.error);
-  
+
   // アクション関数を取得
   const setCurrentSpace = useSpaceStore(state => state.setCurrentSpace);
   const fetchSpaces = useSpaceStore(state => state.fetchSpaces);
@@ -35,13 +37,18 @@ function SpaceApp() {
   const [editingSpace, setEditingSpace] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // カスタムフックでレスポンシブサイズを管理
+  useResponsiveSize();
+
+  const CONTAINER_1_HEIGHT = sizeStore((state) => state.height);
+
   // 初期化時にデータを取得
   useEffect(() => {
     const initializeStore = async () => {
       try {
         // ローカルストレージから選択済みスペースを復元
         // restoreCurrentSpaceFromStorage();
-        
+
         // 管理者用全スペース一覧を取得
         await fetchAllSpaces();
       } catch (error) {
@@ -81,7 +88,7 @@ function SpaceApp() {
       setEditingSpace(null);
       setSuccessMessage('スペースが更新されました');
       setTimeout(() => setSuccessMessage(''), 3000); // 3秒後に消去
-      
+
       // スペース一覧を再取得
       await fetchAllSpaces();
     } catch (error) {
@@ -118,66 +125,67 @@ function SpaceApp() {
   };
 
   return (
-    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto min-h-screen my-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">コミュニケーションスペース管理</h1>
+    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto my-8" 
+    style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">コミュニケーションスペース管理</h1>
 
-        {/* 統計情報表示
+      {/* 統計情報表示
         <SpaceStatistics 
           activeSpaces={activeSpaces}
           finishedSpaces={finishedSpaces}
         /> */}
 
-        {/* メッセージ表示 */}
-        <SuccessMessage 
-          message={successMessage} 
-          onClose={() => setSuccessMessage('')}
-        />
-        
-        <ErrorMessage 
-          message={error} 
-          onClose={clearError}
-        />
-        
-        <LoadingMessage 
-          show={isLoading}
-          message="読み込み中..."
-        />
+      {/* メッセージ表示 */}
+      <SuccessMessage
+        message={successMessage}
+        onClose={() => setSuccessMessage('')}
+      />
 
-        <ActiveSpacesSection 
-          activeSpaces={activeSpaces}
-          selectedSpace={currentSpace}
-          onSelectSpace={handleSelectSpace}
-          onFinishSpace={handleFinishSpace}
-          onEditSpace={handleEditSpace}
-          onAddSpaceClick={() => setIsAddModalOpen(true)}
-        />
+      <ErrorMessage
+        message={error}
+        onClose={clearError}
+      />
 
-        <FinishedSpacesSection finishedSpaces={finishedSpaces} />
+      <LoadingMessage
+        show={isLoading}
+        message="読み込み中..."
+      />
 
-        {/* フッター */}
-        <div className="text-center text-gray-500 mt-8">
-          <hr className="my-4 border-gray-200" />
-          <p>© Mao NAKANO - Chatment </p>
-        </div>
+      <ActiveSpacesSection
+        activeSpaces={activeSpaces}
+        selectedSpace={currentSpace}
+        onSelectSpace={handleSelectSpace}
+        onFinishSpace={handleFinishSpace}
+        onEditSpace={handleEditSpace}
+        onAddSpaceClick={() => setIsAddModalOpen(true)}
+      />
 
-        {/* スペース追加モーダル */}
-        <AddSpaceModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onAdd={handleAddSpace}
-        />
+      <FinishedSpacesSection finishedSpaces={finishedSpaces} />
 
-        {/* スペース編集モーダル */}
-        <EditSpaceModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingSpace(null);
-          }}
-          onUpdate={handleUpdateSpace}
-          space={editingSpace}
-        />
+      {/* フッター */}
+      <div className="text-center text-gray-500 mt-8">
+        <hr className="my-4 border-gray-200" />
+        <p>© Mao NAKANO - Chatment </p>
       </div>
+
+      {/* スペース追加モーダル */}
+      <AddSpaceModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddSpace}
+      />
+
+      {/* スペース編集モーダル */}
+      <EditSpaceModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingSpace(null);
+        }}
+        onUpdate={handleUpdateSpace}
+        space={editingSpace}
+      />
+    </div>
   );
 }
 
