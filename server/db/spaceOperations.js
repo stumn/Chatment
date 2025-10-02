@@ -11,7 +11,6 @@ async function initializeDefaultSpace() {
         // デフォルトスペースが存在するかチェック
         const existingSpace = await Space.findOne({ id: DEFAULT_SPACE_ID });
         if (existingSpace) {
-            console.log('🌍 [spaceOperation] デフォルトスペースが既に存在します');
             return existingSpace;
         }
 
@@ -25,7 +24,6 @@ async function initializeDefaultSpace() {
             }
         });
 
-        console.log('🌍 [spaceOperation] デフォルトスペースを作成しました');
         return defaultSpace.toObject();
 
     } catch (error) {

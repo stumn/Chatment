@@ -89,7 +89,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           isLoading: false
         });
         
-        console.log('✅ スペース一覧を取得しました:', data.spaces.length);
         return data.spaces;
       } else {
         throw new Error(data.error || 'スペース一覧の取得に失敗しました');
@@ -125,7 +124,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           isLoading: false
         });
         
-        console.log('✅ 管理者用全スペース一覧を取得しました:', data.spaces.length);
         return data.spaces;
       } else {
         throw new Error(data.error || '全スペース一覧の取得に失敗しました');
@@ -179,7 +177,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           isLoading: false
         }));
         
-        console.log('✅ 新しいスペースが作成されました:', data.space);
         return data.space;
       } else {
         throw new Error(data.error || 'スペースの作成に失敗しました');
@@ -239,8 +236,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           isLoading: false
         }));
         
-        console.log('✅ スペースが更新されました:', data.space);
-        console.log('🔄 ストア更新完了 - activeSpaces count:', get().activeSpaces.length);
         return data.space;
       } else {
         throw new Error(data.error || 'スペースの更新に失敗しました');
@@ -284,7 +279,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           setCurrentSpace(null);
         }
 
-        console.log('✅ スペースが終了されました:', finishedSpace.name);
         return finishedSpace;
       } else {
         throw new Error(data.error || 'スペースの終了に失敗しました');
@@ -294,30 +288,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       setError(error.message);
       setLoading(false);
       throw error;
-    }
-  },
-
-  /**
-   * ローカルストレージから選択済みスペースを復元
-   */
-  restoreCurrentSpaceFromStorage: () => {
-    try {
-      const savedSpace = localStorage.getItem('selectedSpace');
-      if (savedSpace) {
-        const parsedSpace = JSON.parse(savedSpace);
-        
-        // 整数型IDに変換
-        if (parsedSpace.id && typeof parsedSpace.id === 'string') {
-          parsedSpace.id = parseInt(parsedSpace.id, 10);
-        }
-        
-        set({ currentSpace: parsedSpace });
-        console.log('📦 選択済みスペースを復元しました:', parsedSpace.name);
-        return parsedSpace;
-      }
-    } catch (error) {
-      console.error('選択済みスペースの復元に失敗しました:', error);
-      return null;
     }
   },
 

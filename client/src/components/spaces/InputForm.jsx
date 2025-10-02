@@ -37,15 +37,9 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     // バリデーション付きでメッセージ送信
     const result = sendChatMessage(handleName, message, activeRoomId);
 
-    if (result.success) {
-      // 送信成功時、入力フィールドをクリア
-      setMessage('');
-      console.log(`✅ [InputForm] メッセージ送信完了`);
-    } else {
-      // バリデーションエラー時、エラーメッセージを表示
-      setError(result.error);
-      console.log(`❌ [InputForm] メッセージ送信失敗: ${result.error}`);
-    }
+    result.success
+    ? setMessage('')
+    : setError(result.error);
   };
 
   const handleKeyDown = (e) => {

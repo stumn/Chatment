@@ -24,12 +24,11 @@ export const useBasicHandlers = (socket) => {
 
   const handleConnectError = (error) => {
     console.error('Socket connection error:', error);
-    // TODO: ユーザーにエラーメッセージを表示する仕組みを追加
   };
 
   const handleDisconnect = (reason) => {
     console.warn('Socket disconnected:', reason);
-    // TODO: 再接続の試行やユーザー通知の仕組みを追加
+    // TODO: テロメア削除など
   };
 
   return {

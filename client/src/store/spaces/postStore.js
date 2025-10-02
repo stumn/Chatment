@@ -13,7 +13,7 @@ const usePostStore = create((set, get) => ({
     // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
     addPost: (post, isNewlyCreated = false, roomId = null) =>
         set((state) => {
-            console.log(`💬 [postStore] ${roomId}にメッセージ追加:`, post);
+            console.log(`💬 [postStore] ${roomId}にメッセージ追加:`, post); // spaceIdも必要かな
 
             // 受け取ったpostはサーバーからの完全なデータであることを前提とする
             // post.idが存在しない場合はエラー

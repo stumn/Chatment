@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     }, [posts]);
 
     const handleItemClick = (postId) => {
-        // 後で実装予定：該当の投稿位置にスクロール
+        // TODO: 後で実装予定：該当の投稿位置にスクロール
         console.log('TOC item clicked:', postId);
     };
 
@@ -92,7 +92,6 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
 
         // 現在のルームから退出（異なるルームの場合のみ）
         if (activeRoomId && activeRoomId !== roomId) {
-            console.log(`👋 [TableOfContents] 前のルーム ${activeRoomId} から退出中...`);
             emitLeaveRoom(activeRoomId);
         }
 
@@ -100,7 +99,6 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
         setActiveRoom(roomId);
 
         // 新しいルームに参加
-        console.log(`🚀 [TableOfContents] 新しいルーム ${roomId} に参加中...`);
         emitJoinRoom(roomId);
 
         // ルーム履歴を事前に取得（キャッシュされていない場合のみ）

@@ -11,7 +11,6 @@ const { SOCKET_EVENTS } = require('../constants');
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
     try {
-      console.log(`🚀 [server] ルーム参加要求: ${nickname} -> ${roomId}`);
 
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
@@ -50,13 +49,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       // Socket.IOのルーム機能を使用
       if (socket.currentSocketRoom) {
         socket.leave(socket.currentSocketRoom);
-        console.log(`🚪 [server] Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
       }
 
       const socketRoomName = `room-${roomId}`;
       socket.join(socketRoomName);
       socket.currentSocketRoom = socketRoomName;
-      console.log(`🚀 [server] Socket.IO ルーム参加: ${socketRoomName}`);
 
       // 参加成功をクライアントに通知
       socket.emit('room-joined', {
@@ -151,13 +148,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   socket.on('get-room-list', async (data) => {
     try {
       const { spaceId } = data || {};
-      console.log(`📋 [server] ルーム一覧要求 (spaceId: ${spaceId})`);
 
       let dbRooms;
       let spaceInfo = null;
 
       if (spaceId !== undefined && spaceId !== null) {
-        // スペースIDが指定されている場合はそのスペースのルームのみ取得
         dbRooms = await getActiveRoomsBySpaceId(spaceId);
         console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
         
@@ -175,12 +170,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
               }
             }
           };
-          console.log(`🌍 [server] スペース情報取得: ${space.name}`);
         }
-      } else {
-        // スペースIDが指定されていない場合は全ルーム取得（後方互換性）
-        dbRooms = await getActiveRooms();
-        console.log(`🏠 [server] 全ルーム取得: ${dbRooms.length}件`);
       }
 
       const roomList = dbRooms.map(dbRoom => {
@@ -205,8 +195,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         spaceId,
         spaceInfo: spaceInfo
       });
-
-      console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)${spaceInfo ? ' + スペース情報' : ''}`);
 
     } catch (error) {
       console.error('Error in get-room-list:', error);

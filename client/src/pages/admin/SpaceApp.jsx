@@ -26,7 +26,7 @@ function SpaceApp() {
   const addSpace = useSpaceStore(state => state.addSpace);
   const updateSpace = useSpaceStore(state => state.updateSpace);
   const finishSpace = useSpaceStore(state => state.finishSpace);
-  const restoreCurrentSpaceFromStorage = useSpaceStore(state => state.restoreCurrentSpaceFromStorage);
+  // const restoreCurrentSpaceFromStorage = useSpaceStore(state => state.restoreCurrentSpaceFromStorage);
   const clearError = useSpaceStore(state => state.clearError);
 
   // ローカル状態（モーダル表示のため）
@@ -40,7 +40,7 @@ function SpaceApp() {
     const initializeStore = async () => {
       try {
         // ローカルストレージから選択済みスペースを復元
-        restoreCurrentSpaceFromStorage();
+        // restoreCurrentSpaceFromStorage();
         
         // 管理者用全スペース一覧を取得
         await fetchAllSpaces();
@@ -50,7 +50,7 @@ function SpaceApp() {
     };
 
     initializeStore();
-  }, [fetchAllSpaces, restoreCurrentSpaceFromStorage]);
+  }, [fetchAllSpaces]);
 
   // コミュニケーションスペースを追加する関数
   const handleAddSpace = async (newSpace) => {

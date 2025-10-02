@@ -10,27 +10,25 @@ import useAppStore from '../store/spaces/appStore';
  * @returns {Object} サブルーム制御のためのメソッドと状態
  */
 export const useSubRoomControl = () => {
-  const { 
-    rooms, 
-    subRoomSettings, 
+  const {
+    rooms,
+    subRoomSettings,
     currentSpaceInfo,
     isSubRoomEnabled,
     getDefaultRoomId
   } = useRoomStore();
-  
+
   const { userInfo } = useAppStore();
 
   // サブルーム一覧を表示するべきかを判定
   const shouldShowRoomList = useMemo(() => {
     // サブルーム機能が有効かつ複数ルームが存在するかチェック
     const shouldShow = isSubRoomEnabled(true); // requireMultipleRooms = true
-    
+
     if (!shouldShow) {
-      console.log('🔍 [useSubRoomControl] サブルーム表示条件未満 - ルーム一覧非表示');
       return false;
     }
-    
-    console.log('🔍 [useSubRoomControl] サブルーム表示条件満たす - ルーム一覧表示');
+
     return true;
   }, [rooms, isSubRoomEnabled]);
 
@@ -57,7 +55,7 @@ export const useSubRoomControl = () => {
   // サブルーム設定の詳細情報
   const subRoomInfo = useMemo(() => {
     if (!subRoomSettings) return null;
-    
+
     return {
       enabled: subRoomSettings.enabled,
       roomCount: rooms.length
@@ -95,27 +93,18 @@ export const useSubRoomControl = () => {
     subRoomInfo,
     displayInfo,
     debugInfo,
-    
+
     // メソッド
     isSubRoomEnabled,
     getDefaultRoomId: () => defaultRoomId,
-    
+
     // ヘルパー関数
     isMainRoom: (roomId) => roomId === defaultRoomId,
     isSubRoom: (roomId) => roomId !== defaultRoomId,
     getRoomById: (roomId) => rooms.find(room => room.id === roomId),
-    
+
     // ログ出力
-    logCurrentState: () => {
-      console.log('🔍 [useSubRoomControl] 現在の状態:', {
-        shouldShowRoomList,
-        isSubRoomEnabled: isSubRoomEnabled(),
-        roomCount: rooms.length,
-        spaceId: currentSpaceId,
-        subRoomSettings,
-        debugInfo
-      });
-    }
+    logCurrentState: () => { }
   };
 };
 

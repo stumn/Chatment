@@ -45,7 +45,6 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                 onClose();
             } catch (error) {
                 console.error('スペース追加エラー:', error);
-                // TODO: エラーメッセージを表示する
             } finally {
                 setIsSubmitting(false);
             }

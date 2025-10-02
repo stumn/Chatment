@@ -15,7 +15,6 @@ export const useRoomEmitters = (socket, emitLog) => {
       userInfo: userInfo
     };
 
-    console.log('Joining room:', joinData);
     socket.emit('join-room', joinData);
 
     emitLog({
@@ -85,7 +84,6 @@ export const useRoomEmitters = (socket, emitLog) => {
       return;
     }
 
-    console.log(`📚 [useSocket] ${roomId}の履歴を要求`);
     const startTime = performance.now(); // パフォーマンス測定開始
 
     roomId === 'room-0' // ここはサーバ処理でも良さそう

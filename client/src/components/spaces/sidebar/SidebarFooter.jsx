@@ -36,21 +36,9 @@ const SidebarFooter = ({
 
     // サブルーム機能が無効、またはルームが1つ以下の場合は非表示
     if (!shouldShowRoomList) {
-        console.log('🔍 [SidebarFooter] サブルーム一覧を非表示:', {
-            shouldShowRoomList,
-            isSubRoomEnabled: isSubRoomEnabled(),
-            roomCount: rooms.length,
-            displayInfo
-        });
         return null;
     }
 
-    console.log('🔍 [SidebarFooter] サブルーム一覧を表示:', {
-        shouldShowRoomList,
-        roomCount: rooms.length,
-        mainRoom: mainRoom?.name,
-        subRoomCount: subRooms.length
-    });
     return (
         <div className="flex-shrink-0 px-6 pb-6 bg-gray-100 border-t border-gray-200 max-h-[30vh] overflow-y-auto">
             {/* サブルーム一覧セクション */}

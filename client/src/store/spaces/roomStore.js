@@ -35,19 +35,16 @@ const useRoomStore = create((set, get) => ({
 
     // アクティブなルームを変更する
     setActiveRoom: (roomId) => {
-        console.log(`🏠 [roomStore] アクティブルーム変更: ${roomId}`);
         set({ activeRoomId: roomId });
     },
 
     // ルーム一覧を更新する
     setRooms: (rooms) => {
-        console.log('🏠 [roomStore] ルーム一覧更新:', rooms);
         set({ rooms });
     },
 
     // 現在のスペース情報を設定
     setCurrentSpaceInfo: (spaceInfo) => {
-        console.log('🌍 [roomStore] スペース情報更新:', spaceInfo);
         set({ 
             currentSpaceInfo: spaceInfo,
             subRoomSettings: spaceInfo?.settings?.subRoomSettings || null

@@ -144,8 +144,6 @@ router.post('/rooms', async (req, res) => {
       });
     }
 
-    // Note: メモリ内のルーム管理は initializeRoomsFromDatabase で同期される
-
     res.status(201).json({
       success: true,
       room: newRoom

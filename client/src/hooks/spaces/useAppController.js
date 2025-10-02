@@ -62,7 +62,6 @@ export const useAppController = () => {
             });
         } catch (error) {
             console.error('Failed to add document:', error);
-            // TODO: ユーザーにエラー通知
         }
     }, [userInfo, emitDocAdd, emitLog]);
 
@@ -110,8 +109,7 @@ export const useAppController = () => {
 
             // 1文字目が#の場合、見出し行として扱う（#は削除しない・チャットには送信しない）
             if (validatedMsg.startsWith('#')) {
-                console.log('★Editing a heading line, skipping chat send', { validatedMsg });
-
+                
                 // サーバーに送信
                 emitDocEdit({
                     id,
@@ -175,7 +173,6 @@ export const useAppController = () => {
             });
         } catch (error) {
             console.error('Failed to delete document:', error);
-            // TODO: 楽観的更新をロールバック
         }
     }, [removePost, emitDocDelete, emitLog, userInfo]);
 
