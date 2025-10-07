@@ -83,7 +83,6 @@ const FinishedSpaceRow = ({ space }) => {
           </ul>
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '―'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <DocumentViewButton spaceId={space.id} />
@@ -104,7 +103,7 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
       <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したコミュニケーションスペース</h2>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', 'エクスポート', '説明', '終了日時', 'アクション']} />
+          <TableHeader columns={['スペース名', 'エクスポート', '終了日時', 'アクション']} />
           <tbody>
             {finishedSpaces.length > 0 ? (
               finishedSpaces.map(space => (

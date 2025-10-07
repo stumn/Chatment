@@ -95,7 +95,7 @@ export const useRoomHandlers = (emitLog) => {
   };
 
   const handleRoomList = (data) => {
-    // data: { rooms: [{ id, name, description, participantCount }], spaceId, spaceInfo }
+    // data: { rooms: [{ id, name, participantCount }], spaceId, spaceInfo }
 
     if (data.rooms && Array.isArray(data.rooms)) {
       // スペース情報も含まれている場合は同時に更新
@@ -120,7 +120,7 @@ export const useRoomHandlers = (emitLog) => {
   };
 
   const handleRoomInfo = (data) => {
-    // data: { roomId, roomInfo: { name, description, participantCount, participants } }
+    // data: { roomId, roomInfo: { name, participantCount, participants } }
     console.log('Room info received:', data);
 
     if (data.roomInfo) {

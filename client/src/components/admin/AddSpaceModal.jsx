@@ -12,11 +12,10 @@ import SubRoomSettings from './SubRoomSettings';
  */
 const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     const [spaceName, setSpaceName] = useState('');
-    const [spaceDescription, setSpaceDescription] = useState('');
     const [spaceOptions, setSpaceOptions] = useState('');
     const [subRoomSettings, setSubRoomSettings] = useState({
         enabled: false,
-        rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+        rooms: [{ name: '全体' }]
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,18 +28,16 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                 await onAdd({
                     id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
                     name: spaceName,
-                    description: spaceDescription,
                     options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`,
                     subRoomSettings: subRoomSettings
                 });
 
                 // フォームをリセット
                 setSpaceName('');
-                setSpaceDescription('');
                 setSpaceOptions('');
                 setSubRoomSettings({
                     enabled: false,
-                    rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                    rooms: [{ name: '全体' }]
                 });
                 onClose();
             } catch (error) {
@@ -54,11 +51,10 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     const handleClose = () => {
         if (!isSubmitting) {
             setSpaceName('');
-            setSpaceDescription('');
             setSpaceOptions('');
             setSubRoomSettings({
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             });
             onClose();
         }
@@ -82,14 +78,6 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                         onChange={(e) => setSpaceName(e.target.value)}
                         disabled={isSubmitting}
                         required
-                    />
-                    <input
-                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        type="text"
-                        placeholder="説明（任意）"
-                        value={spaceDescription}
-                        onChange={(e) => setSpaceDescription(e.target.value)}
-                        disabled={isSubmitting}
                     />
 
                     {/* サブルーム設定 */}

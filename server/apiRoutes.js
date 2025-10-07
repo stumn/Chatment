@@ -117,7 +117,7 @@ router.get('/rooms/:roomId', async (req, res) => {
 // 新しいルーム作成
 router.post('/rooms', async (req, res) => {
   try {
-    const { id, name, description, settings } = req.body;
+    const { id, name, settings } = req.body;
 
     if (!id || !name) {
       return res.status(400).json({
@@ -129,7 +129,6 @@ router.post('/rooms', async (req, res) => {
     const newRoom = await createRoom({
       id,
       name,
-      description,
       settings
     });
 
@@ -258,7 +257,7 @@ router.get('/spaces/:spaceId', async (req, res) => {
 // 新しいスペース作成
 router.post('/spaces', async (req, res) => {
   try {
-    const { id, name, description, settings, subRoomSettings } = req.body;
+    const { id, name, settings, subRoomSettings } = req.body;
 
     if (!id || !name) {
       return res.status(400).json({
@@ -327,7 +326,6 @@ router.post('/spaces', async (req, res) => {
     const newSpace = await createSpace({
       id: parseInt(id), // 整数に変換
       name,
-      description,
       settings,
       subRoomSettings // subRoomSettingsを追加
     });
@@ -357,7 +355,7 @@ router.post('/spaces', async (req, res) => {
 router.put('/spaces/:spaceId', async (req, res) => {
   try {
     const spaceId = parseInt(req.params.spaceId);
-    const { name, description, subRoomSettings } = req.body;
+    const { name, subRoomSettings } = req.body;
 
     if (!spaceId || !name) {
       return res.status(400).json({
@@ -426,7 +424,6 @@ router.put('/spaces/:spaceId', async (req, res) => {
     // スペース更新処理（この関数は dbOperation.js に追加する必要があります）
     const updatedSpace = await updateSpace(spaceId, {
       name,
-      description,
       subRoomSettings
     });
 

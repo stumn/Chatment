@@ -18,7 +18,6 @@ async function initializeDefaultSpace() {
         const defaultSpace = await Space.create({
             id: DEFAULT_SPACE_ID,
             name: 'デフォルトスペース',
-            description: '既存データ用のメインスペース',
             settings: {
                 theme: 'default'
             }
@@ -71,7 +70,7 @@ async function getActiveSpaces() {
     try {
         // まずアクティブスペースのIDを取得
         const spaceIds = await Space.find({ isActive: true }).select('id').lean().exec();
-        
+
         // 各スペースの統計情報を更新
         console.log(`📊 [spaceOperation] ${spaceIds.length} アクティブスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
@@ -89,7 +88,7 @@ async function getActiveSpaces() {
             ...space,
             subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         }));
 
@@ -115,7 +114,7 @@ async function getSpaceById(spaceId) {
             ...space,
             subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         };
 
@@ -130,7 +129,7 @@ async function getSpaceById(spaceId) {
 // --- 新しいスペースを作成 ---
 async function createSpace(spaceData) {
     try {
-        const { id, name, description, settings = {}, subRoomSettings } = spaceData;
+        const { id, name, settings = {}, subRoomSettings } = spaceData;
 
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
@@ -141,14 +140,13 @@ async function createSpace(spaceData) {
         // subRoomSettings のデフォルト値設定
         const finalSubRoomSettings = {
             enabled: subRoomSettings?.enabled || false,
-            rooms: subRoomSettings?.rooms || [{ name: '全体', description: '全ての投稿を表示' }]
+            rooms: subRoomSettings?.rooms || [{ name: '全体' }]
         };
 
         // 新しいスペースを作成
         const newSpace = await Space.create({
             id,
             name,
-            description,
             settings: {
                 theme: settings.theme || 'default',
                 subRoomSettings: finalSubRoomSettings
@@ -166,7 +164,7 @@ async function createSpace(spaceData) {
             ...newSpace.toObject(),
             subRoomSettings: newSpace.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         };
 
@@ -181,7 +179,7 @@ async function createSpace(spaceData) {
 // --- スペースを更新 ---
 async function updateSpace(spaceId, updateData) {
     try {
-        const { name, description, subRoomSettings } = updateData;
+        const { name, subRoomSettings } = updateData;
 
         // 既存のスペースを取得
         const existingSpace = await Space.findOne({ id: spaceId });
@@ -196,15 +194,11 @@ async function updateSpace(spaceId, updateData) {
             updateFields.name = name;
         }
 
-        if (description !== undefined) {
-            updateFields.description = description;
-        }
-
         // subRoomSettings が提供された場合の処理
         if (subRoomSettings) {
             const finalSubRoomSettings = {
                 enabled: subRoomSettings.enabled || false,
-                rooms: subRoomSettings.rooms || [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: subRoomSettings.rooms || [{ name: '全体' }]
             };
 
             // settings.subRoomSettings を更新
@@ -225,7 +219,6 @@ async function updateSpace(spaceId, updateData) {
                         await Room.create({
                             id: roomId,
                             name: roomData.name,
-                            description: roomData.description,
                             spaceId: spaceId,
                             isActive: true,
                             settings: {
@@ -261,7 +254,7 @@ async function updateSpace(spaceId, updateData) {
             ...updatedSpace.toObject(),
             subRoomSettings: updatedSpace.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         };
 
@@ -419,7 +412,7 @@ async function getFinishedSpaces() {
     try {
         // まず終了済みスペースのIDを取得
         const spaceIds = await Space.find({ isFinished: true }).select('id').lean().exec();
-        
+
         // 各スペースの統計情報を更新
         console.log(`📊 [spaceOperation] ${spaceIds.length} 終了済みスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
@@ -437,7 +430,7 @@ async function getFinishedSpaces() {
             ...space,
             subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         }));
 
@@ -454,7 +447,7 @@ async function getAllSpaces() {
     try {
         // まず全スペースのIDを取得
         const spaceIds = await Space.find({}).select('id').lean().exec();
-        
+
         // 各スペースの統計情報を更新
         console.log(`📊 [spaceOperation] ${spaceIds.length} スペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
@@ -472,7 +465,7 @@ async function getAllSpaces() {
             ...space,
             subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             }
         }));
 

@@ -29,8 +29,7 @@ export default function ResizablePanels({ appController, spaceId }) {
         if (currentRoom) {
             console.log(`[ResizablePanels] 表示ルーム変更: 
                 ${currentRoom.name} (${currentRoom.id}) 
-                ${currentRoom.participantCount}人
-                説明:${currentRoom.description}`);
+                ${currentRoom.participantCount}人参加中`);
         } else {
             console.log(`⚠️ [ResizablePanels] ルーム情報が見つかりません: ${activeRoomId}`);
         }

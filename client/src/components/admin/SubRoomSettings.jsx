@@ -27,7 +27,7 @@ const SubRoomSettings = ({ subRoomSettings, onChange, readOnlyMode = false }) =>
 
     // テキストエリアからルーム配列を生成
     const parseRoomsFromText = (mainName, subText) => {
-        const rooms = [{ name: mainName, description: '全ての投稿を表示' }];
+        const rooms = [{ name: mainName }];
 
         if (subText.trim()) {
             const subRoomNames = subText
@@ -36,7 +36,7 @@ const SubRoomSettings = ({ subRoomSettings, onChange, readOnlyMode = false }) =>
                 .filter(name => name.length > 0)
 
             subRoomNames.forEach(name => {
-                rooms.push({ name, description: `${name}ルーム` });
+                rooms.push({ name: name });
             });
         }
 

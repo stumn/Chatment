@@ -60,7 +60,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         roomId,
         roomInfo: {
           name: room.name,
-          description: room.description,
           participantCount: room.participants.size
         }
       });
@@ -166,7 +165,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
             settings: {
               subRoomSettings: space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
               }
             }
           };
@@ -178,13 +177,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         return {
           id: dbRoom.id,
           name: dbRoom.name,
-          description: dbRoom.description,
           spaceId: dbRoom.spaceId, // spaceIdを含める
           participantCount: memoryRoom ? memoryRoom.participants.size : 0,
           messageCount: dbRoom.messageCount || 0,
           lastActivity: dbRoom.lastActivity,
           createdAt: dbRoom.createdAt,
-          isPrivate: dbRoom.isPrivate,
           settings: dbRoom.settings
         };
       });
@@ -212,10 +209,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       const messages = await getRoomHistory(roomId, 50);
 
       socket.emit('room-history', { roomId, messages });
-
-      if (process.env.NODE_ENV === 'development') {
-        await explainRoomQuery(roomId);
-      }
 
     } catch (error) {
       console.error('Error fetching room history:', error);

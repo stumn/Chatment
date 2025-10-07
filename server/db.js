@@ -9,19 +9,6 @@ console.log('process env MONGODB_URL', process.env.MONGODB_URL);
 mongoose.connect(MONGODB_URL, {})
     .then(async () => { 
         console.log('MongoDB connected'); 
-        
-        // インデックスの作成状況を確認（開発環境）
-        if (process.env.NODE_ENV === 'development') {
-            try {
-                const indexes = await Post.collection.getIndexes();
-                console.log('📊 Current Post collection indexes:');
-                Object.keys(indexes).forEach(indexName => {
-                    console.log(`  - ${indexName}:`, indexes[indexName]);
-                });
-            } catch (error) {
-                console.error('Error checking indexes:', error);
-            }
-        }
     })
     .catch(err => { console.error('MongoDB connection error:', err); });
 
@@ -43,7 +30,7 @@ const userSchema = new mongoose.Schema({
     socketId: [],
     
     // スペースID（ユーザーはスペースごとに別レコードとして管理）
-    spaceId: { type: Number, required: true, index: true },
+    spaceId: { type: Number, required: true },
     
     // ログイン履歴
     loginHistory: [{
@@ -60,20 +47,18 @@ const userSchema = new mongoose.Schema({
 // Userコレクション用のインデックス
 userSchema.index({ nickname: 1, status: 1, ageGroup: 1, spaceId: 1 }); // スペース別同一ユーザー検索用
 userSchema.index({ spaceId: 1, lastLoginAt: -1 }); // スペース別最終ログイン順ソート用
-userSchema.index({ 'loginHistory.loginAt': -1 }); // ログイン履歴検索用
+// 削除: userSchema.index({ 'loginHistory.loginAt': -1 }); // 実際に使用されていないため削除
 
 const User = mongoose.model("User", userSchema);
 
 // 🏠Room スキーマ / モデル
 const roomSchema = new mongoose.Schema({
     id: { type: String, unique: true, required: true }, // ルームID（room-1, room-2など）
-    spaceId: { type: Number, required: true, index: true }, // 所属スペースID（整数）
+    spaceId: { type: Number, required: true }, // 所属スペースID（整数）
     name: { type: String, required: true }, // ルーム名
-    description: { type: String, default: '' }, // ルーム説明
     
     // ルームの設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
-    isPrivate: { type: Boolean, default: false }, // プライベートルーム
     maxParticipants: { type: Number, default: 100 }, // 最大参加者数
     
     // 統計情報（パフォーマンス向上のため）
@@ -93,7 +78,7 @@ const roomSchema = new mongoose.Schema({
 // id フィールドはスキーマで unique: true が設定されているため、明示的なインデックス定義は不要
 roomSchema.index({ spaceId: 1, isActive: 1, createdAt: -1 }); // スペース別アクティブルーム一覧用
 roomSchema.index({ spaceId: 1, lastActivity: -1 }); // スペース別アクティビティ順ソート用
-roomSchema.index({ isActive: 1, createdAt: -1 }); // 全体アクティブルーム一覧用（後方互換性）
+// 削除: roomSchema.index({ isActive: 1, createdAt: -1 }); // 後方互換性用だが実際には未使用のため削除
 
 const Room = mongoose.model("Room", roomSchema);
 
@@ -101,11 +86,9 @@ const Room = mongoose.model("Room", roomSchema);
 const spaceSchema = new mongoose.Schema({
     id: { type: Number, unique: true, required: true }, // 1, 2, 3など（整数）
     name: { type: String, required: true }, // スペース名
-    description: { type: String, default: '' }, // スペース説明
     
     // スペース設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
-    isPrivate: { type: Boolean, default: false }, // プライベートスペース
     isFinished: { type: Boolean, default: false }, // 終了フラグ
     finishedAt: { type: Date, default: null }, // 終了日時
     
@@ -169,7 +152,7 @@ const postSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
     // --- スペース機能: メッセージが送信されたスペースのID ---
-    spaceId: { type: Number, required: true, index: true }, // 整数型のスペースID
+    spaceId: { type: Number, required: true }, // 整数型のスペースID
 
     // --- ルーム機能: メッセージが送信されたルームのID ---
     roomId: { type: String, default: null },
@@ -193,8 +176,6 @@ const postSchema = new mongoose.Schema({
 // パフォーマンス最適化のためのインデックス設定
 postSchema.index({ spaceId: 1, roomId: 1, createdAt: -1 }); // スペース+ルーム別の時系列取得用
 postSchema.index({ spaceId: 1, displayOrder: 1 }); // スペース別ドキュメント表示用
-postSchema.index({ spaceId: 1, displayOrder: 1 }); // ドキュメント表示用（後方互換性）
-postSchema.index({ spaceId: 1, userId: 1 }); // ユーザー別取得用
 postSchema.index({ spaceId: 1, source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
 
 const Post = mongoose.model("Post", postSchema);

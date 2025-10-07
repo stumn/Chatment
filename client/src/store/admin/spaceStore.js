@@ -132,7 +132,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       // サブルーム設定のデフォルト値
       const defaultSubRoomSettings = {
         enabled: false,
-        rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+        rooms: [{ name: '全体'}]
       };
 
       const response = await fetch('/api/spaces', {
@@ -143,7 +143,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         body: JSON.stringify({
           id: spaceData.id,
           name: spaceData.name,
-          description: spaceData.description,
           settings: {
             theme: 'default'
           },
@@ -196,7 +195,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         },
         body: JSON.stringify({
           name: spaceData.name,
-          description: spaceData.description,
           subRoomSettings: spaceData.subRoomSettings
         }),
       });

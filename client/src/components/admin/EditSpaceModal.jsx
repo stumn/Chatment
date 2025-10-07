@@ -13,11 +13,10 @@ import SubRoomSettings from './SubRoomSettings';
  */
 const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     const [spaceName, setSpaceName] = useState(space?.name || '');
-    const [spaceDescription, setSpaceDescription] = useState(space?.description || '');
     const [subRoomSettings, setSubRoomSettings] = useState(
         space?.subRoomSettings || space?.settings?.subRoomSettings || {
             enabled: false,
-            rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+            rooms: [{ name: '全体' }]
         }
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,10 +25,9 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     React.useEffect(() => {
         if (space) {
             setSpaceName(space.name || '');
-            setSpaceDescription(space.description || '');
             setSubRoomSettings(space.subRoomSettings || space.settings?.subRoomSettings || {
                 enabled: false,
-                rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                rooms: [{ name: '全体' }]
             });
         }
     }, [space]);
@@ -43,7 +41,6 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
                 await onUpdate({
                     id: space.id,
                     name: spaceName,
-                    description: spaceDescription,
                     subRoomSettings: subRoomSettings
                 });
 
@@ -61,10 +58,9 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
             // フォームをリセット
             if (space) {
                 setSpaceName(space.name || '');
-                setSpaceDescription(space.description || '');
                 setSubRoomSettings(space.subRoomSettings || {
                     enabled: false,
-                    rooms: [{ name: '全体', description: '全ての投稿を表示' }]
+                    rooms: [{ name: '全体' }]
                 });
             }
             onClose();
@@ -89,14 +85,6 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
                         onChange={(e) => setSpaceName(e.target.value)}
                         disabled={isSubmitting}
                         required
-                    />
-                    <input
-                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm mb-3 box-border disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        type="text"
-                        placeholder="説明（任意）"
-                        value={spaceDescription}
-                        onChange={(e) => setSpaceDescription(e.target.value)}
-                        disabled={isSubmitting}
                     />
 
                     {/* サブルーム設定（読み取り専用モード） */}

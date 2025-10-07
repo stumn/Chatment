@@ -72,7 +72,6 @@ const initializeRoomsFromDatabase = async () => {
       rooms.set(room.id, {
         id: room.id,
         name: room.name,
-        description: room.description,
         participants: new Set(), // 参加者は新規でスタート
         createdAt: room.createdAt,
         dbRoom: room

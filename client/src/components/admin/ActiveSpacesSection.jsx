@@ -34,7 +34,6 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
         {space.name}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{space.description || '―'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
         {space.roomCount || 0} ルーム / {space.participantCount || 0} 参加者
       </td>
@@ -54,8 +53,8 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
         <DocumentViewButton spaceId={space.id} />
         <button
           className={`px-4 py-2 text-white border-none rounded text-sm font-medium mr-2 transition-colors duration-150 ${space.id === 1
-              ? '!bg-neutral-500 !cursor-not-allowed'
-              : '!bg-red-500 cursor-pointer hover:!bg-red-600'
+            ? '!bg-neutral-500 !cursor-not-allowed'
+            : '!bg-red-500 cursor-pointer hover:!bg-red-600'
             }`}
           onClick={handleFinishSpace}
           disabled={space.id === 1}
@@ -97,7 +96,7 @@ const ActiveSpacesSection = ({
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', '説明', 'ステータス', 'アクション']} />
+          <TableHeader columns={['スペース名', 'ステータス', 'アクション']} />
           <tbody>
             {activeSpaces.length > 0 ? (
               activeSpaces.map(space => (
