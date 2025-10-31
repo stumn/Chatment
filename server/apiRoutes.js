@@ -355,7 +355,7 @@ router.post('/spaces', async (req, res) => {
 router.put('/spaces/:spaceId', async (req, res) => {
   try {
     const spaceId = parseInt(req.params.spaceId);
-    const { name, subRoomSettings } = req.body;
+    const { name, subRoomSettings, roomConfig } = req.body;
 
     if (!spaceId || !name) {
       return res.status(400).json({
@@ -364,18 +364,28 @@ router.put('/spaces/:spaceId', async (req, res) => {
       });
     }
 
-    // subRoomSettingsのバリデーション
-    if (subRoomSettings && subRoomSettings.enabled) {
-      if (!subRoomSettings.rooms || !Array.isArray(subRoomSettings.rooms)) {
+    // roomConfigを優先、なければsubRoomSettingsから変換
+    let finalRoomConfig = roomConfig;
+    if (!finalRoomConfig && subRoomSettings) {
+      // subRoomSettingsからroomConfigへの変換
+      finalRoomConfig = {
+        mode: subRoomSettings.enabled ? 'multi' : 'single',
+        rooms: subRoomSettings.rooms || [{ name: '全体' }]
+      };
+    }
+
+    // roomConfigのバリデーション
+    if (finalRoomConfig && finalRoomConfig.mode === 'multi') {
+      if (!finalRoomConfig.rooms || !Array.isArray(finalRoomConfig.rooms)) {
         return res.status(400).json({
           success: false,
-          error: 'subRoomSettings.rooms must be an array when enabled'
+          error: 'roomConfig.rooms must be an array when mode is multi'
         });
       }
 
       // ルーム名のバリデーション
-      for (let i = 0; i < subRoomSettings.rooms.length; i++) {
-        const room = subRoomSettings.rooms[i];
+      for (let i = 0; i < finalRoomConfig.rooms.length; i++) {
+        const room = finalRoomConfig.rooms[i];
         if (!room.name || room.name.length < 1 || room.name.length > 10) {
           return res.status(400).json({
             success: false,
@@ -403,7 +413,7 @@ router.put('/spaces/:spaceId', async (req, res) => {
       }
 
       // ルーム名の重複チェック
-      const roomNames = subRoomSettings.rooms.map(room => room.name.toLowerCase());
+      const roomNames = finalRoomConfig.rooms.map(room => room.name.toLowerCase());
       const uniqueNames = new Set(roomNames);
       if (roomNames.length !== uniqueNames.size) {
         return res.status(400).json({
@@ -413,7 +423,7 @@ router.put('/spaces/:spaceId', async (req, res) => {
       }
 
       // ルーム数制限チェック
-      if (subRoomSettings.rooms.length > 10) {
+      if (finalRoomConfig.rooms.length > 10) {
         return res.status(400).json({
           success: false,
           error: 'Maximum 10 rooms allowed'
@@ -421,10 +431,13 @@ router.put('/spaces/:spaceId', async (req, res) => {
       }
     }
 
-    // スペース更新処理（この関数は dbOperation.js に追加する必要があります）
+    // スペース更新処理（subRoomSettingsを送信して内部で変換）
     const updatedSpace = await updateSpace(spaceId, {
       name,
-      subRoomSettings
+      subRoomSettings: subRoomSettings || (finalRoomConfig ? {
+        enabled: finalRoomConfig.mode === 'multi',
+        rooms: finalRoomConfig.rooms
+      } : undefined)
     });
 
     if (!updatedSpace) {

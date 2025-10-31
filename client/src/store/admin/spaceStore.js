@@ -63,8 +63,9 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       const data = await response.json();
       
       if (data.success) {
-        const activeSpaces = data.spaces.filter(space => space.isActive && !space.isFinished);
-        const finishedSpaces = data.spaces.filter(space => space.isFinished);
+        // 新しいstatusフィールドのみを使用
+        const activeSpaces = data.spaces.filter(space => space.status === 'active');
+        const finishedSpaces = data.spaces.filter(space => space.status === 'finished');
         
         set({
           activeSpaces,

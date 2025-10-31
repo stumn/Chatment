@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema({
     // スペースID（ユーザーはスペースごとに別レコードとして管理）
     spaceId: { type: Number, required: true },
     
+    // === 新しいフィールド（マイグレーション後） ===
+    // リアルタイム状態管理
+    currentRoom: { type: String, default: null }, // 現在参加中のルームID
+    isOnline: { type: Boolean, default: false },  // オンライン状態
+    lastSeen: { type: Date, default: Date.now },  // 最後のアクティビティ
+    
     // ログイン履歴
     loginHistory: [{
         socketId: String,
@@ -47,6 +53,7 @@ const userSchema = new mongoose.Schema({
 // Userコレクション用のインデックス
 userSchema.index({ nickname: 1, status: 1, ageGroup: 1, spaceId: 1 }); // スペース別同一ユーザー検索用
 userSchema.index({ spaceId: 1, lastLoginAt: -1 }); // スペース別最終ログイン順ソート用
+userSchema.index({ spaceId: 1, currentRoom: 1, isOnline: 1 }); // ルーム別オンラインユーザー取得用（新規追加）
 // 削除: userSchema.index({ 'loginHistory.loginAt': -1 }); // 実際に使用されていないため削除
 
 const User = mongoose.model("User", userSchema);
@@ -59,14 +66,23 @@ const roomSchema = new mongoose.Schema({
     
     // ルームの設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
-    maxParticipants: { type: Number, default: 100 }, // 最大参加者数
     
-    // 統計情報（パフォーマンス向上のため）
-    messageCount: { type: Number, default: 0 }, // メッセージ数
-    participantCount: { type: Number, default: 0 }, // 現在の参加者数
-    lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
+    // === 新しいフィールド（マイグレーション後） ===
+    isDefault: { type: Boolean, default: false }, // デフォルトルーム（全体）フラグ
     
-    // ルーム固有の設定
+    // 統計情報（新構造）
+    stats: {
+        messageCount: { type: Number, default: 0 }, // メッセージ数
+        lastActivity: { type: Date, default: Date.now } // 最後のアクティビティ時刻
+    },
+    
+    // === 古いフィールド（後方互換性のため一時的に維持） ===
+    maxParticipants: { type: Number, default: 100 }, // 最大参加者数（削除予定）
+    messageCount: { type: Number, default: 0 }, // メッセージ数（削除予定）
+    participantCount: { type: Number, default: 0 }, // 現在の参加者数（削除予定）
+    lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻（削除予定）
+    
+    // ルーム固有の設定（削除予定）
     settings: {
         autoDeleteMessages: { type: Boolean, default: false }, // メッセージ自動削除
         messageRetentionDays: { type: Number, default: 30 }, // メッセージ保持日数
@@ -87,12 +103,54 @@ const spaceSchema = new mongoose.Schema({
     id: { type: Number, unique: true, required: true }, // 1, 2, 3など（整数）
     name: { type: String, required: true }, // スペース名
     
+    // === 新しいフィールド（マイグレーション後） ===
+    status: { 
+        type: String, 
+        enum: ['active', 'finished'], 
+        default: 'active' 
+    }, // アクティブ/終了状態
+    
+    // ルーム構成（新構造）
+    roomConfig: {
+        mode: { 
+            type: String, 
+            enum: ['single', 'multi'], 
+            default: 'single' 
+        },
+        rooms: [{
+            name: { 
+                type: String, 
+                required: true, 
+                maxlength: 10, 
+                minlength: 1,
+                validate: {
+                    validator: function(v) {
+                        // 禁止文字チェック
+                        const forbiddenChars = /[\/\\<>"'&]/;
+                        // 予約語チェック
+                        const reservedWords = ['admin', 'system', 'api'];
+                        return !forbiddenChars.test(v) && !reservedWords.includes(v.toLowerCase());
+                    },
+                    message: 'ルーム名に使用できない文字または予約語が含まれています'
+                }
+            },
+            isDefault: { type: Boolean, default: false }
+        }]
+    },
+    
+    // 統計情報（新構造）
+    stats: {
+        totalMessages: { type: Number, default: 0 }, // 総メッセージ数
+        activeRooms: { type: Number, default: 0 } // アクティブルーム数
+    },
+    
+    // === 古いフィールド（後方互換性のため一時的に維持） ===
     // スペース設定
-    isActive: { type: Boolean, default: true }, // アクティブ状態
-    isFinished: { type: Boolean, default: false }, // 終了フラグ
+    isActive: { type: Boolean, default: true }, // アクティブ状態（削除予定）
+    isFinished: { type: Boolean, default: false }, // 終了フラグ（削除予定）
     finishedAt: { type: Date, default: null }, // 終了日時
     
-    // 統計情報（パフォーマンス向上のため）
+    // 統計情報（パフォーマンス向上のため）（削除予定）
     roomCount: { type: Number, default: 0 }, // ルーム数
     totalMessageCount: { type: Number, default: 0 }, // 総メッセージ数
     participantCount: { type: Number, default: 0 }, // 現在の参加者数
@@ -100,9 +158,9 @@ const spaceSchema = new mongoose.Schema({
     
     // スペース固有の設定
     settings: {
-        theme: { type: String, default: 'default' }, // テーマ設定
+        theme: { type: String, default: 'default' }, // テーマ設定（削除予定）
         
-        // サブルーム設定
+        // サブルーム設定（削除予定）
         subRoomSettings: {
             enabled: { type: Boolean, default: false }, // サブルーム機能有効/無効
             rooms: [{
@@ -193,5 +251,11 @@ const Log = mongoose.model("Log", logSchema);
 // TODO: UserのsocketId（配列）がサーバ・フロントで正しく利用されているか要確認
 // TODO: PostのuserIdがフロントで利用されていない場合、今後のユーザー管理・紐付けに注意
 // TODO: positive/negativeの構造がフロントのstoreと一致しているか要確認
+
+// === マイグレーション関連のTODO ===
+// TODO: Phase 4（クリーンアップ）実行後に以下のフィールドを削除
+//   Space: isActive, isFinished, roomCount, totalMessageCount, participantCount, lastActivity, settings.theme, settings.subRoomSettings
+//   Room: maxParticipants, messageCount, participantCount, lastActivity, settings
+// TODO: 新しいフィールド（status, roomConfig, stats, isDefault, isOnline, currentRoom, lastSeen）への移行完了を確認
 
 module.exports = { mongoose, User, Room, Post, Log, Space };
