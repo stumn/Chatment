@@ -111,7 +111,8 @@ async function getSpaceById(spaceId) {
 // --- 新しいスペースを作成 ---
 async function createSpace(spaceData) {
     try {
-        const { id, name, settings = {}, subRoomSettings } = spaceData;
+        // Expect new schema: roomConfig provided by caller
+        const { id, name, settings = {}, roomConfig } = spaceData;
 
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
@@ -119,21 +120,24 @@ async function createSpace(spaceData) {
             throw new Error(`スペースID ${id} は既に存在します`);
         }
 
-        // roomConfig の構築（新形式のみ）
-        const roomConfig = {
-            mode: subRoomSettings?.enabled ? 'multi' : 'single',
-            rooms: (subRoomSettings?.rooms || [{ name: '全体' }]).map((room, index) => ({
-                name: room.name,
-                isDefault: index === 0
-            }))
+        // Use provided roomConfig (new schema). If not provided, default to single room '全体'.
+        const finalRoomConfig = roomConfig || {
+            mode: 'single',
+            rooms: [{ name: '全体', isDefault: true }]
         };
+
+        // Ensure rooms array has isDefault flag
+        finalRoomConfig.rooms = (finalRoomConfig.rooms || [{ name: '全体' }]).map((room, index) => ({
+            name: room.name,
+            isDefault: room.isDefault === true || index === 0
+        }));
 
         // 新しいスペースを作成（新しいスキーマのみ）
         const newSpace = await Space.create({
             id,
             name,
             status: 'active',
-            roomConfig: roomConfig,
+            roomConfig: finalRoomConfig,
             stats: {
                 totalMessages: 0,
                 activeRooms: 0,
@@ -158,7 +162,7 @@ async function createSpace(spaceData) {
 // --- スペースを更新 ---
 async function updateSpace(spaceId, updateData) {
     try {
-        const { name, subRoomSettings } = updateData;
+        const { name, roomConfig } = updateData;
 
         // 既存のスペースを取得
         const existingSpace = await Space.findOne({ id: spaceId });
@@ -173,45 +177,34 @@ async function updateSpace(spaceId, updateData) {
             updateFields.name = name;
         }
 
-        // subRoomSettings が提供された場合の処理
-        if (subRoomSettings) {
-            const finalSubRoomSettings = {
-                enabled: subRoomSettings.enabled || false,
-                rooms: subRoomSettings.rooms || [{ name: '全体' }]
-            };
-
-            // 新形式のroomConfigを更新（新しいスキーマのみ）
-            const roomConfig = {
-                mode: finalSubRoomSettings.enabled ? 'multi' : 'single',
-                rooms: finalSubRoomSettings.rooms.map((room, index) => ({
-                    name: room.name,
-                    isDefault: index === 0
+        // roomConfig が提供された場合は新スキーマとして適用
+        if (roomConfig) {
+            // Normalize roomConfig structure and ensure isDefault
+            const finalRoomConfig = {
+                mode: roomConfig.mode === 'multi' ? 'multi' : 'single',
+                rooms: (roomConfig.rooms || [{ name: '全体' }]).map((r, idx) => ({
+                    name: r.name,
+                    isDefault: r.isDefault === true || idx === 0
                 }))
             };
-            updateFields.roomConfig = roomConfig;
+            updateFields.roomConfig = finalRoomConfig;
 
-            // サブルーム機能が有効で新しいルームが追加された場合、実際のルームも作成
-            if (finalSubRoomSettings.enabled) {
+            // If multi-mode and new rooms are present, create DB Room entries for those not existing
+            if (finalRoomConfig.mode === 'multi') {
                 const existingRooms = await Room.find({ spaceId, isActive: true }).select('name').lean();
                 const existingRoomNames = existingRooms.map(r => r.name);
 
-                for (let i = 0; i < finalSubRoomSettings.rooms.length; i++) {
-                    const roomData = finalSubRoomSettings.rooms[i];
+                for (let i = 0; i < finalRoomConfig.rooms.length; i++) {
+                    const roomData = finalRoomConfig.rooms[i];
                     if (!existingRoomNames.includes(roomData.name)) {
-                        // ユニークなルームIDを生成（タイムスタンプベース）
                         const roomId = `space${spaceId}-room${Date.now()}-${i}`;
-
-                        // 新しいルームを作成（新形式のみ）
                         await Room.create({
                             id: roomId,
                             name: roomData.name,
                             spaceId: spaceId,
                             isActive: true,
-                            isDefault: i === 0,
-                            stats: {
-                                messageCount: 0,
-                                lastActivity: new Date()
-                            }
+                            isDefault: roomData.isDefault || i === 0,
+                            stats: { messageCount: 0, lastActivity: new Date() }
                         });
                         console.log(`🏠 [spaceOperation] 新規ルーム作成: ${roomData.name} (ID: ${roomId}, スペース: ${spaceId})`);
                     }
@@ -244,13 +237,14 @@ async function updateSpace(spaceId, updateData) {
 }
 
 // --- スペースの統計情報を更新 ---
+// 新スキーマ: stats.activeRooms, stats.totalMessages, stats.participantCount, stats.lastActivity を使用
 async function updateSpaceStats(spaceId) {
     try {
-        // ルーム数を取得
-        const roomCount = await Room.countDocuments({ spaceId, isActive: true });
+        // アクティブなルーム数を取得
+        const activeRooms = await Room.countDocuments({ spaceId, isActive: true });
 
-        // メッセージ数を取得
-        const totalMessageCount = await Post.countDocuments({ spaceId });
+        // 総メッセージ数を取得
+        const totalMessages = await Post.countDocuments({ spaceId });
 
         // 累計参加者数を取得（そのスペースで投稿したユニークなニックネーム数）
         const participantCountResult = await Post.aggregate([
@@ -260,16 +254,17 @@ async function updateSpaceStats(spaceId) {
         ]);
         const participantCount = participantCountResult.length > 0 ? participantCountResult[0].count : 0;
 
-        // 最後のアクティビティを取得
+        // 最後のアクティビティ時刻を取得
         const lastPost = await Post.findOne({ spaceId })
             .sort({ createdAt: -1 })
             .select('createdAt')
             .lean()
             .exec();
 
+        // 新スキーマのstats配下のフィールドを更新
         const updateData = {
-            'stats.activeRooms': roomCount,
-            'stats.totalMessages': totalMessageCount,
+            'stats.activeRooms': activeRooms,
+            'stats.totalMessages': totalMessages,
             'stats.participantCount': participantCount,
             ...(lastPost && { 'stats.lastActivity': lastPost.createdAt })
         };
@@ -280,7 +275,7 @@ async function updateSpaceStats(spaceId) {
             { new: true }
         );
 
-        console.log(`📊 [spaceOperation] スペース統計更新: ${spaceId}`, updateData);
+        console.log(`📊 [spaceOperation] スペース統計更新 (新スキーマ): ${spaceId}`, updateData);
         return updateData;
 
     } catch (error) {

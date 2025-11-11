@@ -13,21 +13,21 @@ import { subscribeWithSelector } from 'zustand/middleware';
  */
 const useSpaceStore = create(subscribeWithSelector((set, get) => ({
   // ===== 状態 =====
-  
+
   /** @type {Array} アクティブなスペースの配列 */
   activeSpaces: [],
-  
+
   /** @type {Array} 終了したスペースの配列 */
   finishedSpaces: [],
-  
+
   /** @type {boolean} データ読み込み中かどうか */
   isLoading: false,
-  
+
   /** @type {string|null} エラーメッセージ */
   error: null,
 
   // ===== アクション =====
-  
+
   /**
    * ローディング状態を設定
    */
@@ -54,25 +54,25 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
    */
   fetchSpaces: async () => {
     const { setLoading, setError, clearError } = get();
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       const response = await fetch('/api/spaces');
       const data = await response.json();
-      
+
       if (data.success) {
         // 新しいstatusフィールドのみを使用
         const activeSpaces = data.spaces.filter(space => space.status === 'active');
         const finishedSpaces = data.spaces.filter(space => space.status === 'finished');
-        
+
         set({
           activeSpaces,
           finishedSpaces,
           isLoading: false
         });
-        
+
         return data.spaces;
       } else {
         throw new Error(data.error || 'スペース一覧の取得に失敗しました');
@@ -90,24 +90,24 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
    */
   fetchAllSpaces: async () => {
     const { setLoading, setError, clearError } = get();
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       const response = await fetch('/api/admin/spaces');
       const data = await response.json();
-      
+
       if (data.success) {
         const activeSpaces = data.spaces.filter(space => space.isActive && !space.isFinished);
         const finishedSpaces = data.spaces.filter(space => space.isFinished);
-        
+
         set({
           activeSpaces,
           finishedSpaces,
           isLoading: false
         });
-        
+
         return data.spaces;
       } else {
         throw new Error(data.error || '全スペース一覧の取得に失敗しました');
@@ -122,20 +122,18 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
 
   /**
    * 新しいスペースを追加
+   * 
+   * 【UI側も roomConfig に統一したため変換不要】
+   * spaceData.roomConfig をそのまま API に送信
    */
   addSpace: async (spaceData) => {
     const { setLoading, setError, clearError } = get();
-    
+
     setLoading(true);
     clearError();
-    
-    try {
-      // サブルーム設定のデフォルト値
-      const defaultSubRoomSettings = {
-        enabled: false,
-        rooms: [{ name: '全体'}]
-      };
 
+    try {
+      // UI側から roomConfig が直接渡されるため変換不要
       const response = await fetch('/api/spaces', {
         method: 'POST',
         headers: {
@@ -144,10 +142,8 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         body: JSON.stringify({
           id: spaceData.id,
           name: spaceData.name,
-          settings: {
-            theme: 'default'
-          },
-          subRoomSettings: spaceData.subRoomSettings || defaultSubRoomSettings
+          settings: { theme: 'default' },
+          roomConfig: spaceData.roomConfig
         }),
       });
 
@@ -159,7 +155,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           activeSpaces: [...state.activeSpaces, data.space],
           isLoading: false
         }));
-        
+
         return data.space;
       } else {
         throw new Error(data.error || 'スペースの作成に失敗しました');
@@ -168,27 +164,31 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       console.error('スペース追加エラー:', error);
       setError(error.message);
       setLoading(false);
-      
+
       // エラー時のフォールバック: ローカルに追加
       set((state) => ({
         activeSpaces: [...state.activeSpaces, spaceData],
         isLoading: false
       }));
-      
+
       throw error;
     }
   },
 
   /**
    * スペースを更新する
+   * 
+   * 【UI側も roomConfig に統一したため変換不要】
+   * spaceData.roomConfig をそのまま API に送信
    */
   updateSpace: async (spaceData) => {
     const { setLoading, setError, clearError } = get();
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
+      // UI側から roomConfig が直接渡されるため変換不要
       const response = await fetch(`/api/spaces/${spaceData.id}`, {
         method: 'PUT',
         headers: {
@@ -196,7 +196,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         },
         body: JSON.stringify({
           name: spaceData.name,
-          subRoomSettings: spaceData.subRoomSettings
+          roomConfig: spaceData.roomConfig
         }),
       });
 
@@ -217,7 +217,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           }),
           isLoading: false
         }));
-        
+
         return data.space;
       } else {
         throw new Error(data.error || 'スペースの更新に失敗しました');
@@ -235,21 +235,21 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
    */
   finishSpace: async (spaceId) => {
     const { setLoading, setError, clearError } = get();
-    
+
     setLoading(true);
     clearError();
-    
+
     try {
       // バックエンドAPIでスペースを終了する処理
       const response = await fetch(`/api/spaces/${spaceId}/finish`, {
         method: 'POST'
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         const finishedSpace = data.space;
-        
+
         set((state) => ({
           activeSpaces: state.activeSpaces.filter(space => space.id !== spaceId),
           finishedSpaces: [...state.finishedSpaces, finishedSpace],

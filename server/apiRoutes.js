@@ -257,7 +257,7 @@ router.get('/spaces/:spaceId', async (req, res) => {
 // 新しいスペース作成
 router.post('/spaces', async (req, res) => {
   try {
-    const { id, name, settings, subRoomSettings } = req.body;
+    const { id, name, settings, roomConfig } = req.body;
 
     if (!id || !name) {
       return res.status(400).json({
@@ -266,68 +266,46 @@ router.post('/spaces', async (req, res) => {
       });
     }
 
-    // subRoomSettingsのバリデーション
-    if (subRoomSettings && subRoomSettings.enabled) {
-      if (!subRoomSettings.rooms || !Array.isArray(subRoomSettings.rooms)) {
-        return res.status(400).json({
-          success: false,
-          error: 'subRoomSettings.rooms must be an array when enabled'
-        });
-      }
-
-      // ルーム名のバリデーション
-      for (let i = 0; i < subRoomSettings.rooms.length; i++) {
-        const room = subRoomSettings.rooms[i];
-        if (!room.name || room.name.length < 1 || room.name.length > 10) {
-          return res.status(400).json({
-            success: false,
-            error: `Room name ${i + 1} must be between 1-10 characters`
-          });
+    // roomConfig (new schema) のバリデーション
+    let finalRoomConfig = roomConfig;
+    if (finalRoomConfig) {
+      if (finalRoomConfig.mode === 'multi') {
+        if (!finalRoomConfig.rooms || !Array.isArray(finalRoomConfig.rooms)) {
+          return res.status(400).json({ success: false, error: 'roomConfig.rooms must be an array when mode is multi' });
         }
-
-        // 禁止文字チェック
-        const forbiddenChars = /[\/\\<>"'&]/;
-        if (forbiddenChars.test(room.name)) {
-          return res.status(400).json({
-            success: false,
-            error: `Room name "${room.name}" contains forbidden characters`
-          });
+        // ルーム名のバリデーション
+        for (let i = 0; i < finalRoomConfig.rooms.length; i++) {
+          const room = finalRoomConfig.rooms[i];
+          if (!room.name || room.name.length < 1 || room.name.length > 10) {
+            return res.status(400).json({ success: false, error: `Room name ${i + 1} must be between 1-10 characters` });
+          }
+          const forbiddenChars = /[\/\\<>"'&]/;
+          if (forbiddenChars.test(room.name)) {
+            return res.status(400).json({ success: false, error: `Room name "${room.name}" contains forbidden characters` });
+          }
+          const reservedWords = ['admin', 'system', 'api'];
+          if (reservedWords.includes(room.name.toLowerCase())) {
+            return res.status(400).json({ success: false, error: `Room name "${room.name}" is reserved` });
+          }
         }
-
-        // 予約語チェック
-        const reservedWords = ['admin', 'system', 'api'];
-        if (reservedWords.includes(room.name.toLowerCase())) {
-          return res.status(400).json({
-            success: false,
-            error: `Room name "${room.name}" is reserved`
-          });
+        const roomNames = finalRoomConfig.rooms.map(r => r.name.toLowerCase());
+        if (new Set(roomNames).size !== roomNames.length) {
+          return res.status(400).json({ success: false, error: 'Duplicate room names are not allowed' });
+        }
+        if (finalRoomConfig.rooms.length > 10) {
+          return res.status(400).json({ success: false, error: 'Maximum 10 rooms allowed' });
         }
       }
-
-      // ルーム名の重複チェック
-      const roomNames = subRoomSettings.rooms.map(room => room.name.toLowerCase());
-      const uniqueNames = new Set(roomNames);
-      if (roomNames.length !== uniqueNames.size) {
-        return res.status(400).json({
-          success: false,
-          error: 'Duplicate room names are not allowed'
-        });
-      }
-
-      // ルーム数制限チェック
-      if (subRoomSettings.rooms.length > 10) {
-        return res.status(400).json({
-          success: false,
-          error: 'Maximum 10 rooms allowed'
-        });
-      }
+    } else {
+      // default: single room
+      finalRoomConfig = { mode: 'single', rooms: [{ name: '全体', isDefault: true }] };
     }
 
     const newSpace = await createSpace({
       id: parseInt(id), // 整数に変換
       name,
       settings,
-      subRoomSettings // subRoomSettingsを追加
+      roomConfig: finalRoomConfig // new schema
     });
 
     if (!newSpace) {
@@ -364,14 +342,11 @@ router.put('/spaces/:spaceId', async (req, res) => {
       });
     }
 
-    // roomConfigを優先、なければsubRoomSettingsから変換
+    // roomConfig を期待する（新スキーマ）。必要ならバリデーションを行う。
     let finalRoomConfig = roomConfig;
-    if (!finalRoomConfig && subRoomSettings) {
-      // subRoomSettingsからroomConfigへの変換
-      finalRoomConfig = {
-        mode: subRoomSettings.enabled ? 'multi' : 'single',
-        rooms: subRoomSettings.rooms || [{ name: '全体' }]
-      };
+    if (!finalRoomConfig) {
+      // If no roomConfig provided, default to single
+      finalRoomConfig = { mode: 'single', rooms: [{ name: '全体', isDefault: true }] };
     }
 
     // roomConfigのバリデーション
@@ -431,13 +406,10 @@ router.put('/spaces/:spaceId', async (req, res) => {
       }
     }
 
-    // スペース更新処理（subRoomSettingsを送信して内部で変換）
+    // スペース更新処理（新スキーマ: roomConfig）
     const updatedSpace = await updateSpace(spaceId, {
       name,
-      subRoomSettings: subRoomSettings || (finalRoomConfig ? {
-        enabled: finalRoomConfig.mode === 'multi',
-        rooms: finalRoomConfig.rooms
-      } : undefined)
+      roomConfig: finalRoomConfig
     });
 
     if (!updatedSpace) {

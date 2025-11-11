@@ -120,6 +120,7 @@ async function getActiveRoomsBySpaceId(spaceId) {
 }
 
 // --- スペース固有のデフォルトルームを作成 ---
+// 新スキーマのみ使用: roomConfig.mode と roomConfig.rooms を参照
 async function createDefaultRoomsForSpace(spaceId) {
     try {
         console.log(`🏠 [roomManagement] スペース ${spaceId} のルーム作成開始`);
@@ -133,15 +134,12 @@ async function createDefaultRoomsForSpace(spaceId) {
             return [];
         }
 
-        // 新形式のroomConfigを優先、なければ旧形式から取得
+        // 新スキーマのroomConfigを使用（デフォルト値を設定）
         const roomConfig = space.roomConfig || {
-            mode: space.settings?.subRoomSettings?.enabled ? 'multi' : 'single',
-            rooms: space.settings?.subRoomSettings?.rooms?.map((r, i) => ({
-                name: r.name,
-                isDefault: i === 0
-            })) || [{ name: '全体', isDefault: true }]
+            mode: 'single',
+            rooms: [{ name: '全体', isDefault: true }]
         };
-        
+
         const createdRooms = [];
 
         // singleモードまたはルーム設定がない場合はデフォルトの「全体」ルームのみ作成
@@ -155,23 +153,16 @@ async function createDefaultRoomsForSpace(spaceId) {
                 console.log(`🔄 [roomManagement] 既存全体ルーム確認: ${existingRoom.name}`);
                 createdRooms.push(existingRoom.toObject());
             } else {
+                // 新スキーマのみで作成（stats配下に統計情報を格納）
                 const newRoom = await Room.create({
                     id: mainRoomId,
                     spaceId: spaceId,
                     name: '全体',
                     isActive: true,
-                    isDefault: true, // 新フィールド
-                    stats: { // 新構造
+                    isDefault: true,
+                    stats: {
                         messageCount: 0,
                         lastActivity: new Date()
-                    },
-                    // 後方互換性のため古いフィールドも設定
-                    messageCount: 0,
-                    lastActivity: new Date(),
-                    settings: {
-                        autoDeleteMessages: false,
-                        messageRetentionDays: 30,
-                        allowAnonymous: true
                     }
                 });
                 console.log(`✅ [roomManagement] 全体ルーム作成: ${newRoom.name}`);
@@ -182,7 +173,7 @@ async function createDefaultRoomsForSpace(spaceId) {
         }
 
         // マルチモード：roomConfigに基づいてルームを作成
-        console.log(`📝 [roomManagement] マルチモード - 設定に基づいてルーム作成`);
+        console.log(`📝 [roomManagement] マルチモード - ${roomConfig.rooms.length}個のルームを作成`);
 
         for (let i = 0; i < roomConfig.rooms.length; i++) {
             const roomData = roomConfig.rooms[i];
@@ -196,13 +187,13 @@ async function createDefaultRoomsForSpace(spaceId) {
                 continue;
             }
 
-            // 新しいルームを作成（新しいスキーマのみ）
+            // 新スキーマのみでルームを作成
             const newRoom = await Room.create({
                 id: roomId,
                 spaceId: spaceId,
                 name: roomData.name,
                 isActive: true,
-                isDefault: true,
+                isDefault: roomData.isDefault || (i === 0), // 明示的に設定、または最初のルーム
                 stats: {
                     messageCount: 0,
                     lastActivity: new Date()
