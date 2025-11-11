@@ -3,10 +3,13 @@ const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs, processXlogs } = require('./userOperations');
 
-// --- displayOrder順で全Postを取得 ---
-async function getPostsByDisplayOrder() {
+// --- displayOrder順で全Postを取得（スペース別） ---
+async function getPostsByDisplayOrder(spaceId = null) {
     try {
-        const posts = await Post.find().sort({ displayOrder: 1 });
+        // スペース指定がある場合はそのスペースのドキュメントのみ取得
+        const query = spaceId ? { spaceId } : {};
+        
+        const posts = await Post.find(query).sort({ displayOrder: 1 });
         return processXlogs(posts);
     } catch (error) {
         handleErrors(error, 'displayOrder順でのPost取得中にエラーが発生しました');
@@ -14,7 +17,7 @@ async function getPostsByDisplayOrder() {
 }
 
 // --- 新規行追加 ---
-async function addDocRow({ nickname, msg = '', displayOrder }) {
+async function addDocRow({ nickname, msg = '', displayOrder, spaceId }) {
     try {
         let order = displayOrder;
         if (!Number.isFinite(order)) {
@@ -26,6 +29,7 @@ async function addDocRow({ nickname, msg = '', displayOrder }) {
             nickname,
             msg,
             displayOrder: order,
+            spaceId, // spaceIdを追加
             source: 'document', // ドキュメントソースを明示的に指定
             previousData: {
                 nickname,

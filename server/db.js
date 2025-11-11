@@ -9,19 +9,6 @@ console.log('process env MONGODB_URL', process.env.MONGODB_URL);
 mongoose.connect(MONGODB_URL, {})
     .then(async () => { 
         console.log('MongoDB connected'); 
-        
-        // インデックスの作成状況を確認（開発環境）
-        if (process.env.NODE_ENV === 'development') {
-            try {
-                const indexes = await Post.collection.getIndexes();
-                console.log('📊 Current Post collection indexes:');
-                Object.keys(indexes).forEach(indexName => {
-                    console.log(`  - ${indexName}:`, indexes[indexName]);
-                });
-            } catch (error) {
-                console.error('Error checking indexes:', error);
-            }
-        }
     })
     .catch(err => { console.error('MongoDB connection error:', err); });
 
@@ -40,25 +27,39 @@ const userSchema = new mongoose.Schema({
     nickname: String,
     status: String, // 属性
     ageGroup: String, // 年代
-    socketId: []
+    socketId: [],
+    
+    // スペースID（ユーザーはスペースごとに別レコードとして管理）
+    spaceId: { type: Number, required: true },
+    
+    // ログイン履歴
+    loginHistory: [{
+        socketId: String,
+        loginAt: { type: Date, default: Date.now },
+        ipAddress: String, // 将来的にIPアドレスも記録できる
+        userAgent: String  // 将来的にブラウザ情報も記録できる
+    }],
+    
+    // 最後のログイン日時（クエリ最適化用）
+    lastLoginAt: { type: Date, default: Date.now }
 }, options);
+
+// Userコレクション用のインデックス
+userSchema.index({ nickname: 1, status: 1, ageGroup: 1, spaceId: 1 }); // スペース別同一ユーザー検索用
+userSchema.index({ spaceId: 1, lastLoginAt: -1 }); // スペース別最終ログイン順ソート用
+// 削除: userSchema.index({ 'loginHistory.loginAt': -1 }); // 実際に使用されていないため削除
 
 const User = mongoose.model("User", userSchema);
 
 // 🏠Room スキーマ / モデル
 const roomSchema = new mongoose.Schema({
     id: { type: String, unique: true, required: true }, // ルームID（room-1, room-2など）
+    spaceId: { type: Number, required: true }, // 所属スペースID（整数）
     name: { type: String, required: true }, // ルーム名
-    description: { type: String, default: '' }, // ルーム説明
     
     // ルームの設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
-    isPrivate: { type: Boolean, default: false }, // プライベートルーム
     maxParticipants: { type: Number, default: 100 }, // 最大参加者数
-    
-    // 作成者情報
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdByNickname: { type: String, required: true },
     
     // 統計情報（パフォーマンス向上のため）
     messageCount: { type: Number, default: 0 }, // メッセージ数
@@ -75,10 +76,62 @@ const roomSchema = new mongoose.Schema({
 
 // Roomコレクション用のインデックス
 // id フィールドはスキーマで unique: true が設定されているため、明示的なインデックス定義は不要
-roomSchema.index({ isActive: 1, createdAt: -1 }); // アクティブルーム一覧用
-roomSchema.index({ lastActivity: -1 }); // アクティビティ順ソート用
+roomSchema.index({ spaceId: 1, isActive: 1, createdAt: -1 }); // スペース別アクティブルーム一覧用
+roomSchema.index({ spaceId: 1, lastActivity: -1 }); // スペース別アクティビティ順ソート用
+// 削除: roomSchema.index({ isActive: 1, createdAt: -1 }); // 後方互換性用だが実際には未使用のため削除
 
 const Room = mongoose.model("Room", roomSchema);
+
+// 🌍 Space スキーマ / モデル
+const spaceSchema = new mongoose.Schema({
+    id: { type: Number, unique: true, required: true }, // 1, 2, 3など（整数）
+    name: { type: String, required: true }, // スペース名
+    
+    // スペース設定
+    isActive: { type: Boolean, default: true }, // アクティブ状態
+    isFinished: { type: Boolean, default: false }, // 終了フラグ
+    finishedAt: { type: Date, default: null }, // 終了日時
+    
+    // 統計情報（パフォーマンス向上のため）
+    roomCount: { type: Number, default: 0 }, // ルーム数
+    totalMessageCount: { type: Number, default: 0 }, // 総メッセージ数
+    participantCount: { type: Number, default: 0 }, // 現在の参加者数
+    lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
+    
+    // スペース固有の設定
+    settings: {
+        theme: { type: String, default: 'default' }, // テーマ設定
+        
+        // サブルーム設定
+        subRoomSettings: {
+            enabled: { type: Boolean, default: false }, // サブルーム機能有効/無効
+            rooms: [{
+                name: { 
+                    type: String, 
+                    required: true, 
+                    maxlength: 10, 
+                    minlength: 1,
+                    validate: {
+                        validator: function(v) {
+                            // 禁止文字チェック
+                            const forbiddenChars = /[\/\\<>"'&]/;
+                            // 予約語チェック
+                            const reservedWords = ['admin', 'system', 'api'];
+                            return !forbiddenChars.test(v) && !reservedWords.includes(v.toLowerCase());
+                        },
+                        message: 'ルーム名に使用できない文字または予約語が含まれています'
+                    }
+                },
+            }]
+        }
+    }
+}, options);
+
+// Spaceコレクション用のインデックス
+spaceSchema.index({ isActive: 1, createdAt: -1 }); // アクティブスペース一覧用
+spaceSchema.index({ lastActivity: -1 }); // アクティビティ順ソート用
+
+const Space = mongoose.model("Space", spaceSchema);
 
 // 🌟positive/negative スキーマ（Post 内部）
 const positiveSchema = new mongoose.Schema({
@@ -97,6 +150,9 @@ const postSchema = new mongoose.Schema({
 
     // --- 投稿者のUser._idを保存するuserIdフィールドを追加 ---
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+    // --- スペース機能: メッセージが送信されたスペースのID ---
+    spaceId: { type: Number, required: true }, // 整数型のスペースID
 
     // --- ルーム機能: メッセージが送信されたルームのID ---
     roomId: { type: String, default: null },
@@ -118,11 +174,9 @@ const postSchema = new mongoose.Schema({
 }, options);
 
 // パフォーマンス最適化のためのインデックス設定
-postSchema.index({ roomId: 1, createdAt: -1 }); // ルーム別の時系列取得用
-postSchema.index({ displayOrder: 1 }); // ドキュメント表示用
-postSchema.index({ createdAt: -1 }); // 一般的な時系列取得用
-postSchema.index({ userId: 1 }); // ユーザー別取得用
-postSchema.index({ source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
+postSchema.index({ spaceId: 1, roomId: 1, createdAt: -1 }); // スペース+ルーム別の時系列取得用
+postSchema.index({ spaceId: 1, displayOrder: 1 }); // スペース別ドキュメント表示用
+postSchema.index({ spaceId: 1, source: 1, createdAt: -1 }); // ソース別時系列取得用（チャット表示最適化）
 
 const Post = mongoose.model("Post", postSchema);
 
@@ -140,4 +194,4 @@ const Log = mongoose.model("Log", logSchema);
 // TODO: PostのuserIdがフロントで利用されていない場合、今後のユーザー管理・紐付けに注意
 // TODO: positive/negativeの構造がフロントのstoreと一致しているか要確認
 
-module.exports = { mongoose, User, Room, Post, Log };
+module.exports = { mongoose, User, Room, Post, Log, Space };

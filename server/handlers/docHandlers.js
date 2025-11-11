@@ -35,13 +35,14 @@ function setupDocHandlers(socket, io, lockedRows) {
       }
 
       // 現在の行の並び順を取得(TODO: DB関連の処理が多いので、docOperationへの移行を検討)
-      const posts = await getPostsByDisplayOrder();
+      const posts = await getPostsByDisplayOrder(payload.spaceId);
 
       // DB保存
       const newPost = await addDocRow({
         nickname: payload.nickname,
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
+        spaceId: payload.spaceId, // spaceIdを追加
       });
 
       // 新規行追加の結果を整形
@@ -56,7 +57,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       io.emit(SOCKET_EVENTS.DOC_ADD, data);
 
       // ログ記録
-      saveLog({ userId: newPost.userId, action: 'doc-add', detail: data });
+      saveLog({ userId: newPost.userId, action: 'doc-add', detail: data, spaceId: payload.spaceId });
 
     } catch (e) { console.error(e); }
   });
@@ -89,7 +90,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       unlockRowByPostId(lockedRows, io, payload.id);
 
       // ログ記録
-      saveLog({ userId: null, action: 'doc-edit', detail: payload });
+      saveLog({ userId: null, action: 'doc-edit', detail: payload, spaceId: payload.spaceId });
 
     } catch (e) { console.error(e); }
   });
@@ -103,7 +104,8 @@ function setupDocHandlers(socket, io, lockedRows) {
         movedPostId,
         movedPostDisplayOrder,
         prev,
-        next
+        next,
+        spaceId
       } = payload;
 
       // prevとnext から新しいdisplayOrderを計算
@@ -112,8 +114,8 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DB更新
       await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-      // 全クライアントに並び替えをブロードキャスト
-      const posts = await getPostsByDisplayOrder(movedPostDisplayOrder);
+      // 全クライアントに並び替えをブロードキャスト（スペース別）
+      const posts = await getPostsByDisplayOrder(spaceId);
 
       // 並び替え情報に実行者の情報を含めて送信
       io.emit(SOCKET_EVENTS.DOC_REORDER, {
@@ -128,7 +130,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       unlockRowByPostId(lockedRows, io, movedPostId);
 
       // ログ記録
-      saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload });
+      saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload, spaceId });
 
     } catch (e) { console.error(e); }
   });

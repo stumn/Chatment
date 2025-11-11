@@ -7,11 +7,11 @@ const {
 
 const { SOCKET_EVENTS } = require('../constants');
 
-// --- displayOrderの最後尾を取得（ヘルパー） ---
-async function getLastDisplayOrder() {
+// --- displayOrderの最後尾を取得（ヘルパー）（スペース別） ---
+async function getLastDisplayOrder(spaceId = null) {
   try {
 
-    const posts = await getPostsByDisplayOrder();
+    const posts = await getPostsByDisplayOrder(spaceId);
     const lastPost = posts[posts.length - 1];
     return lastPost ? lastPost.displayOrder + 1 : 1;
 
@@ -21,38 +21,33 @@ async function getLastDisplayOrder() {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io, rooms) {
 
-  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId }) => {
+  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId }) => {
     try {
-      // displayOrderの最後尾を取得
-      const displayOrder = await getLastDisplayOrder();
+      // displayOrderの最後尾を取得（スペース別）
+      const displayOrder = await getLastDisplayOrder(spaceId);
 
-      // チャットメッセージデータ（ルーム情報も含める）
+      // チャットメッセージデータ（ルーム情報とスペース情報も含める）
       const messageData = {
         nickname,
         message,
         userId,
         displayOrder,
+        spaceId, // スペースIDを追加
         ...(roomId && { roomId })
       };
 
       // DBにデータ保存
       const p = await SaveChatMessage(messageData);
 
-      // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
-      if (roomId && rooms.has(roomId)) {
+      // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
+      const responseData = { ...p, roomId };
+      io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
 
-        console.log(`🏠 [server] Socket.IO ルーム room-${roomId} にメッセージ送信`);
-
-        // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
-        const responseData = { ...p, roomId };
-        io.to(`room-${roomId}`).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
-
-        // ルーム統計をデータベースで更新
-        await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
-      }
+      // ルーム統計をデータベースで更新
+      await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
 
       // ログ記録
-      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId } });
+      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId }, spaceId });
 
     } catch (e) { console.error(e); }
   });

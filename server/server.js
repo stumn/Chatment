@@ -1,4 +1,6 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
@@ -11,7 +13,7 @@ const { SOCKET_CONFIG, PORT } = require('./constants');
 const io = new Server(server, SOCKET_CONFIG);
 
 // ミドルウェア
-app.use(express.static('./client/dist'));
+app.use(express.static(path.join(__dirname, '../client/dist')));
 app.use(express.json());
 
 // ルート設定
@@ -23,21 +25,45 @@ app.get('/plain', (req, res) => {
 const apiRoutes = require('./apiRoutes');
 app.use('/api', apiRoutes);
 
+// SPAのルーティング対応 - 他のすべてのルートでReactアプリを返す
+app.get('*', (req, res, next) => {
+  // APIリクエストは除外
+  if (req.path.startsWith('/api/') || req.path.startsWith('/plain')) {
+    return next();
+  }
+  
+  // 静的ファイル（CSS、JS、画像など）のリクエストかチェック
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    return next();
+  }
+  
+  const indexPath = path.join(__dirname, '../client/dist/index.html');
+  
+  // ファイルが存在するかチェック
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error('File not found:', indexPath);
+    res.status(404).send('File not found');
+  }
+});
+
 // Socket.IOハンドラー
 const { initializeSocketHandlers, rooms } = require('./socketHandlers');
-const { initializeDefaultRooms, getActiveRooms } = require('./dbOperation');
+const { 
+  initializeDefaultRooms, 
+  getActiveRooms,
+  initializeDefaultSpace,
+  migrateExistingDataToSpace
+} = require('./dbOperation');
 
 initializeSocketHandlers(io);
 
-// サーバー起動時にデフォルトルームを初期化（DB経由）
+// サーバー起動時にデフォルトスペース・ルームを初期化（DB経由）
 const initializeRoomsFromDatabase = async () => {
   try {
-    console.log('🏠 [server] データベースからルーム初期化開始');
+    console.log('🔧 [server] データベースからスペース・ルーム初期化開始');
 
-    // データベースにデフォルトルームを作成
-    await initializeDefaultRooms();
-
-    // データベースからアクティブなルームを取得してメモリに読み込み
     const dbRooms = await getActiveRooms();
 
     rooms.clear(); // 既存のメモリデータをクリア
@@ -46,7 +72,6 @@ const initializeRoomsFromDatabase = async () => {
       rooms.set(room.id, {
         id: room.id,
         name: room.name,
-        description: room.description,
         participants: new Set(), // 参加者は新規でスタート
         createdAt: room.createdAt,
         dbRoom: room
@@ -55,7 +80,7 @@ const initializeRoomsFromDatabase = async () => {
 
     console.log(`✅ [server] ${dbRooms.length}個のルームを初期化完了`);
   } catch (error) {
-    console.error('❌ [server] ルーム初期化失敗:', error);
+    console.error('❌ [server] スペース・ルーム初期化失敗:', error);
   }
 };
 

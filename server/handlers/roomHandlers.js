@@ -1,5 +1,6 @@
 const {
   getActiveRooms,
+  getActiveRoomsBySpaceId,
   getRoomHistory,
   explainRoomQuery,
   saveLog
@@ -10,7 +11,6 @@ const { SOCKET_EVENTS } = require('../constants');
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
     try {
-      console.log(`🚀 [server] ルーム参加要求: ${nickname} -> ${roomId}`);
 
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
@@ -49,20 +49,17 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       // Socket.IOのルーム機能を使用
       if (socket.currentSocketRoom) {
         socket.leave(socket.currentSocketRoom);
-        console.log(`🚪 [server] Socket.IO ルーム退出: ${socket.currentSocketRoom}`);
       }
 
       const socketRoomName = `room-${roomId}`;
       socket.join(socketRoomName);
       socket.currentSocketRoom = socketRoomName;
-      console.log(`🚀 [server] Socket.IO ルーム参加: ${socketRoomName}`);
 
       // 参加成功をクライアントに通知
       socket.emit('room-joined', {
         roomId,
         roomInfo: {
           name: room.name,
-          description: room.description,
           participantCount: room.participants.size
         }
       });
@@ -147,30 +144,54 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   });
 
   // その他のルーム関連ハンドラー...
-  socket.on('get-room-list', async () => {
+  socket.on('get-room-list', async (data) => {
     try {
-      console.log('📋 [server] ルーム一覧要求');
+      const { spaceId } = data || {};
 
-      const dbRooms = await getActiveRooms();
+      let dbRooms;
+      let spaceInfo = null;
+
+      if (spaceId !== undefined && spaceId !== null) {
+        dbRooms = await getActiveRoomsBySpaceId(spaceId);
+        console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
+        
+        // スペース情報も取得してサブルーム設定を含める
+        const { Space } = require('../db');
+        const space = await Space.findOne({ id: spaceId }).lean();
+        if (space) {
+          spaceInfo = {
+            id: space.id,
+            name: space.name,
+            settings: {
+              subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+              }
+            }
+          };
+        }
+      }
 
       const roomList = dbRooms.map(dbRoom => {
         const memoryRoom = rooms.get(dbRoom.id);
         return {
           id: dbRoom.id,
           name: dbRoom.name,
-          description: dbRoom.description,
+          spaceId: dbRoom.spaceId, // spaceIdを含める
           participantCount: memoryRoom ? memoryRoom.participants.size : 0,
           messageCount: dbRoom.messageCount || 0,
           lastActivity: dbRoom.lastActivity,
           createdAt: dbRoom.createdAt,
-          isPrivate: dbRoom.isPrivate,
           settings: dbRoom.settings
         };
       });
 
-      socket.emit('room-list', { rooms: roomList });
-
-      console.log(`✅ [server] ルーム一覧送信 (${roomList.length}件)`);
+      // スペース情報も含めて送信
+      socket.emit('room-list', { 
+        rooms: roomList, 
+        spaceId,
+        spaceInfo: spaceInfo
+      });
 
     } catch (error) {
       console.error('Error in get-room-list:', error);
@@ -180,8 +201,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
   socket.on('fetch-room-history', async ({ roomId }) => {
     try {
-      console.log(`📚 [server] ${roomId} の履歴要求`);
-
       if (!roomId) {
         socket.emit('room-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
         return;
@@ -189,16 +208,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
       const messages = await getRoomHistory(roomId, 50);
 
-      socket.emit('room-history', {
-        roomId,
-        messages: messages
-      });
-
-      console.log(`✅ [server] ${roomId} 履歴送信完了 (${messages.length}件)`);
-
-      if (process.env.NODE_ENV === 'development') {
-        await explainRoomQuery(roomId);
-      }
+      socket.emit('room-history', { roomId, messages });
 
     } catch (error) {
       console.error('Error fetching room history:', error);

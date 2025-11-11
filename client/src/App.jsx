@@ -1,76 +1,43 @@
 // File: client/src/App.jsx
+// スペースID必須のチャットアプリケーション
+// /spaces/:spaceId でChatApp、/document/:spaceId/:docId で統一ドキュメント表示
+// / は /admin にリダイレクト
 
-import { useEffect, Suspense, lazy, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 
-import { useAppController } from './hooks/useAppController';
-
-import useAppStore from './store/appStore';
-import useSizeStore from './store/sizeStore';
-import useSocket from './hooks/useSocket';
-
-import useResponsiveSize from './useResponsiveSize';
-
-import BeforeLogin from "./BeforeLogin";
-const AfterLogin = lazy(() => import('./AfterLogin'));
-
-const DEFAULT_ROOM_ID = 'room-0';
+// 遅延読み込みでコンポーネントを分割
+const SpaceApp = lazy(() => import('./pages/admin/SpaceApp'));
+const ChatApp = lazy(() => import('./pages/spaces/ChatApp'));
+const DocumentPage = lazy(() => import('./pages/document/DocumentPage'));
 
 function App() {
-  // --- 状態管理フックを先に記述 ---
-  const [open, setOpen] = useState(true);
-
-  // --- カスタムフック ---
-  useResponsiveSize();
-
-  // ストアからの状態取得
-  const { width, height } = useSizeStore();
-  const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore();
-
-  // useAppControllerを使用してSocket通信を一元管理
-  const appController = useAppController();
-  const { socket: { heightArray }, raw: socketFunctions } = appController;
-
-  // ルーム関連のソケット関数を取得
-  const { emitGetRoomList, emitJoinRoom } = useSocket();
-
-  // ログイン状態を判定する変数を定義
-  const isLoggedIn = userInfo.nickname !== undefined;
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    socketFunctions.emitLoginName(userInfo);
-
-    // ログイン後にルーム一覧を取得し、デフォルトルームに参加
-    emitGetRoomList();
-    emitJoinRoom(DEFAULT_ROOM_ID); // デフォルトルームに参加
-
-    setOpen(false);
-  }, [userInfo, isLoggedIn]);
-
-  // myHeightが変更されたらサーバーに高さを送信
-  useEffect(() => {
-    socketFunctions.emitHeightChange(myHeight);
-  }, [myHeight]);
-
-
-  if (isLoggedIn) { // ログイン完了後
-    return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <AfterLogin
-          heightArray={heightArray}
-          appController={appController}
-          userInfo={userInfo}
-        />
+  return (
+    <Router>
+      <Suspense fallback={<div style={{
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>Loading...</div>}>
+        <Routes>
+          {/* 管理画面 */}
+          <Route path="/admin" element={<SpaceApp />} />
+          
+          {/* スペースチャット - 整数型スペースID対応 */}
+          <Route path="/spaces/:spaceId" element={<ChatApp />} />
+          
+          {/* ドキュメント表示 - 統一エンドポイント（スペースID + ドキュメントID） */}
+          <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
+          
+          {/* ルートアクセスは管理画面にリダイレクト */}
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+        </Routes>
       </Suspense>
-    );
-  } else { // ログイン前
-    return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <BeforeLogin open={open} onLogin={setUserInfo} />
-      </Suspense>
-    );
-  }
-
+    </Router>
+  );
 }
 
 export default App;

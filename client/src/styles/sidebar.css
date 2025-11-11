@@ -1,0 +1,140 @@
+/* Sidebar Component Styles - Collapsible Design */
+
+/* Import Inter font for consistent typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* サイドバー全体のコンテナ */
+.sb-sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 5rem;
+    /* 80px - 閉じた状態の幅 */
+    background-color: #f5f5f5;
+    border-right: 1px solid #e5e7eb;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease-in-out;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+/* 開いた状態 */
+.sb-sidebar-container.open {
+    width: 20rem;
+    /* 320px - 開いた状態の幅 */
+}
+
+/* これらのスタイルはTailwindに移行済みのため削除 */
+
+/* トグルボタン・アイコン・タイトル - Tailwindに移行済み */
+
+/* テキスト表示制御 */
+.sidebar-text {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.sb-sidebar-container.open .sidebar-text {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 閉じた状態のナビゲーション - Tailwindに移行済み */
+
+/* ユーザー情報セクション - Tailwindに移行済み */
+
+/* 区切り線 */
+.sb-divider {
+    border: none;
+    border-top: 1px solid #d1d5db;
+    margin: 1rem 0;
+    width: 100%;
+}
+
+/* セクション関連 - Tailwindに移行済み */
+
+/* 見出しボタン基本スタイル - Tailwindに移行済み */
+
+.sb-heading-button.colorful-mode {
+    color: #15803d;
+}
+
+.sb-heading-button.colorful-mode:hover {
+    background-color: #15803d0d;
+}
+
+/* コメントボタン - Tailwindに移行済み */
+
+/* ルームボタン基本スタイル - Tailwindに移行済み */
+
+.sb-room-button.active {
+    background-color: #15803d0d;
+    border: 1px solid #15803d;
+    color: #15803d;
+    font-weight: 600;
+}
+
+.sb-room-button.colorful-mode.active {
+    background-color: #15803d0d;
+    border: 1px solid #15803d;
+    color: #15803d;
+}
+
+.sb-room-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ルーム情報 - Tailwindに移行済み */
+
+.sb-room-button.active .sb-room-participants {
+    background-color: #15803d0d;
+    color: #047857;
+}
+
+.sb-room-button.colorful-mode.active .sb-room-participants {
+    background-color: #15803d0d;
+    color: #047857;
+}
+
+/* ローディングコンテナ - Tailwindに移行済み */
+
+.sb-dot-loader {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    animation: sb-spin 1s linear infinite;
+    display: inline-block;
+}
+
+.sb-room-button.colorful-mode .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #10b981;
+}
+
+.sb-room-button.active .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #047857;
+}
+
+.sb-room-button.colorful-mode.active .sb-dot-loader {
+    border-color: #bbf7d0;
+    border-top-color: #047857;
+}
+
+/* アニメーションの定義 */
+@keyframes sb-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

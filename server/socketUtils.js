@@ -46,7 +46,6 @@ function unlockRowByPostId(lockedRows, io, postId) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
         // rowElementIdにpostIdが含まれているかチェック
         if (rowElementId.includes(postId)) {
-            console.log('Unlocking row:', rowElementId, 'for post:', postId);
             lockedRows.delete(rowElementId);
 
             // 全クライアントにロック解除をブロードキャスト
