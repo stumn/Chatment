@@ -109,7 +109,7 @@ export const useAppController = () => {
 
             // 1文字目が#の場合、見出し行として扱う（#は削除しない・チャットには送信しない）
             if (validatedMsg.startsWith('#')) {
-                
+
                 // サーバーに送信
                 emitDocEdit({
                     id,
@@ -135,7 +135,7 @@ export const useAppController = () => {
                     nickname: userInfo?.nickname,
                     updatedAt: new Date().toISOString()
                 });
-                
+
                 // ログ記録
                 emitLog({
                     userId: userInfo?._id,
@@ -243,6 +243,7 @@ export const useAppController = () => {
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
 
+            console.log(`📤[useAppController] Sending chat message from ${handleName}: "${validatedMessage}" to room ${roomId}`);
             emitChatMessage(handleName, validatedMessage, userInfo?._id, roomId);
 
             // ログ記録

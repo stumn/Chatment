@@ -32,27 +32,17 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     e.preventDefault();
     setError(''); // エラーをクリア
 
-    console.log(`[InputForm] 送信者: ${handleName}, メッセージ: "${message}"ルーム: ${activeRoomId} (${currentRoom?.name})`);
-
     // バリデーション付きでメッセージ送信
     const result = sendChatMessage(handleName, message, activeRoomId);
 
     result.success
-    ? setMessage('')
-    : setError(result.error);
+      ? setMessage('')
+      : setError(result.error);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
-      setError(''); // エラーをクリア
-
-      const result = sendChatMessage(handleName, message, activeRoomId);
-
-      if (result.success) {
-        setMessage('');
-      } else {
-        setError(result.error);
-      }
+      handleSubmit(e);
     }
   };
 

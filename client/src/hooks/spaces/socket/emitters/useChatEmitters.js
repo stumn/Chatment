@@ -4,7 +4,7 @@ import { validUserId } from '../utils/socketUtils';
 export const useChatEmitters = (socket, emitLog) => {
   const emitChatMessage = (nickname, message, userId, roomId = null) => {
     const { userInfo } = useAppStore.getState();
-    
+
     const messageData = {
       nickname,
       message,
@@ -25,13 +25,13 @@ export const useChatEmitters = (socket, emitLog) => {
   const emitPositive = (id) => {
     const { userInfo } = useAppStore.getState();
     if (!id || !userInfo.nickname) return;
-    
+
     socket.emit('positive', {
       postId: id,
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       action: 'positive',
@@ -42,13 +42,13 @@ export const useChatEmitters = (socket, emitLog) => {
   const emitNegative = (id) => {
     const { userInfo } = useAppStore.getState();
     if (!id || !userInfo.nickname) return;
-    
+
     socket.emit('negative', {
       postId: id,
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       action: 'negative',

@@ -21,7 +21,7 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io, rooms) {
 
-  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId = 1 }) => {
+  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId }) => {
     try {
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
@@ -39,18 +39,12 @@ function setupChatHandlers(socket, io, rooms) {
       // DBにデータ保存
       const p = await SaveChatMessage(messageData);
 
-      // ルームメッセージの場合は、Socket.IOルーム機能で効率的に配信
-      if (roomId && rooms.has(roomId)) {
+      // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
+      const responseData = { ...p, roomId };
+      io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
 
-        console.log(`🏠 [server] Socket.IO ルーム room-${roomId} にメッセージ送信`);
-
-        // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
-        const responseData = { ...p, roomId };
-        io.to(`room-${roomId}`).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
-
-        // ルーム統計をデータベースで更新
-        await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
-      }
+      // ルーム統計をデータベースで更新
+      await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
 
       // ログ記録
       saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId }, spaceId });
