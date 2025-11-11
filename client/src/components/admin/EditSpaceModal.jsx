@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import BaseModal from './ui/BaseModal';
-import RoomConfigSettings from './RoomConfigSettings';
+import SubRoomSettings from './SubRoomSettings';
 
 /**
  * コミュニケーションスペースを編集するためのモーダルコンポーネント
- * 
- * 【新スキーマ roomConfig に完全移行】
- * - 旧 subRoomSettings を完全廃止
- * - roomConfig { mode: 'single'|'multi', rooms: [{name, isDefault}] } のみを使用
  * 
  * @param {Object} props - コンポーネントのプロップス
  * @param {boolean} props.isOpen - モーダルの表示状態
@@ -17,10 +13,10 @@ import RoomConfigSettings from './RoomConfigSettings';
  */
 const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     const [spaceName, setSpaceName] = useState(space?.name || '');
-    const [roomConfig, setRoomConfig] = useState(
-        space?.roomConfig || {
-            mode: 'single',
-            rooms: [{ name: '全体', isDefault: true }]
+    const [subRoomSettings, setSubRoomSettings] = useState(
+        space?.subRoomSettings || space?.settings?.subRoomSettings || {
+            enabled: false,
+            rooms: [{ name: '全体' }]
         }
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,9 +25,9 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     React.useEffect(() => {
         if (space) {
             setSpaceName(space.name || '');
-            setRoomConfig(space.roomConfig || {
-                mode: 'single',
-                rooms: [{ name: '全体', isDefault: true }]
+            setSubRoomSettings(space.subRoomSettings || space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
             });
         }
     }, [space]);
@@ -42,11 +38,10 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
             setIsSubmitting(true);
 
             try {
-                // 新スキーマ roomConfig を直接渡す（変換不要）
                 await onUpdate({
                     id: space.id,
                     name: spaceName,
-                    roomConfig: roomConfig
+                    subRoomSettings: subRoomSettings
                 });
 
                 onClose();
@@ -63,9 +58,9 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
             // フォームをリセット
             if (space) {
                 setSpaceName(space.name || '');
-                setRoomConfig(space.roomConfig || {
-                    mode: 'single',
-                    rooms: [{ name: '全体', isDefault: true }]
+                setSubRoomSettings(space.subRoomSettings || {
+                    enabled: false,
+                    rooms: [{ name: '全体' }]
                 });
             }
             onClose();
@@ -92,10 +87,10 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
                         required
                     />
 
-                    {/* ルーム設定 - 新スキーマ roomConfig を使用 */}
-                    <RoomConfigSettings
-                        roomConfig={roomConfig}
-                        onChange={setRoomConfig}
+                    {/* サブルーム設定（読み取り専用モード） */}
+                    <SubRoomSettings
+                        subRoomSettings={subRoomSettings}
+                        onChange={setSubRoomSettings}
                     />
 
                     <div className="flex justify-end gap-2 mt-4">

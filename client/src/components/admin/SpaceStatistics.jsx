@@ -13,8 +13,8 @@ const SpaceStatistics = ({ activeSpaces = [], finishedSpaces = [] }) => {
     totalSpaces: activeSpaces.length + finishedSpaces.length,
     activeCount: activeSpaces.length,
     finishedCount: finishedSpaces.length,
-    totalRooms: activeSpaces.reduce((total, space) => total + (space.stats?.activeRooms || 0), 0),
-    totalParticipants: activeSpaces.reduce((total, space) => total + (space.stats?.participantCount || 0), 0)
+    totalRooms: activeSpaces.reduce((total, space) => total + (space.roomCount || 0), 0),
+    totalParticipants: activeSpaces.reduce((total, space) => total + (space.participantCount || 0), 0)
   };
 
   // 統計項目の設定

@@ -6,7 +6,7 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { setUserCurrentRoom, setUserOffline, getRoomParticipantCount } = require('../db/userOperations'); // 新しい関数をインポート
+const { setUserCurrentRoom, setUserOffline } = require('../db/userOperations'); // 新しい関数をインポート
 
 const { SOCKET_EVENTS } = require('../constants');
 
@@ -152,55 +152,53 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   });
 
   // その他のルーム関連ハンドラー...
-  // 新スキーマに完全移行: roomConfig (Space), stats (Room) を用いたレスポンスを返す
   socket.on('get-room-list', async (data) => {
     try {
       const { spaceId } = data || {};
 
-      if (spaceId === undefined || spaceId === null) {
-        socket.emit('room-error', { error: 'Space ID required', message: 'スペースIDが指定されていません' });
-        return;
+      let dbRooms;
+      let spaceInfo = null;
+
+      if (spaceId !== undefined && spaceId !== null) {
+        dbRooms = await getActiveRoomsBySpaceId(spaceId);
+        console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
+        
+        // スペース情報も取得してサブルーム設定を含める
+        const { Space } = require('../db');
+        const space = await Space.findOne({ id: spaceId }).lean();
+        if (space) {
+          spaceInfo = {
+            id: space.id,
+            name: space.name,
+            settings: {
+              subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+              }
+            }
+          };
+        }
       }
 
-      // DBからルーム一覧を取得（新スキーマ: stats）
-      const dbRooms = await getActiveRoomsBySpaceId(spaceId);
-      console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
-
-      // スペース情報は新スキーマの roomConfig を返す
-      const { Space } = require('../db');
-      const space = await Space.findOne({ id: spaceId }).lean();
-      const spaceInfo = space ? {
-        id: space.id,
-        name: space.name,
-        roomConfig: space.roomConfig || { mode: 'single', rooms: [{ name: '全体', isDefault: true }] }
-      } : null;
-
-      // ルームごとの参加者数はDB集計を利用（in-memory の participants ではなく信頼できるDBから取得）
-      const roomListPromises = dbRooms.map(async (dbRoom) => {
-        // getRoomParticipantCount は User コレクションを参照してオンライン人数をカウントする
-        const participantCount = await getRoomParticipantCount(dbRoom.spaceId, dbRoom.id);
-
+      const roomList = dbRooms.map(dbRoom => {
+        const memoryRoom = rooms.get(dbRoom.id);
         return {
           id: dbRoom.id,
           name: dbRoom.name,
-          spaceId: dbRoom.spaceId,
-          participantCount,
-          // 新スキーマの stats を優先して値を返す
-          messageCount: dbRoom.stats?.messageCount || 0,
-          lastActivity: dbRoom.stats?.lastActivity || dbRoom.createdAt,
+          spaceId: dbRoom.spaceId, // spaceIdを含める
+          participantCount: memoryRoom ? memoryRoom.participants.size : 0,
+          messageCount: dbRoom.messageCount || 0,
+          lastActivity: dbRoom.lastActivity,
           createdAt: dbRoom.createdAt,
-          // 旧 settings は廃止。新しい設計意図を明示するために roomConfig 側で表現する。
-          // 注意: ここでは部屋固有設定は返さない（シンプル化のため）
+          settings: dbRoom.settings
         };
       });
 
-      const roomList = await Promise.all(roomListPromises);
-
       // スペース情報も含めて送信
-      socket.emit('room-list', {
-        rooms: roomList,
+      socket.emit('room-list', { 
+        rooms: roomList, 
         spaceId,
-        spaceInfo
+        spaceInfo: spaceInfo
       });
 
     } catch (error) {

@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import BaseModal from './ui/BaseModal';
-import RoomConfigSettings from './RoomConfigSettings';
+import SubRoomSettings from './SubRoomSettings';
 
 /**
  * コミュニケーションスペースを追加するためのモーダルコンポーネント
- * 
- * 【新スキーマ roomConfig に完全移行】
- * - 旧 subRoomSettings を完全廃止
- * - roomConfig { mode: 'single'|'multi', rooms: [{name, isDefault}] } のみを使用
  * 
  * @param {Object} props - コンポーネントのプロップス
  * @param {boolean} props.isOpen - モーダルの表示状態
@@ -17,9 +13,9 @@ import RoomConfigSettings from './RoomConfigSettings';
 const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     const [spaceName, setSpaceName] = useState('');
     const [spaceOptions, setSpaceOptions] = useState('');
-    const [roomConfig, setRoomConfig] = useState({
-        mode: 'single',
-        rooms: [{ name: '全体', isDefault: true }]
+    const [subRoomSettings, setSubRoomSettings] = useState({
+        enabled: false,
+        rooms: [{ name: '全体' }]
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,20 +25,19 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
             setIsSubmitting(true);
 
             try {
-                // 新スキーマ roomConfig を直接渡す（変換不要）
                 await onAdd({
                     id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
                     name: spaceName,
                     options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`,
-                    roomConfig: roomConfig
+                    subRoomSettings: subRoomSettings
                 });
 
                 // フォームをリセット
                 setSpaceName('');
                 setSpaceOptions('');
-                setRoomConfig({
-                    mode: 'single',
-                    rooms: [{ name: '全体', isDefault: true }]
+                setSubRoomSettings({
+                    enabled: false,
+                    rooms: [{ name: '全体' }]
                 });
                 onClose();
             } catch (error) {
@@ -57,9 +52,9 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
         if (!isSubmitting) {
             setSpaceName('');
             setSpaceOptions('');
-            setRoomConfig({
-                mode: 'single',
-                rooms: [{ name: '全体', isDefault: true }]
+            setSubRoomSettings({
+                enabled: false,
+                rooms: [{ name: '全体' }]
             });
             onClose();
         }
@@ -85,10 +80,10 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                         required
                     />
 
-                    {/* ルーム設定 - 新スキーマ roomConfig を使用 */}
-                    <RoomConfigSettings
-                        roomConfig={roomConfig}
-                        onChange={setRoomConfig}
+                    {/* サブルーム設定 */}
+                    <SubRoomSettings
+                        subRoomSettings={subRoomSettings}
+                        onChange={setSubRoomSettings}
                     />
 
                     <div className="flex justify-end gap-2 mt-4">
