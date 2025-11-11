@@ -7,8 +7,8 @@ console.log('process env MONGODB_URL', process.env.MONGODB_URL);
 
 // mongoose 接続~
 mongoose.connect(MONGODB_URL, {})
-    .then(async () => { 
-        console.log('MongoDB connected'); 
+    .then(async () => {
+        console.log('MongoDB connected');
     })
     .catch(err => { console.error('MongoDB connection error:', err); });
 
@@ -28,10 +28,10 @@ const userSchema = new mongoose.Schema({
     status: String, // 属性
     ageGroup: String, // 年代
     socketId: [],
-    
+
     // スペースID（ユーザーはスペースごとに別レコードとして管理）
     spaceId: { type: Number, required: true },
-    
+
     // ログイン履歴
     loginHistory: [{
         socketId: String,
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
         ipAddress: String, // 将来的にIPアドレスも記録できる
         userAgent: String  // 将来的にブラウザ情報も記録できる
     }],
-    
+
     // 最後のログイン日時（クエリ最適化用）
     lastLoginAt: { type: Date, default: Date.now }
 }, options);
@@ -56,16 +56,16 @@ const roomSchema = new mongoose.Schema({
     id: { type: String, unique: true, required: true }, // ルームID（room-1, room-2など）
     spaceId: { type: Number, required: true }, // 所属スペースID（整数）
     name: { type: String, required: true }, // ルーム名
-    
+
     // ルームの設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
     maxParticipants: { type: Number, default: 100 }, // 最大参加者数
-    
+
     // 統計情報（パフォーマンス向上のため）
     messageCount: { type: Number, default: 0 }, // メッセージ数
     participantCount: { type: Number, default: 0 }, // 現在の参加者数
     lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
-    
+
     // ルーム固有の設定
     settings: {
         autoDeleteMessages: { type: Boolean, default: false }, // メッセージ自動削除
@@ -86,44 +86,22 @@ const Room = mongoose.model("Room", roomSchema);
 const spaceSchema = new mongoose.Schema({
     id: { type: Number, unique: true, required: true }, // 1, 2, 3など（整数）
     name: { type: String, required: true }, // スペース名
-    
+
     // スペース設定
     isActive: { type: Boolean, default: true }, // アクティブ状態
     isFinished: { type: Boolean, default: false }, // 終了フラグ
     finishedAt: { type: Date, default: null }, // 終了日時
-    
+
     // 統計情報（パフォーマンス向上のため）
     roomCount: { type: Number, default: 0 }, // ルーム数
     totalMessageCount: { type: Number, default: 0 }, // 総メッセージ数
     participantCount: { type: Number, default: 0 }, // 現在の参加者数
     lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
-    
+
     // スペース固有の設定
     settings: {
-        theme: { type: String, default: 'default' }, // テーマ設定
-        
-        // サブルーム設定
-        subRoomSettings: {
-            enabled: { type: Boolean, default: false }, // サブルーム機能有効/無効
-            rooms: [{
-                name: { 
-                    type: String, 
-                    required: true, 
-                    maxlength: 10, 
-                    minlength: 1,
-                    validate: {
-                        validator: function(v) {
-                            // 禁止文字チェック
-                            const forbiddenChars = /[\/\\<>"'&]/;
-                            // 予約語チェック
-                            const reservedWords = ['admin', 'system', 'api'];
-                            return !forbiddenChars.test(v) && !reservedWords.includes(v.toLowerCase());
-                        },
-                        message: 'ルーム名に使用できない文字または予約語が含まれています'
-                    }
-                },
-            }]
-        }
+        theme: { type: String, default: 'default' } // テーマ設定
+        // サブルーム設定は廃止（常に1つの"全体"ルームのみ）
     }
 }, options);
 
