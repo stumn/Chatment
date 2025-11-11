@@ -45,20 +45,9 @@ const useRoomStore = create((set, get) => ({
 
     // 現在のスペース情報を設定
     setCurrentSpaceInfo: (spaceInfo) => {
-        // 新しいroomConfigフィールドから直接subRoomSettingsを構築
-        const subRoomSettings = spaceInfo?.roomConfig
-            ? {
-                enabled: spaceInfo.roomConfig.mode === 'multi',
-                rooms: spaceInfo.roomConfig.rooms || [{ name: '全体' }]
-              }
-            : {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-              };
-        
         set({ 
             currentSpaceInfo: spaceInfo,
-            subRoomSettings
+            subRoomSettings: spaceInfo?.settings?.subRoomSettings || null
         });
     },
 
@@ -71,22 +60,10 @@ const useRoomStore = create((set, get) => ({
     // ルーム一覧とスペース情報を同時に更新
     updateRoomsAndSpaceInfo: (rooms, spaceInfo) => {
         console.log('🔄 [roomStore] ルーム一覧とスペース情報を同時更新');
-        
-        // 新しいroomConfigフィールドから直接subRoomSettingsを構築
-        const subRoomSettings = spaceInfo?.roomConfig
-            ? {
-                enabled: spaceInfo.roomConfig.mode === 'multi',
-                rooms: spaceInfo.roomConfig.rooms || [{ name: '全体' }]
-              }
-            : {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-              };
-        
         set({ 
             rooms,
             currentSpaceInfo: spaceInfo,
-            subRoomSettings
+            subRoomSettings: spaceInfo?.settings?.subRoomSettings || null
         });
     },
 

@@ -6,12 +6,10 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { setUserCurrentRoom, setUserOffline } = require('../db/userOperations'); // 新しい関数をインポート
-
 const { SOCKET_EVENTS } = require('../constants');
 
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
-  socket.on(SOCKET_EVENTS.JOIN_ROOM, async ({ roomId, userId, nickname, userInfo }) => {
+  socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
     try {
 
       if (!rooms.has(roomId)) {
@@ -47,9 +45,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       socket.userId = userId;
       socket.roomId = roomId;
       socket.nickname = nickname;
-
-      // 新機能: DBのUser.currentRoomを更新
-      await setUserCurrentRoom(userId, roomId);
 
       // Socket.IOのルーム機能を使用
       if (socket.currentSocketRoom) {
@@ -94,7 +89,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
     }
   });
 
-  socket.on(SOCKET_EVENTS.LEAVE_ROOM, async ({ roomId, userId, nickname }) => {
+  socket.on(SOCKET_EVENTS.LEAVE_ROOM, ({ roomId, userId, nickname }) => {
     try {
       console.log(`👋 [server] ルーム退出要求: ${nickname} -> ${roomId}`);
 
@@ -112,9 +107,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       const room = rooms.get(roomId);
       room.participants.delete(userId);
       userRooms.delete(userId);
-
-      // 新機能: DBのUser.currentRoomをクリア
-      await setUserCurrentRoom(userId, null);
 
       // Socket.IOルームからも退出
       if (socket.currentSocketRoom) {
@@ -221,50 +213,6 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
     } catch (error) {
       console.error('Error fetching room history:', error);
       socket.emit('room-error', { error: error.message, roomId, message: 'ルーム履歴取得中にエラーが発生しました' });
-    }
-  });
-
-  // 新機能: ディスコネクト時の処理
-  socket.on('disconnect', async () => {
-    try {
-      const userId = socket.userId;
-      const nickname = socket.nickname;
-      const roomId = socket.roomId;
-
-      if (userId) {
-        console.log(`🔌 [server] ユーザー切断: ${nickname} (${userId})`);
-
-        // ユーザーをオフライン状態に設定
-        await setUserOffline(userId);
-
-        // ルームから退出
-        if (roomId && rooms.has(roomId)) {
-          const room = rooms.get(roomId);
-          room.participants.delete(userId);
-          userRooms.delete(userId);
-
-          // 他の参加者に退出を通知
-          room.participants.forEach(participantUserId => {
-            const participantSocket = userSockets.get(participantUserId);
-            if (participantSocket) {
-              participantSocket.emit('user-left', {
-                roomId,
-                userId,
-                nickname,
-                participantCount: room.participants.size
-              });
-            }
-          });
-
-          console.log(`👋 [server] ${nickname} が ${roomId} から切断により退出 (参加者数: ${room.participants.size})`);
-        }
-
-        // userSocketsから削除
-        userSockets.delete(userId);
-      }
-
-    } catch (error) {
-      console.error('Error in disconnect handler:', error);
     }
   });
 }

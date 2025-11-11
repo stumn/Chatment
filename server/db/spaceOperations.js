@@ -68,22 +68,31 @@ async function migrateExistingDataToSpace() {
 // --- アクティブなスペース一覧を取得 ---
 async function getActiveSpaces() {
     try {
-        // アクティブスペースのIDを取得（新しいスキーマのみ）
-        const spaceIds = await Space.find({ status: 'active' }).select('id').lean().exec();
+        // まずアクティブスペースのIDを取得
+        const spaceIds = await Space.find({ isActive: true }).select('id').lean().exec();
 
         // 各スペースの統計情報を更新
         console.log(`📊 [spaceOperation] ${spaceIds.length} アクティブスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
 
         // 更新後のアクティブスペースデータを取得
-        const spaces = await Space.find({ status: 'active' })
-            .sort({ 'stats.lastActivity': -1 })
+        const spaces = await Space.find({ isActive: true })
+            .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
         console.log(`🌍 [spaceOperation] アクティブスペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
-        return spaces;
+        // フロントエンド用にデータ構造を平坦化
+        const flattenedSpaces = spaces.map(space => ({
+            ...space,
+            subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        }));
+
+        return flattenedSpaces;
 
     } catch (error) {
         handleErrors(error, 'アクティブスペース取得中にエラーが発生しました');
@@ -100,7 +109,16 @@ async function getSpaceById(spaceId) {
             return null;
         }
 
-        return space;
+        // フロントエンド用にデータ構造を平坦化
+        const flattenedSpace = {
+            ...space,
+            subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        };
+
+        return flattenedSpace;
 
     } catch (error) {
         handleErrors(error, `スペース情報取得中にエラーが発生しました: ${spaceId}`);
@@ -119,25 +137,19 @@ async function createSpace(spaceData) {
             throw new Error(`スペースID ${id} は既に存在します`);
         }
 
-        // roomConfig の構築（新形式のみ）
-        const roomConfig = {
-            mode: subRoomSettings?.enabled ? 'multi' : 'single',
-            rooms: (subRoomSettings?.rooms || [{ name: '全体' }]).map((room, index) => ({
-                name: room.name,
-                isDefault: index === 0
-            }))
+        // subRoomSettings のデフォルト値設定
+        const finalSubRoomSettings = {
+            enabled: subRoomSettings?.enabled || false,
+            rooms: subRoomSettings?.rooms || [{ name: '全体' }]
         };
 
-        // 新しいスペースを作成（新しいスキーマのみ）
+        // 新しいスペースを作成
         const newSpace = await Space.create({
             id,
             name,
-            status: 'active',
-            roomConfig: roomConfig,
-            stats: {
-                totalMessages: 0,
-                activeRooms: 0,
-                lastActivity: new Date()
+            settings: {
+                theme: settings.theme || 'default',
+                subRoomSettings: finalSubRoomSettings
             }
         });
 
@@ -147,7 +159,16 @@ async function createSpace(spaceData) {
         const createdRooms = await createDefaultRoomsForSpace(id);
         console.log(`🏠 [spaceOperation] スペース ${id} のルーム作成完了: ${createdRooms.length}件`);
 
-        return newSpace.toObject();
+        // フロントエンド用にデータ構造を平坦化して返す
+        const flattenedSpace = {
+            ...newSpace.toObject(),
+            subRoomSettings: newSpace.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        };
+
+        return flattenedSpace;
 
     } catch (error) {
         handleErrors(error, 'スペース作成中にエラーが発生しました');
@@ -180,15 +201,8 @@ async function updateSpace(spaceId, updateData) {
                 rooms: subRoomSettings.rooms || [{ name: '全体' }]
             };
 
-            // 新形式のroomConfigを更新（新しいスキーマのみ）
-            const roomConfig = {
-                mode: finalSubRoomSettings.enabled ? 'multi' : 'single',
-                rooms: finalSubRoomSettings.rooms.map((room, index) => ({
-                    name: room.name,
-                    isDefault: index === 0
-                }))
-            };
-            updateFields.roomConfig = roomConfig;
+            // settings.subRoomSettings を更新
+            updateFields['settings.subRoomSettings'] = finalSubRoomSettings;
 
             // サブルーム機能が有効で新しいルームが追加された場合、実際のルームも作成
             if (finalSubRoomSettings.enabled) {
@@ -201,16 +215,16 @@ async function updateSpace(spaceId, updateData) {
                         // ユニークなルームIDを生成（タイムスタンプベース）
                         const roomId = `space${spaceId}-room${Date.now()}-${i}`;
 
-                        // 新しいルームを作成（新形式のみ）
+                        // 新しいルームを作成
                         await Room.create({
                             id: roomId,
                             name: roomData.name,
                             spaceId: spaceId,
                             isActive: true,
-                            isDefault: i === 0,
-                            stats: {
-                                messageCount: 0,
-                                lastActivity: new Date()
+                            settings: {
+                                autoDeleteMessages: false,
+                                messageRetentionDays: 30,
+                                allowAnonymous: true
                             }
                         });
                         console.log(`🏠 [spaceOperation] 新規ルーム作成: ${roomData.name} (ID: ${roomId}, スペース: ${spaceId})`);
@@ -235,7 +249,16 @@ async function updateSpace(spaceId, updateData) {
         // 統計情報を更新
         await updateSpaceStats(spaceId);
 
-        return updatedSpace.toObject();
+        // フロントエンド用にデータ構造を平坦化して返す
+        const flattenedSpace = {
+            ...updatedSpace.toObject(),
+            subRoomSettings: updatedSpace.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        };
+
+        return flattenedSpace;
 
     } catch (error) {
         handleErrors(error, `スペース更新中にエラーが発生しました: ${spaceId}`);
@@ -268,10 +291,10 @@ async function updateSpaceStats(spaceId) {
             .exec();
 
         const updateData = {
-            'stats.activeRooms': roomCount,
-            'stats.totalMessages': totalMessageCount,
-            'stats.participantCount': participantCount,
-            ...(lastPost && { 'stats.lastActivity': lastPost.createdAt })
+            roomCount,
+            totalMessageCount,
+            participantCount,
+            ...(lastPost && { lastActivity: lastPost.createdAt })
         };
 
         await Space.findOneAndUpdate(
@@ -363,8 +386,9 @@ async function finishSpace(spaceId) {
             { id: spaceId },
             {
                 $set: {
-                    status: 'finished',
-                    finishedAt: new Date()
+                    isFinished: true,
+                    finishedAt: new Date(),
+                    isActive: false // 終了時に非アクティブ化も行う
                 }
             },
             { new: true }
@@ -386,22 +410,31 @@ async function finishSpace(spaceId) {
 // --- 終了済みスペース一覧を取得 ---
 async function getFinishedSpaces() {
     try {
-        // 終了済みスペースのIDを取得（新しいスキーマのみ）
-        const spaceIds = await Space.find({ status: 'finished' }).select('id').lean().exec();
+        // まず終了済みスペースのIDを取得
+        const spaceIds = await Space.find({ isFinished: true }).select('id').lean().exec();
 
         // 各スペースの統計情報を更新
         console.log(`📊 [spaceOperation] ${spaceIds.length} 終了済みスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
 
         // 更新後の終了済みスペースデータを取得
-        const spaces = await Space.find({ status: 'finished' })
+        const spaces = await Space.find({ isFinished: true })
             .sort({ finishedAt: -1 })
             .lean()
             .exec();
 
         console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
-        return spaces;
+        // フロントエンド用にデータ構造を平坦化
+        const flattenedSpaces = spaces.map(space => ({
+            ...space,
+            subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        }));
+
+        return flattenedSpaces;
 
     } catch (error) {
         handleErrors(error, '終了済みスペース取得中にエラーが発生しました');
@@ -427,7 +460,16 @@ async function getAllSpaces() {
 
         console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得（統計情報更新済み）`);
 
-        return spaces;
+        // フロントエンド用にデータ構造を平坦化
+        const flattenedSpaces = spaces.map(space => ({
+            ...space,
+            subRoomSettings: space.settings?.subRoomSettings || {
+                enabled: false,
+                rooms: [{ name: '全体' }]
+            }
+        }));
+
+        return flattenedSpaces;
 
     } catch (error) {
         handleErrors(error, '全スペース取得中にエラーが発生しました');

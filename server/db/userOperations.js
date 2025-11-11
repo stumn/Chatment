@@ -47,17 +47,13 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
             // 最後のログイン日時を更新
             existingUser.lastLoginAt = new Date();
             
-            // オンライン状態と最終アクティブ時刻を更新（新しいスキーマのみ）
-            existingUser.isOnline = true;
-            existingUser.lastSeen = new Date();
-            
             // 保存
             const updatedUser = await existingUser.save();
             console.log('📝 既存ユーザーを更新:', nickname, 'スペース:', spaceId, '(', spaceExists.name, ')');
             
             return updatedUser;
         } else {
-            // 新規ユーザーの場合、作成（新しいスキーマのみ）
+            // 新規ユーザーの場合、作成
             const userData = { 
                 nickname, 
                 status, 
@@ -68,10 +64,7 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
                     socketId: socketId,
                     loginAt: new Date()
                 }],
-                lastLoginAt: new Date(),
-                isOnline: true,
-                lastSeen: new Date()
-                // currentRoom は後でルーム参加時に設定
+                lastLoginAt: new Date()
             };
 
             const newUser = await User.create(userData);
@@ -246,90 +239,6 @@ async function getSpaceUserStats(spaceId) {
     }
 }
 
-// --- 新機能: ルームの参加者数を取得 ---
-async function getRoomParticipantCount(spaceId, roomId) {
-    try {
-        const count = await User.countDocuments({
-            spaceId,
-            currentRoom: roomId,
-            isOnline: true
-        });
-        
-        console.log(`👥 [userOperations] ルーム ${roomId} の参加者数: ${count}`);
-        return count;
-        
-    } catch (error) {
-        handleErrors(error, `ルーム参加者数取得時にエラーが発生しました: ${roomId}`);
-        return 0;
-    }
-}
-
-// --- 新機能: スペースの総参加者数を取得 ---
-async function getSpaceParticipantCount(spaceId) {
-    try {
-        const count = await User.countDocuments({
-            spaceId,
-            isOnline: true
-        });
-        
-        console.log(`👥 [userOperations] スペース ${spaceId} の参加者数: ${count}`);
-        return count;
-        
-    } catch (error) {
-        handleErrors(error, `スペース参加者数取得時にエラーが発生しました: ${spaceId}`);
-        return 0;
-    }
-}
-
-// --- 新機能: ユーザーのオフライン状態を設定 ---
-async function setUserOffline(userId) {
-    try {
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            {
-                isOnline: false,
-                lastSeen: new Date(),
-                currentRoom: null
-            },
-            { new: true }
-        );
-        
-        if (updatedUser) {
-            console.log(`🔌 [userOperations] ユーザーがオフラインになりました: ${updatedUser.nickname}`);
-        }
-        
-        return updatedUser;
-        
-    } catch (error) {
-        handleErrors(error, `ユーザーオフライン設定時にエラーが発生しました: ${userId}`);
-        return null;
-    }
-}
-
-// --- 新機能: ユーザーの現在のルームを設定 ---
-async function setUserCurrentRoom(userId, roomId) {
-    try {
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            {
-                currentRoom: roomId,
-                lastSeen: new Date()
-            },
-            { new: true }
-        );
-        
-        if (updatedUser) {
-            console.log(`🏠 [userOperations] ユーザー ${updatedUser.nickname} のルームを更新: ${roomId}`);
-        }
-        
-        return updatedUser;
-        
-    } catch (error) {
-        handleErrors(error, `ユーザールーム設定時にエラーが発生しました: ${userId}`);
-        return null;
-    }
-}
-
 module.exports = {
     saveUser,
     getPastLogs,
@@ -339,9 +248,5 @@ module.exports = {
     getUserLoginHistory,
     getActiveUsers,
     getUserSpaceHistory,
-    getSpaceUserStats,
-    getRoomParticipantCount, // 新機能: ルーム参加者数
-    getSpaceParticipantCount, // 新機能: スペース参加者数
-    setUserOffline, // 新機能: ユーザーオフライン設定
-    setUserCurrentRoom // 新機能: ユーザールーム設定
+    getSpaceUserStats
 };

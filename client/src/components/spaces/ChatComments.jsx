@@ -25,21 +25,18 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
             // 基本的な空白行除外
             if (!msg || !msg.msg || msg.msg.trim() === "") return false;
             
-            // 全ての投稿を表示（見出し行も含む）
-            return true;
-            
-            // ソース情報による判定（コメントアウト）
+            // ソース情報による判定
             // - 'chat' ソース: 常に表示（チャット入力からの投稿）
             // - 'document' ソース: 見出し以外は表示（ドキュメント編集からの通常テキスト）
             // - ソース不明（既存データ）: 見出し行以外は表示（後方互換性）
-            // if (msg.source === 'chat') {
-            //     return true; // チャット入力からの投稿は常に表示
-            // } else if (msg.source === 'document') {
-            //     return !msg.msg.trim().startsWith('#'); // ドキュメント編集からの見出し以外は表示
-            // } else {
-            //     // 既存データ（sourceフィールドなし）の場合、見出し行以外を表示
-            //     return !msg.msg.trim().startsWith('#');
-            // }
+            if (msg.source === 'chat') {
+                return true; // チャット入力からの投稿は常に表示
+            } else if (msg.source === 'document') {
+                return !msg.msg.trim().startsWith('#'); // ドキュメント編集からの見出し以外は表示
+            } else {
+                // 既存データ（sourceフィールドなし）の場合、見出し行以外を表示
+                return !msg.msg.trim().startsWith('#');
+            }
         });
         
         // timeプロパティを生成して付与
