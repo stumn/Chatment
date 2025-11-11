@@ -35,7 +35,7 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
         {space.name}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
-        {space.roomCount || 0} ルーム / {space.participantCount || 0} 参加者
+        {space.stats?.activeRooms || 0} ルーム / {space.stats?.participantCount || 0} 参加者
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
         <button
@@ -86,7 +86,7 @@ const ActiveSpacesSection = ({
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">アクティブなコミュニケーションスペース</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">アクティブなスペース</h2>
         <button
           className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
           onClick={onAddSpaceClick}
@@ -96,7 +96,7 @@ const ActiveSpacesSection = ({
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', 'ステータス', 'アクション']} />
+          <TableHeader columns={['スペース名', '統計', 'アクション']} />
           <tbody>
             {activeSpaces.length > 0 ? (
               activeSpaces.map(space => (

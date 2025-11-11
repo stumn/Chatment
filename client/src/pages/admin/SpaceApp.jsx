@@ -122,9 +122,9 @@ function SpaceApp() {
   };
 
   return (
-    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8" 
-    style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
-      <h1 className="text-3xl font-bold text-gray-800 mb-10">コミュニケーションスペース管理</h1>
+    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8"
+      style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
+      <h1 className="text-3xl font-bold text-gray-800 mb-10">Chatment スペース管理</h1>
 
       {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
       <SpaceMessageModal
@@ -134,16 +134,16 @@ function SpaceApp() {
         error={error}
         onErrorClear={clearError}
         isLoading={isLoading}
-        
+
         // 統計情報関連（将来的に使用）
         activeSpaces={activeSpaces}
         finishedSpaces={finishedSpaces}
-        
+
         // 追加モーダル関連
         isAddModalOpen={isAddModalOpen}
         onAddModalClose={() => setIsAddModalOpen(false)}
         onAddSpace={handleAddSpace}
-        
+
         // 編集モーダル関連
         isEditModalOpen={isEditModalOpen}
         onEditModalClose={handleEditModalClose}
