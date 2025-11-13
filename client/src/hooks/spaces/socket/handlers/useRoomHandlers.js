@@ -3,7 +3,7 @@ import useRoomStore from '../../../../store/spaces/roomStore';
 import useAppStore from '../../../../store/spaces/appStore';
 import { validUserId } from '../utils/socketUtils';
 
-export const useRoomHandlers = (emitLog) => {
+export const useRoomHandlers = (emitLog, roomEmitters) => {
   const addMessage = usePostStore((state) => state.addPost);
   const getRoomMessages = usePostStore((state) => state.getRoomMessages);
 
@@ -20,8 +20,15 @@ export const useRoomHandlers = (emitLog) => {
 
     // postStoreの表示をルーム用に切り替え（キャッシュから復元）
     const cachedMessages = getRoomMessages(data.roomId);
-    if (cachedMessages) {
+    if (cachedMessages && cachedMessages.length > 0) {
+      console.log(`📦 [roomHandlers] キャッシュから復元: ${cachedMessages.length}件`);
       usePostStore.getState().setPosts(cachedMessages);
+    } else {
+      console.log(`📭 [roomHandlers] キャッシュなし、ルーム履歴を取得します`);
+      // キャッシュがない場合は、サーバーからルーム履歴を取得
+      if (roomEmitters && roomEmitters.emitFetchRoomHistory) {
+        roomEmitters.emitFetchRoomHistory(data.roomId);
+      }
     }
 
     const userInfo = useAppStore.getState().userInfo;
@@ -106,13 +113,21 @@ export const useRoomHandlers = (emitLog) => {
         // ルーム一覧のみ更新（後方互換性）
         useRoomStore.getState().setRooms(data.rooms);
       }
-      
+
       // ルーム一覧を受信したら、最初のルームに自動参加
       if (data.rooms.length > 0) {
         const firstRoom = data.rooms[0];
         console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
-        // emitLogを使用してルーム参加をサーバーに送信
+
+        // ログ記録
         emitLog('join-room', { roomId: firstRoom.id });
+
+        // roomEmittersを使ってルーム参加を送信
+        if (roomEmitters && roomEmitters.emitJoinRoom) {
+          roomEmitters.emitJoinRoom(firstRoom.id);
+        } else {
+          console.error('❌ roomEmitters.emitJoinRoom が利用できません');
+        }
       } else {
         console.warn('⚠️ 利用可能なルームが見つかりませんでした');
       }

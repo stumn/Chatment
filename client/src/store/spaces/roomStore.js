@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-const DEFAULT_ROOM_ID = 'space0-main'; // デフォルトのルームID
 
 const useRoomStore = create((set, get) => ({
     // 現在アクティブなルームID（サブルーム廃止により常に"全体"ルーム）
-    activeRoomId: DEFAULT_ROOM_ID,
+    // 初期値はnull、ルーム参加時に設定される
+    activeRoomId: null,
 
     // ルーム一覧データ（サブルーム廃止により常に1つのみ）
     rooms: [],

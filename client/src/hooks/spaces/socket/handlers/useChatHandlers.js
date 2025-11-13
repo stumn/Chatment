@@ -6,6 +6,12 @@ export const useChatHandlers = (emitLog) => {
   const addMessage = usePostStore((state) => state.addPost);
 
   const handleChatMessage = (data) => {
+    console.log(`📥 [useChatHandlers] チャットメッセージ受信:`, {
+      hasRoomId: !!data.roomId,
+      roomId: data.roomId,
+      messagePreview: data.message?.substring(0, 50)
+    });
+
     // ルームメッセージの場合、現在のアクティブルームと一致するかチェック
     if (data.roomId) {
       const currentRoomId = useRoomStore.getState().activeRoomId;

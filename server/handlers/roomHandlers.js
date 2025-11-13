@@ -11,6 +11,12 @@ const { SOCKET_EVENTS } = require('../constants');
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
   socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
     try {
+      console.log(`🚪 [roomHandlers] ルーム参加リクエスト受信:`, {
+        roomId,
+        userId,
+        nickname,
+        roomExists: rooms.has(roomId)
+      });
 
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
@@ -51,9 +57,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         socket.leave(socket.currentSocketRoom);
       }
 
-      const socketRoomName = `room-${roomId}`;
-      socket.join(socketRoomName);
-      socket.currentSocketRoom = socketRoomName;
+      // roomIdをそのままSocket.IOのルーム名として使用
+      socket.join(roomId);
+      socket.currentSocketRoom = roomId;
+
+      console.log(`🔌 [roomHandlers] Socket.IOルーム参加: ${roomId} (Socket ID: ${socket.id})`);
 
       // 参加成功をクライアントに通知
       socket.emit('room-joined', {
@@ -154,7 +162,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       if (spaceId !== undefined && spaceId !== null) {
         dbRooms = await getActiveRoomsBySpaceId(spaceId);
         console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
-        
+
         // スペース情報も取得してサブルーム設定を含める
         const { Space } = require('../db');
         const space = await Space.findOne({ id: spaceId }).lean();
@@ -187,8 +195,8 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       });
 
       // スペース情報も含めて送信
-      socket.emit('room-list', { 
-        rooms: roomList, 
+      socket.emit('room-list', {
+        rooms: roomList,
         spaceId,
         spaceInfo: spaceInfo
       });
@@ -206,7 +214,8 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         return;
       }
 
-      const messages = await getRoomHistory(roomId, 50);
+      // spaceIdはroomIdから自動抽出されるので、第2引数は不要
+      const messages = await getRoomHistory(roomId);
 
       socket.emit('room-history', { roomId, messages });
 

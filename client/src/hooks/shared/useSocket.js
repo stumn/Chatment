@@ -31,18 +31,18 @@ export default function useSocket() {
   // emitLog関数を作成
   const emitLog = createEmitLog(socket);
 
-  // 各ハンドラーフックを呼び出し
-  const basicHandlers = useBasicHandlers(socket);
-  const chatHandlers = useChatHandlers(emitLog);
-  const docHandlers = useDocHandlers(emitLog);
-  const lockHandlers = useLockHandlers(emitLog);
-  const roomHandlers = useRoomHandlers(emitLog);
-
   // 各エミッターフックを呼び出し
   const basicEmitters = useBasicEmitters(socket, emitLog);
   const chatEmitters = useChatEmitters(socket, emitLog);
   const docEmitters = useDocEmitters(socket, emitLog);
   const roomEmitters = useRoomEmitters(socket, emitLog);
+
+  // 各ハンドラーフックを呼び出し
+  const basicHandlers = useBasicHandlers(socket);
+  const chatHandlers = useChatHandlers(emitLog);
+  const docHandlers = useDocHandlers(emitLog);
+  const lockHandlers = useLockHandlers(emitLog);
+  const roomHandlers = useRoomHandlers(emitLog, roomEmitters); // roomEmittersを渡す
 
   useEffect(() => {
     // heightChangeハンドラーは状態更新のため、ここで定義
@@ -52,10 +52,10 @@ export default function useSocket() {
     const enhancedHandleConnectOK = (userInfo) => {
       // 既存の処理を実行
       basicHandlers.handleConnectOK(userInfo);
-      
+
       // 認証完了後にルーム関連の処理を実行
       console.log('🔐 認証完了後の処理を開始:', userInfo);
-      
+
       // ルーム一覧を取得（一覧取得後にルーム参加処理は別途ハンドラーで実行）
       roomEmitters.emitGetRoomList();
     };
