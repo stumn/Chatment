@@ -42,18 +42,21 @@ function setupChatHandlers(socket, io, rooms) {
       // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
       const responseData = { ...p, roomId };
 
-      // デバッグ: このルームにいるソケットを確認
-      const socketsInRoom = await io.in(roomId).fetchSockets();
-      console.log(`📤 [chatHandlers] メッセージをルームに送信: ${roomId}`, {
-        messagePreview: message.substring(0, 50),
-        roomId,
-        hasRoomId: !!roomId,
-        socketsInRoom: socketsInRoom.length,
-        socketIds: socketsInRoom.map(s => s.id)
-      });
-
+      // メッセージをルームに送信
       io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
 
+      // デバッグ: このルームにいるソケットを確認（送信後に非同期で取得）
+      io.in(roomId).fetchSockets().then(socketsInRoom => {
+        console.log(`📤 [chatHandlers] メッセージをルームに送信: ${roomId}`, {
+          messagePreview: message.substring(0, 50),
+          roomId,
+          hasRoomId: !!roomId,
+          socketsInRoom: socketsInRoom.length,
+          socketIds: socketsInRoom.map(s => s.id)
+        });
+      }).catch(e => {
+        console.error(`[chatHandlers] fetchSockets error for room ${roomId}:`, e);
+      });
       // ルーム統計をデータベースで更新
       await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
 
