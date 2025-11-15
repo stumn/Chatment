@@ -215,6 +215,12 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       }
 
       // spaceIdはroomIdから自動抽出されるので、第2引数は不要
+      /**
+       * getRoomHistory(roomId)
+       * @param {string} roomId - The ID of the room whose history is to be fetched.
+       * @returns {Promise<Array>} - Resolves to an array of message objects for the room.
+       * Note: spaceId is automatically extracted from roomId inside the function, so no second argument is needed.
+       */
       const messages = await getRoomHistory(roomId);
 
       socket.emit('room-history', { roomId, messages });
