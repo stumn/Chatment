@@ -41,7 +41,6 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
                 transition: 'margin-left 0.3s ease' // スムーズな移動
             }}>
 
-            {/* 目次コンポーネント */}
             <Sidebar isOpen={isTocOpen} onToggle={toggleToc} userInfo={userInfo} spaceId={spaceId} />
 
             <div
