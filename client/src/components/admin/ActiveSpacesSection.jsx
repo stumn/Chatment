@@ -86,7 +86,7 @@ const ActiveSpacesSection = ({
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">アクティブなコミュニケーションスペース</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">アクティブスペース</h2>
         <button
           className="px-4 py-2 !bg-blue-500 text-white border-none rounded text-sm font-medium cursor-pointer mr-2 hover:!bg-blue-600 transition-colors duration-150"
           onClick={onAddSpaceClick}

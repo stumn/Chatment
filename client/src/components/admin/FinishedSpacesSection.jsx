@@ -100,7 +100,7 @@ const FinishedSpaceRow = ({ space }) => {
 const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したコミュニケーションスペース</h2>
+      <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したスペース</h2>
       <div className="overflow-x-auto">
         <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
           <TableHeader columns={['スペース名', 'エクスポート', '終了日時', 'アクション']} />

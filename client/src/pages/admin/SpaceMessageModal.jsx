@@ -1,7 +1,6 @@
 import React from 'react';
 import AddSpaceModal from '../../components/admin/AddSpaceModal';
 import EditSpaceModal from '../../components/admin/EditSpaceModal';
-import SpaceStatistics from '../../components/admin/SpaceStatistics';
 import { LoadingMessage, SuccessMessage, ErrorMessage } from '../../components/shared/AlertMessage';
 
 /**
@@ -14,16 +13,12 @@ const SpaceMessageModal = ({
   error,
   onErrorClear,
   isLoading,
-  
-  // 統計情報関連（将来的に使用）
-  activeSpaces,
-  finishedSpaces,
-  
+
   // 追加モーダル関連
   isAddModalOpen,
   onAddModalClose,
   onAddSpace,
-  
+
   // 編集モーダル関連
   isEditModalOpen,
   onEditModalClose,
@@ -32,14 +27,6 @@ const SpaceMessageModal = ({
 }) => {
   return (
     <>
-      {/* 統計情報表示 */}
-      {/* 
-      <SpaceStatistics 
-        activeSpaces={activeSpaces}
-        finishedSpaces={finishedSpaces}
-      /> 
-      */}
-
       {/* メッセージ表示 */}
       <SuccessMessage
         message={successMessage}
