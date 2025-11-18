@@ -22,7 +22,7 @@ const DocComments = ({ lines, documentFunctions }) => {
     const posts = usePostStore((state) => state.posts);
 
     const docMessages = useMemo(() => {
-        let docPosts = posts.slice(0, -lines.num + 1); // 後ろからlines.num分を除外
+        let docPosts = posts.slice(0, -lines.num); // 後ろからlines.num分を除外
         docPosts = [...docPosts].sort((a, b) => a.displayOrder - b.displayOrder);
         return docPosts;
     }, [posts, lines.num]);

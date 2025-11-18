@@ -91,40 +91,19 @@ export default function ResizablePanels({ appController, spaceId }) {
     }, [bottomHeight, messages]);
 
     const calculateLines = (newBottomHeight) => {
-        let totalHeight = 0;
-        let lineCount = 0;
+        // 実測値: 1行は常に65px固定（positive/negativeに関係なく）
+        // - ユーザー名行: 28px
+        // - メッセージ行: 28px
+        // - パディング: 8px (上下4px × 2)
+        // - ボーダー: 1px
+        const FIXED_LINE_HEIGHT = 65;
 
-        for (let i = messages.length - 1; i >= 0; i--) {
-            const msg = messages[i];
-            const diff = (msg.positive || 0) - (msg.negative || 0);
+        // 表示できる行数を計算
+        const lineCount = Math.floor(newBottomHeight / FIXED_LINE_HEIGHT);
 
-            // 実際のChatRow.jsxと同じ計算ロジック
-            let baseFontSize = 15 + diff * 2;
-            if (baseFontSize > 30) baseFontSize = 30;
-            if (baseFontSize < 10) baseFontSize = 10;
+        console.log(`[calculateLines] newBottomHeight: ${newBottomHeight}, lineCount: ${lineCount}`);
 
-            // 見出し判定
-            const isHeading = msg.msg && msg.msg.trim().startsWith('#');
-            const fontSize = isHeading ? Math.max(baseFontSize * 1.5, 22) : baseFontSize;
-
-            // 実際のCSS仕様に基づく計算（line-height: 1.2を考慮）
-            // - ユーザー情報行: 15px * 1.2 = 18px
-            // - メッセージ行: fontSize * 1.2
-            // - パディング: 上下4px × 2 = 8px
-            // - ボーダー: 1px
-            const userInfoHeight = 15 * 1.2; // 18px
-            const messageHeight = fontSize * 1.2; // line-height考慮
-            const paddingHeight = 8; // py-1 (上下4px)
-            const borderHeight = 1;
-            const lineHeight = userInfoHeight + messageHeight + paddingHeight + borderHeight;
-
-            if (totalHeight + lineHeight > newBottomHeight) break;
-
-            totalHeight += lineHeight;
-            lineCount++;
-        }
-
-        return lineCount; // 調整係数なしで正確な行数を返す
+        return Math.max(lineCount, 1); // 最低1行は表示
     };
 
     const handleMouseDown = (event) => {
