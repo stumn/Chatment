@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import useAppStore from '../../store/spaces/appStore';
-import '../../styles/Chat.css'; // チャット用のスタイル
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
@@ -59,42 +58,55 @@ const ChatRow = ({ data, index, style }) => {
         }
     };
 
+    // ボタンの色クラス
+    const positiveButtonClass = hasVotedPositive
+        ? 'text-[#ccc]'
+        : isColorfulMode
+            ? 'text-[#4CAF50]'
+            : 'text-[#888]';
+
+    const negativeButtonClass = hasVotedNegative
+        ? 'text-[#ccc]'
+        : isColorfulMode
+            ? 'text-[#F44336]'
+            : 'text-[#888]';
+
     return (
         <div
             style={style}
             key={cMsg.order}
-            className="chat-cMsg"
+            className="relative border border-transparent border-b-[#eee] transition-all duration-200 bg-white py-1 px-4 pr-4 pl-1 hover:bg-[#f3f4f6] hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] hover:border-[#e5e7eb]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="chat-user-info">
-                <strong>{cMsg.nickname}</strong>
-                <span>{cMsg.time}</span>
+            <div className="text-left text-[15px] ml-5">
+                <strong className="font-bold">{cMsg.nickname}</strong>
+                <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
             <div
-                className="chat-message-content"
+                className="text-left ml-10 relative flex-1 break-words whitespace-pre-wrap"
                 style={{ fontSize }}
             >
                 <span
                     contentEditable
                     suppressContentEditableWarning
-                    className={`chat-message-text ${isHeading ? 'chat-heading' : ''}`}
+                    className="inline-block cursor-text outline-none border-none bg-transparent"
                     style={{
                         fontSize,
                         color: textColor,
-                        fontWeight: isHeading ? 'bold' : 'normal', // 見出しの場合は太字
+                        fontWeight: isHeading ? 'bold' : 'normal',
                     }}
                 >
                     {cMsg.msg}
                 </span>
                 {/* positive/negativeボタン（ホバー時のみ表示） */}
-                <div className="chat-buttons-container" style={{ opacity: isHovered ? 1 : 0 }}>
+                <div
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200"
+                    style={{ opacity: isHovered ? 1 : 0 }}
+                >
                     <button
                         contentEditable={false}
-                        className={`chat-positive-btn ${hasVotedPositive
-                            ? 'chat-positive-btn-disabled'
-                            : (isColorfulMode ? 'chat-positive-btn-colorful' : 'chat-positive-btn-default')
-                            }`}
+                        className={`text-[18px] border-none bg-none py-[2px] px-1 rounded transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-[rgba(76,175,80,0.1)] hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
                         onClick={handlePositive}
                         disabled={hasVotedPositive}
                         title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
@@ -103,10 +115,7 @@ const ChatRow = ({ data, index, style }) => {
                     </button>
                     <button
                         contentEditable={false}
-                        className={`chat-negative-btn ${hasVotedNegative
-                            ? 'chat-negative-btn-disabled'
-                            : (isColorfulMode ? 'chat-negative-btn-colorful' : 'chat-negative-btn-default')
-                            }`}
+                        className={`text-[18px] border-none bg-none py-[2px] px-1 rounded transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-[rgba(244,67,54,0.1)] hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
                         onClick={handleNegative}
                         disabled={hasVotedNegative}
                         title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}

@@ -95,21 +95,28 @@ export default function ResizablePanels({ appController, spaceId }) {
         let lineCount = 0;
 
         for (let i = messages.length - 1; i >= 0; i--) {
-            const favCount = messages[i].positive || messages[i].fav || 0;
-            const fontSize = STANDARD_FONT_SIZE + favCount * 2;
+            const msg = messages[i];
+            const diff = (msg.positive || 0) - (msg.negative || 0);
 
-            // チャット行の高さ計算：
-            // - ユーザー情報行（固定15px）
-            // - メッセージ行（動的フォントサイズ）
-            // - .chat-cMsgのパディング（上下4px x 2 = 8px）
-            // - ボーダー（1px）
-            // - 行間マージン（2px）
-            const userInfoHeight = 15;
-            const messageHeight = fontSize;
-            const paddingHeight = 8; // 上下パディング
+            // 実際のChatRow.jsxと同じ計算ロジック
+            let baseFontSize = 15 + diff * 2;
+            if (baseFontSize > 30) baseFontSize = 30;
+            if (baseFontSize < 10) baseFontSize = 10;
+
+            // 見出し判定
+            const isHeading = msg.msg && msg.msg.trim().startsWith('#');
+            const fontSize = isHeading ? Math.max(baseFontSize * 1.5, 22) : baseFontSize;
+
+            // 実際のCSS仕様に基づく計算（line-height: 1.2を考慮）
+            // - ユーザー情報行: 15px * 1.2 = 18px
+            // - メッセージ行: fontSize * 1.2
+            // - パディング: 上下4px × 2 = 8px
+            // - ボーダー: 1px
+            const userInfoHeight = 15 * 1.2; // 18px
+            const messageHeight = fontSize * 1.2; // line-height考慮
+            const paddingHeight = 8; // py-1 (上下4px)
             const borderHeight = 1;
-            const marginHeight = 2;
-            const lineHeight = userInfoHeight + messageHeight + paddingHeight + borderHeight + marginHeight;
+            const lineHeight = userInfoHeight + messageHeight + paddingHeight + borderHeight;
 
             if (totalHeight + lineHeight > newBottomHeight) break;
 
@@ -117,10 +124,7 @@ export default function ResizablePanels({ appController, spaceId }) {
             lineCount++;
         }
 
-        lineCount = Math.round(lineCount / 1.8); // チャット行は2行構造なので調整係数を1.8に変更
-        // lineCount++; // 最低でも1行は表示する
-
-        return lineCount;
+        return lineCount; // 調整係数なしで正確な行数を返す
     };
 
     const handleMouseDown = (event) => {
