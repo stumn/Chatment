@@ -132,18 +132,18 @@ export default function ResizablePanels({ appController, spaceId }) {
             let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
-            document.getElementById('slide-bar').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
+            document.getElementById('divider').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
 
         const onMouseUp = () => {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
-            document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
+            document.getElementById('divider').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
 
             const data = {
                 userId: userInfo && userInfo._id,
-                action: 'slide-bar-move',
+                action: 'divider-move',
                 detail: {
                     from: startY,
                     to: startHeight,
@@ -175,7 +175,7 @@ export default function ResizablePanels({ appController, spaceId }) {
             </div>
 
             <div
-                id='slide-bar'
+                id='divider'
                 className="bg-gray-600/60 cursor-row-resize"
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,
