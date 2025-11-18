@@ -93,7 +93,7 @@ export default function ResizablePanels({ appController, spaceId }) {
     const calculateLines = (newBottomHeight) => {
         // 実測値: 1行は常に65px固定（positive/negativeに関係なく）
         // - ユーザー名行: 28px
-        // - メッセージ行: 28px
+        // - メッセージ行: 28px（1行のみ表示、長文は省略）
         // - パディング: 8px (上下4px × 2)
         // - ボーダー: 1px
         const FIXED_LINE_HEIGHT = 65;

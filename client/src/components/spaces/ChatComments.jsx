@@ -27,14 +27,14 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
             // ソース情報による判定
             // - 'chat' ソース: 常に表示（チャット入力からの投稿）
             // - 'document' ソース: 見出し以外は表示（ドキュメント編集からの通常テキスト）
-            // - ソース不明（既存データ）: 見出し行以外は表示（後方互換性）
+            // - ソース不明（既存データ）: 見出し行であっても表示（後方互換性）
             if (msg.source === 'chat') {
                 return true; // チャット入力からの投稿は常に表示
             } else if (msg.source === 'document') {
                 return !msg.msg.trim().startsWith('#'); // ドキュメント編集からの見出し以外は表示
             } else {
-                // 既存データ（sourceフィールドなし）の場合、見出し行以外を表示
-                return !msg.msg.trim().startsWith('#');
+                // 既存データ（sourceフィールドなし）の場合、見出し行であっても表示（後方互換性）
+                return true;
             }
         });
 
@@ -52,7 +52,6 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
 
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
-    const chatCount = filteredChatMessages.length;
 
     // スクロールを最下部に
     useEffect(() => {

@@ -84,17 +84,18 @@ const ChatRow = ({ data, index, style }) => {
                 <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
             <div
-                className="text-left ml-10 relative flex-1 break-words whitespace-pre-wrap"
+                className="text-left ml-10 relative flex-1"
                 style={{ fontSize }}
             >
                 <span
                     contentEditable
                     suppressContentEditableWarning
-                    className="inline-block cursor-text outline-none border-none bg-transparent"
+                    className="inline-block cursor-text outline-none border-none bg-transparent overflow-hidden text-ellipsis whitespace-nowrap max-w-full"
                     style={{
                         fontSize,
                         color: textColor,
                         fontWeight: isHeading ? 'bold' : 'normal',
+                        display: 'block',
                     }}
                 >
                     {cMsg.msg}
