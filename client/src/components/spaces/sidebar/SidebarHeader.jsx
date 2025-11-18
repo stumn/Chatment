@@ -41,7 +41,7 @@ const SidebarHeader = ({
                 {/* スペース名表示 */}
                 {spaceId && (
                     <div className="text-xs text-gray-600 font-bold mb-1">
-                        Space: {spaceName || spaceId}
+                        {spaceName || spaceId}
                     </div>
                 )}
                 <span className="text-lg text-gray-800">
