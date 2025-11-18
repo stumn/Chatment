@@ -1,5 +1,6 @@
 // 投稿に関連するストア
 import { create } from 'zustand';
+import useAppStore from './appStore';
 const DEFAULT_ROOM_ID = 'room-0';
 
 const usePostStore = create((set, get) => ({
@@ -13,7 +14,10 @@ const usePostStore = create((set, get) => ({
     // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
     addPost: (post, isNewlyCreated = false, roomId = null) =>
         set((state) => {
-            console.log(`💬 [postStore] ${roomId}にメッセージ追加:`, post); // spaceIdも必要かな
+            // ログ用の情報を取得
+            const spaceName = useAppStore.getState().spaceName || '(未設定)';
+            const targetRoomId = roomId || post.roomId || DEFAULT_ROOM_ID;
+            console.log(`💬 [postStore] ${spaceName} ${targetRoomId}にメッセージ追加:`, post);
 
             // 受け取ったpostはサーバーからの完全なデータであることを前提とする
             // post.idが存在しない場合はエラー

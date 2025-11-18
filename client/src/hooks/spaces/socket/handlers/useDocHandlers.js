@@ -9,7 +9,7 @@ export const useDocHandlers = (emitLog) => {
   const handleDocAdd = (payload) => {
     console.log('handleDocAdd called with payload:', payload);
     // 新規作成として変更状態を記録
-    addMessage(payload, true); // 第2引数をtrueにして新規作成であることを示す
+    addMessage(payload, true, payload.roomId);
     console.log('addMessage called with isNewlyCreated=true');
   };
 
