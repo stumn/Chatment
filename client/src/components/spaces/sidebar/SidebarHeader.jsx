@@ -4,6 +4,7 @@ import React from 'react';
 import Switch from '@mui/material/Switch';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import useAppStore from '../../../store/spaces/appStore';
 
 /**
  * サイドバーのヘッダー部分（上部固定領域）
@@ -14,17 +15,20 @@ import FormControlLabel from '@mui/material/FormControlLabel';
  * @param {boolean} props.isColorfulMode - カラフルモードの状態
  * @param {Function} props.toggleColorfulMode - カラフルモード切り替え関数
  */
-const SidebarHeader = ({ 
-    onToggle, 
-    spaceId, 
-    userInfo, 
-    isColorfulMode, 
-    toggleColorfulMode 
+const SidebarHeader = ({
+    onToggle,
+    spaceId,
+    userInfo,
+    isColorfulMode,
+    toggleColorfulMode
 }) => {
+    // ストアからスペース名を取得
+    const spaceName = useAppStore((state) => state.spaceName);
+
     return (
         <div className="flex flex-col px-6 pt-6 pb-0 flex-shrink-0 bg-gray-100 border-b border-gray-200">
-            <button 
-                onClick={onToggle} 
+            <button
+                onClick={onToggle}
                 className="self-start p-0 rounded-full bg-transparent border-none cursor-pointer text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-all duration-200 h-auto mb-4"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -34,11 +38,10 @@ const SidebarHeader = ({
 
             {/* ユーザー情報と現在のステータス */}
             <div className="flex flex-col items-start gap-2 mb-4 sidebar-text">
-                {/* スペースID表示 */}
+                {/* スペース名表示 */}
                 {spaceId && (
                     <div className="text-xs text-gray-600 font-bold mb-1">
-                        Space: {spaceId}
-                        {/* space name も表示されるほうがいいかも */}
+                        Space: {spaceName || spaceId}
                     </div>
                 )}
                 <span className="text-lg text-gray-800">

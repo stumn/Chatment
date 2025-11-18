@@ -14,17 +14,9 @@ import useResponsiveSize from '../../hooks/shared/useResponsiveSize';
 import BeforeLogin from "./BeforeLogin";
 const AfterLogin = lazy(() => import('./AfterLogin'));
 
-const DEFAULT_ROOM_ID = 'room-0';
-
 function ChatApp() {
   // URLパラメータからspaceIdを取得
   const { spaceId } = useParams();
-
-  // TODO: 将来的にspaceIdの妥当性チェックを実装
-  // TODO: サーバーでスペースの存在確認とアクセス権限チェック  
-  // TODO: スペース情報（タイトル、説明等）をAPIから取得
-  // TODO: サーバー側でspaceId別のメッセージ分離とデータ管理
-  // TODO: スペース参加者の管理とリアルタイム更新
 
   // --- 状態管理フックを先に記述 ---
   const [open, setOpen] = useState(true);
@@ -34,7 +26,7 @@ function ChatApp() {
 
   // ストアからの状態取得
   const { width, height } = useSizeStore();
-  const { userInfo, setUserInfo, myHeight, setMyHeight } = useAppStore();
+  const { userInfo, setUserInfo, myHeight, setMyHeight, setSpaceName } = useAppStore();
 
   // useAppControllerを使用してSocket通信を一元管理
   const appController = useAppController();
@@ -43,10 +35,33 @@ function ChatApp() {
   // ログイン状態を判定する変数を定義
   const isLoggedIn = userInfo.nickname !== undefined;
 
+  // spaceIdが変更されたらスペース情報を取得
+  useEffect(() => {
+    if (!spaceId) return;
+
+    const fetchSpaceInfo = async () => {
+      try {
+        const response = await fetch(`/api/spaces/${spaceId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.space) {
+            setSpaceName(data.space.name);
+          }
+        } else {
+          console.error('スペース情報の取得に失敗しました');
+        }
+      } catch (error) {
+        console.error('スペース情報の取得エラー:', error);
+      }
+    };
+
+    fetchSpaceInfo();
+  }, [spaceId, setSpaceName]);
+
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    // TODO: spaceIdをソケット通信に含めてスペースコンテキストを送信
+    // spaceIdはuserInfoに含まれているため、emitLoginNameで送信される
     socketFunctions.emitLoginName(userInfo);
 
     setOpen(false);
