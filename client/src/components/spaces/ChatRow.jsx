@@ -84,22 +84,24 @@ const ChatRow = ({ data, index, style }) => {
                 <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
             <div
-                className="text-left ml-10 relative flex-1"
+                className="text-left ml-10 relative flex-1 overflow-hidden"
                 style={{ fontSize }}
             >
                 <span
                     contentEditable
                     suppressContentEditableWarning
-                    className="inline-block cursor-text outline-none border-none bg-transparent overflow-hidden text-ellipsis whitespace-nowrap max-w-full"
+                    className="block cursor-text outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8"
                     style={{
                         fontSize,
                         color: textColor,
                         fontWeight: isHeading ? 'bold' : 'normal',
-                        display: 'block',
                     }}
+                    title={cMsg.msg} // ホバーで全文表示
                 >
                     {cMsg.msg}
                 </span>
+                {/* 右端にフェードアウトグラデーション */}
+                <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
                 {/* positive/negativeボタン（ホバー時のみ表示） */}
                 <div
                     className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200"
