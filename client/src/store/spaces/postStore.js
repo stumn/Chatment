@@ -9,7 +9,7 @@ const usePostStore = create((set, get) => ({
     setPosts: (posts) => set({ posts: [...posts], }),
 
     // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
-    addPost: (post, isNewlyCreated = false, roomId) =>
+    addPost: (post, isNewlyCreated = false, roomId = null) =>
         set((state) => {
 
             // 受け取ったpostはサーバーからの完全なデータであることを前提とする
