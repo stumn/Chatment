@@ -73,7 +73,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                 className="flex flex-col justify-end w-full text-left"
                 style={{
                     height: bottomHeight,
-                    overflowY: 'auto',
+                    overflowY: 'hidden',
                 }}
             >
                 {filteredChatMessages.map((msg, idx) => (
