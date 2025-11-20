@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import BaseModal from './ui/BaseModal';
-import SubRoomSettings from './SubRoomSettings';
 
 /**
  * コミュニケーションスペースを追加するためのモーダルコンポーネント
@@ -13,10 +12,6 @@ import SubRoomSettings from './SubRoomSettings';
 const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
     const [spaceName, setSpaceName] = useState('');
     const [spaceOptions, setSpaceOptions] = useState('');
-    const [subRoomSettings, setSubRoomSettings] = useState({
-        enabled: false,
-        rooms: [{ name: '全体' }]
-    });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -28,17 +23,13 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                 await onAdd({
                     id: Math.floor(Date.now() / 1000), // 整数型IDを生成（実際はサーバーから返されるIDを使用）
                     name: spaceName,
-                    options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`,
-                    subRoomSettings: subRoomSettings
+                    options: spaceOptions || `#space-${Math.floor(Date.now() / 1000)}`
+                    // subRoomSettingsは廃止（常に1つの"全体"ルームのみ）
                 });
 
                 // フォームをリセット
                 setSpaceName('');
                 setSpaceOptions('');
-                setSubRoomSettings({
-                    enabled: false,
-                    rooms: [{ name: '全体' }]
-                });
                 onClose();
             } catch (error) {
                 console.error('スペース追加エラー:', error);
@@ -52,10 +43,6 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
         if (!isSubmitting) {
             setSpaceName('');
             setSpaceOptions('');
-            setSubRoomSettings({
-                enabled: false,
-                rooms: [{ name: '全体' }]
-            });
             onClose();
         }
     };
@@ -78,12 +65,6 @@ const AddSpaceModal = ({ isOpen, onClose, onAdd }) => {
                         onChange={(e) => setSpaceName(e.target.value)}
                         disabled={isSubmitting}
                         required
-                    />
-
-                    {/* サブルーム設定 */}
-                    <SubRoomSettings
-                        subRoomSettings={subRoomSettings}
-                        onChange={setSubRoomSettings}
                     />
 
                     <div className="flex justify-end gap-2 mt-4">

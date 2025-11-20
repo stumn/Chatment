@@ -6,13 +6,12 @@ export const useChatHandlers = (emitLog) => {
   const addMessage = usePostStore((state) => state.addPost);
 
   const handleChatMessage = (data) => {
+
     // ルームメッセージの場合、現在のアクティブルームと一致するかチェック
     if (data.roomId) {
       const currentRoomId = useRoomStore.getState().activeRoomId;
-      console.log(`🏠 [useSocket] ルームメッセージ受信 - 送信先: ${data.roomId}, 現在のルーム: ${currentRoomId}`);
 
       if (data.roomId !== currentRoomId) {
-        console.log('🚫 [useSocket] 異なるルームのメッセージのため無視');
         return; // 現在のルームと異なる場合は表示しない
       }
 
@@ -21,7 +20,7 @@ export const useChatHandlers = (emitLog) => {
     }
 
     // チャットメッセージとして追加（新規作成として扱う）
-    addMessage(data, true);
+    addMessage(data, true, data.roomId);
   };
 
   const handlePositive = (data) => {

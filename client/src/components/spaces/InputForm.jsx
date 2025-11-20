@@ -32,6 +32,12 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     e.preventDefault();
     setError(''); // エラーをクリア
 
+    // activeRoomIdがnullの場合はエラーを表示
+    if (!activeRoomId) {
+      setError('ルームに参加していません。しばらくお待ちください。');
+      return;
+    }
+
     // バリデーション付きでメッセージ送信
     const result = sendChatMessage(handleName, message, activeRoomId);
 

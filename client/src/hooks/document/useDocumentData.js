@@ -27,10 +27,10 @@ export const useDocumentData = () => {
 
     // === URLパラメータバリデーション ===
     useEffect(() => {
-        
+
         // spaceIdのバリデーション
         if (!currentSpaceId || isNaN(currentSpaceId)) {
-            const errorMsg = `🚫 無効なスペースID: "${spaceId}"\n\n` +
+            const errorMsg = `無効なスペースID: "${spaceId}"\n\n` +
                 `正の整数を指定してください。\n` +
                 `例: /document/1/0`;
             console.error('Invalid spaceId:', { provided: spaceId, parsed: currentSpaceId });
@@ -40,7 +40,7 @@ export const useDocumentData = () => {
 
         // docIdのバリデーション  
         if (!isValidDocId) {
-            let errorMsg = `🚫 無効なドキュメントID: "${docId}"\n\n`;
+            let errorMsg = `無効なドキュメントID: "${docId}"\n\n`;
 
             if (isNaN(currentDocId)) {
                 errorMsg += `数値を指定してください。\n` +
@@ -127,18 +127,18 @@ export const useDocumentData = () => {
         // データ
         posts,
         spaceData,
-        
+
         // URL情報
         currentSpaceId,
         currentDocId,
         spaceId,
         docId,
-        
+
         // 状態
         isLoading,
         error,
         isValidDocId,
-        
+
         // アクション
         fetchPostsFromAPI,
         refetch: fetchPostsFromAPI

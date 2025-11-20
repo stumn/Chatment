@@ -41,6 +41,8 @@ function setupChatHandlers(socket, io, rooms) {
 
       // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
       const responseData = { ...p, roomId };
+
+      // メッセージをルームに送信
       io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
 
       // ルーム統計をデータベースで更新

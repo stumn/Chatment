@@ -1,37 +1,21 @@
 import { create } from 'zustand';
-const DEFAULT_ROOM_ID = 'space0-main'; // デフォルトのルームID
 
 const useRoomStore = create((set, get) => ({
-    // 現在アクティブなルームID
-    activeRoomId: DEFAULT_ROOM_ID,
+    // 現在アクティブなルームID（サブルーム廃止により常に"全体"ルーム）
+    // 初期値はnull、ルーム参加時に設定される
+    activeRoomId: null,
 
-    // ルーム一覧データ
+    // ルーム一覧データ（サブルーム廃止により常に1つのみ）
     rooms: [],
 
-    // 現在のスペース情報（サブルーム設定含む）
+    // 現在のスペース情報
     currentSpaceInfo: null,
-
-    // サブルーム設定
-    subRoomSettings: null,
 
     // ルームごとのメッセージ履歴（メモリキャッシュ）
     roomMessages: {},
 
     // ルーム履歴読み込み状態（最適化用）
-    roomHistoryLoaded: {
-        'space0-main': false,
-        'space0-room1': false,
-        'space0-room2': false,
-    },
-
-    // ルーム切り替え中の状態
-    switchingRoom: false,
-
-    // ルーム切り替え中の状態を設定
-    setSwitchingRoom: (switching) => {
-        console.log(`🔄 [roomStore] ルーム切り替え中: ${switching}`);
-        set({ switchingRoom: switching });
-    },
+    roomHistoryLoaded: {},
 
     // アクティブなルームを変更する
     setActiveRoom: (roomId) => {
@@ -45,25 +29,17 @@ const useRoomStore = create((set, get) => ({
 
     // 現在のスペース情報を設定
     setCurrentSpaceInfo: (spaceInfo) => {
-        set({ 
-            currentSpaceInfo: spaceInfo,
-            subRoomSettings: spaceInfo?.settings?.subRoomSettings || null
+        set({
+            currentSpaceInfo: spaceInfo
         });
-    },
-
-    // サブルーム設定を更新
-    setSubRoomSettings: (settings) => {
-        console.log('🔧 [roomStore] サブルーム設定更新:', settings);
-        set({ subRoomSettings: settings });
     },
 
     // ルーム一覧とスペース情報を同時に更新
     updateRoomsAndSpaceInfo: (rooms, spaceInfo) => {
         console.log('🔄 [roomStore] ルーム一覧とスペース情報を同時更新');
-        set({ 
+        set({
             rooms,
-            currentSpaceInfo: spaceInfo,
-            subRoomSettings: spaceInfo?.settings?.subRoomSettings || null
+            currentSpaceInfo: spaceInfo
         });
     },
 
@@ -81,21 +57,6 @@ const useRoomStore = create((set, get) => ({
     isRoomHistoryLoaded: (roomId) => {
         const state = get();
         return state.roomHistoryLoaded[roomId] || false;
-    },
-
-    // サブルーム機能の有効性を判定（UI表示制御含む）
-    isSubRoomEnabled: (requireMultipleRooms = false) => {
-        const { subRoomSettings, rooms } = get();
-        const enabled = subRoomSettings?.enabled || false;
-        
-        if (!enabled) return false;
-        
-        // UI表示用: 複数ルームが必要な場合の追加チェック
-        if (requireMultipleRooms) {
-            return rooms.length > 1;
-        }
-        
-        return true;
     },
 
     // デフォルトルーム（全体）のIDを取得

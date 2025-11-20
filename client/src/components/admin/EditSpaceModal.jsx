@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import BaseModal from './ui/BaseModal';
-import SubRoomSettings from './SubRoomSettings';
 
 /**
  * コミュニケーションスペースを編集するためのモーダルコンポーネント
@@ -13,22 +12,12 @@ import SubRoomSettings from './SubRoomSettings';
  */
 const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
     const [spaceName, setSpaceName] = useState(space?.name || '');
-    const [subRoomSettings, setSubRoomSettings] = useState(
-        space?.subRoomSettings || space?.settings?.subRoomSettings || {
-            enabled: false,
-            rooms: [{ name: '全体' }]
-        }
-    );
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // spaceが変更された時に状態を更新
     React.useEffect(() => {
         if (space) {
             setSpaceName(space.name || '');
-            setSubRoomSettings(space.subRoomSettings || space.settings?.subRoomSettings || {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-            });
         }
     }, [space]);
 
@@ -40,8 +29,8 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
             try {
                 await onUpdate({
                     id: space.id,
-                    name: spaceName,
-                    subRoomSettings: subRoomSettings
+                    name: spaceName
+                    // subRoomSettingsは廃止（常に1つの"全体"ルームのみ）
                 });
 
                 onClose();
@@ -58,10 +47,6 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
             // フォームをリセット
             if (space) {
                 setSpaceName(space.name || '');
-                setSubRoomSettings(space.subRoomSettings || {
-                    enabled: false,
-                    rooms: [{ name: '全体' }]
-                });
             }
             onClose();
         }
@@ -85,12 +70,6 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
                         onChange={(e) => setSpaceName(e.target.value)}
                         disabled={isSubmitting}
                         required
-                    />
-
-                    {/* サブルーム設定（読み取り専用モード） */}
-                    <SubRoomSettings
-                        subRoomSettings={subRoomSettings}
-                        onChange={setSubRoomSettings}
                     />
 
                     <div className="flex justify-end gap-2 mt-4">

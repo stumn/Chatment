@@ -26,10 +26,12 @@ export default function ResizablePanels({ appController, spaceId }) {
 
     // ルーム変更を監視してログ出力
     useEffect(() => {
-        if (currentRoom) {
+        if (!activeRoomId) {
+            console.log(`⏳ [ResizablePanels] ルーム参加待機中...`);
+        } else if (currentRoom) {
             console.log(`[ResizablePanels] 表示ルーム変更: 
-                ${currentRoom.name} (${currentRoom.id}) 
-                ${currentRoom.participantCount}人参加中`);
+                ${currentRoom?.name} (${currentRoom?.id}) 
+                ${currentRoom?.participantCount}人参加中`);
         } else {
             console.log(`⚠️ [ResizablePanels] ルーム情報が見つかりません: ${activeRoomId}`);
         }
@@ -89,36 +91,19 @@ export default function ResizablePanels({ appController, spaceId }) {
     }, [bottomHeight, messages]);
 
     const calculateLines = (newBottomHeight) => {
-        let totalHeight = 0;
-        let lineCount = 0;
+        // 実測値: 1行は常に65px固定（positive/negativeに関係なく）
+        // - ユーザー名行: 28px
+        // - メッセージ行: 28px（1行のみ表示、長文は省略）
+        // - パディング: 8px (上下4px × 2)
+        // - ボーダー: 1px
+        const FIXED_LINE_HEIGHT = 65;
 
-        for (let i = messages.length - 1; i >= 0; i--) {
-            const favCount = messages[i].positive || messages[i].fav || 0;
-            const fontSize = STANDARD_FONT_SIZE + favCount * 2;
+        // 表示できる行数を計算
+        const lineCount = Math.floor(newBottomHeight / FIXED_LINE_HEIGHT);
 
-            // チャット行の高さ計算：
-            // - ユーザー情報行（固定15px）
-            // - メッセージ行（動的フォントサイズ）
-            // - .chat-cMsgのパディング（上下4px x 2 = 8px）
-            // - ボーダー（1px）
-            // - 行間マージン（2px）
-            const userInfoHeight = 15;
-            const messageHeight = fontSize;
-            const paddingHeight = 8; // 上下パディング
-            const borderHeight = 1;
-            const marginHeight = 2;
-            const lineHeight = userInfoHeight + messageHeight + paddingHeight + borderHeight + marginHeight;
+        console.log(`[calculateLines] newBottomHeight: ${newBottomHeight}, lineCount: ${lineCount}`);
 
-            if (totalHeight + lineHeight > newBottomHeight) break;
-
-            totalHeight += lineHeight;
-            lineCount++;
-        }
-
-        lineCount = Math.round(lineCount / 1.8); // チャット行は2行構造なので調整係数を1.8に変更
-        // lineCount++; // 最低でも1行は表示する
-
-        return lineCount;
+        return Math.max(lineCount, 1); // 最低1行は表示
     };
 
     const handleMouseDown = (event) => {
@@ -130,18 +115,18 @@ export default function ResizablePanels({ appController, spaceId }) {
             let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
-            document.getElementById('slide-bar').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
+            document.getElementById('divider').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
 
         const onMouseUp = () => {
             document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseup", onMouseUp);
-            document.getElementById('slide-bar').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
+            document.getElementById('divider').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
 
             const data = {
                 userId: userInfo && userInfo._id,
-                action: 'slide-bar-move',
+                action: 'divider-move',
                 detail: {
                     from: startY,
                     to: startHeight,
@@ -173,7 +158,7 @@ export default function ResizablePanels({ appController, spaceId }) {
             </div>
 
             <div
-                id='slide-bar'
+                id='divider'
                 className="bg-gray-600/60 cursor-row-resize"
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,

@@ -109,16 +109,8 @@ async function getSpaceById(spaceId) {
             return null;
         }
 
-        // フロントエンド用にデータ構造を平坦化
-        const flattenedSpace = {
-            ...space,
-            subRoomSettings: space.settings?.subRoomSettings || {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-            }
-        };
-
-        return flattenedSpace;
+        // フロントエンド用にデータ構造を返す（subRoomSettings廃止）
+        return space;
 
     } catch (error) {
         handleErrors(error, `スペース情報取得中にエラーが発生しました: ${spaceId}`);
@@ -129,7 +121,7 @@ async function getSpaceById(spaceId) {
 // --- 新しいスペースを作成 ---
 async function createSpace(spaceData) {
     try {
-        const { id, name, settings = {}, subRoomSettings } = spaceData;
+        const { id, name, settings = {} } = spaceData;
 
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
@@ -137,38 +129,22 @@ async function createSpace(spaceData) {
             throw new Error(`スペースID ${id} は既に存在します`);
         }
 
-        // subRoomSettings のデフォルト値設定
-        const finalSubRoomSettings = {
-            enabled: subRoomSettings?.enabled || false,
-            rooms: subRoomSettings?.rooms || [{ name: '全体' }]
-        };
-
-        // 新しいスペースを作成
+        // 新しいスペースを作成（サブルーム設定は廃止）
         const newSpace = await Space.create({
             id,
             name,
             settings: {
-                theme: settings.theme || 'default',
-                subRoomSettings: finalSubRoomSettings
+                theme: settings.theme || 'default'
             }
         });
 
         console.log(`🌍 [spaceOperation] 新しいスペース作成: ${name} (${id})`);
 
-        // 統合されたルーム作成関数を使用
+        // 統合されたルーム作成関数を使用（常に"全体"ルームのみ）
         const createdRooms = await createDefaultRoomsForSpace(id);
         console.log(`🏠 [spaceOperation] スペース ${id} のルーム作成完了: ${createdRooms.length}件`);
 
-        // フロントエンド用にデータ構造を平坦化して返す
-        const flattenedSpace = {
-            ...newSpace.toObject(),
-            subRoomSettings: newSpace.settings?.subRoomSettings || {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-            }
-        };
-
-        return flattenedSpace;
+        return newSpace.toObject();
 
     } catch (error) {
         handleErrors(error, 'スペース作成中にエラーが発生しました');
@@ -179,7 +155,7 @@ async function createSpace(spaceData) {
 // --- スペースを更新 ---
 async function updateSpace(spaceId, updateData) {
     try {
-        const { name, subRoomSettings } = updateData;
+        const { name } = updateData;
 
         // 既存のスペースを取得
         const existingSpace = await Space.findOne({ id: spaceId });
@@ -187,50 +163,11 @@ async function updateSpace(spaceId, updateData) {
             throw new Error(`スペースID ${spaceId} が見つかりません`);
         }
 
-        // 更新データを準備
+        // 更新データを準備（subRoomSettings廃止）
         const updateFields = {};
 
         if (name !== undefined) {
             updateFields.name = name;
-        }
-
-        // subRoomSettings が提供された場合の処理
-        if (subRoomSettings) {
-            const finalSubRoomSettings = {
-                enabled: subRoomSettings.enabled || false,
-                rooms: subRoomSettings.rooms || [{ name: '全体' }]
-            };
-
-            // settings.subRoomSettings を更新
-            updateFields['settings.subRoomSettings'] = finalSubRoomSettings;
-
-            // サブルーム機能が有効で新しいルームが追加された場合、実際のルームも作成
-            if (finalSubRoomSettings.enabled) {
-                const existingRooms = await Room.find({ spaceId, isActive: true }).select('name').lean();
-                const existingRoomNames = existingRooms.map(r => r.name);
-
-                for (let i = 0; i < finalSubRoomSettings.rooms.length; i++) {
-                    const roomData = finalSubRoomSettings.rooms[i];
-                    if (!existingRoomNames.includes(roomData.name)) {
-                        // ユニークなルームIDを生成（タイムスタンプベース）
-                        const roomId = `space${spaceId}-room${Date.now()}-${i}`;
-
-                        // 新しいルームを作成
-                        await Room.create({
-                            id: roomId,
-                            name: roomData.name,
-                            spaceId: spaceId,
-                            isActive: true,
-                            settings: {
-                                autoDeleteMessages: false,
-                                messageRetentionDays: 30,
-                                allowAnonymous: true
-                            }
-                        });
-                        console.log(`🏠 [spaceOperation] 新規ルーム作成: ${roomData.name} (ID: ${roomId}, スペース: ${spaceId})`);
-                    }
-                }
-            }
         }
 
         // スペースを更新

@@ -7,9 +7,12 @@ const useAppStore = create((set) => ({
   userInfo: {
     nickname: undefined,
     status: undefined,
-    ageGroup: undefined, 
+    ageGroup: undefined,
     spaceId: undefined, // spaceIdも保持
   },
+
+  // スペース名
+  spaceName: undefined,
 
   // ユーザー自身のパネルの高さ
   myHeight: 300,
@@ -30,6 +33,9 @@ const useAppStore = create((set) => ({
       spaceId // spaceIdも保持
     }
   })),
+
+  // アクション: スペース名を設定する
+  setSpaceName: (name) => set({ spaceName: name }),
 
   // アクション: 高さを設定する
   setMyHeight: (height) => set({ myHeight: height }),

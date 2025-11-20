@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import FinishedSpacesSection from '../../components/admin/FinishedSpacesSection';
 import ActiveSpacesSection from '../../components/admin/ActiveSpacesSection';
 import SpaceMessageModal from './SpaceMessageModal';
@@ -8,9 +7,6 @@ import useResponsiveSize from '../../hooks/shared/useResponsiveSize';
 import sizeStore from '../../store/shared/sizeStore';
 
 function SpaceApp() {
-  // react-router-domのナビゲート機能
-  const navigate = useNavigate();
-
   // Zustandストアから状態とアクションを取得
   const activeSpaces = useSpaceStore(state => state.activeSpaces);
   const finishedSpaces = useSpaceStore(state => state.finishedSpaces);
@@ -18,7 +14,6 @@ function SpaceApp() {
   const error = useSpaceStore(state => state.error);
 
   // アクション関数を取得
-  const fetchSpaces = useSpaceStore(state => state.fetchSpaces);
   const fetchAllSpaces = useSpaceStore(state => state.fetchAllSpaces);
   const addSpace = useSpaceStore(state => state.addSpace);
   const updateSpace = useSpaceStore(state => state.updateSpace);
@@ -40,9 +35,6 @@ function SpaceApp() {
   useEffect(() => {
     const initializeStore = async () => {
       try {
-        // ローカルストレージから選択済みスペースを復元
-        // restoreCurrentSpaceFromStorage();
-
         // 管理者用全スペース一覧を取得
         await fetchAllSpaces();
       } catch (error) {
@@ -95,13 +87,6 @@ function SpaceApp() {
     // 新しいタブでスペース詳細ページを開く（整数型スペースID対応）
     const spaceUrl = `/spaces/${space.id}`;
     window.open(spaceUrl, '_blank');
-
-    // TODO: 選択されたスペースに関連するデータを取得
-    // fetchSpaceMessages(space.id);
-    // fetchSpaceParticipants(space.id);
-
-    // TODO: リアルタイム通信の設定
-    // socket.emit('join-space', space.id);
   };
 
   // スペースを終了する関数
@@ -122,9 +107,9 @@ function SpaceApp() {
   };
 
   return (
-    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8" 
-    style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
-      <h1 className="text-3xl font-bold text-gray-800 mb-10">コミュニケーションスペース管理</h1>
+    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8"
+      style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
+      <h2 className="text-3xl font-bold text-gray-800 mb-10">Chatment スペース管理</h2>
 
       {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
       <SpaceMessageModal
@@ -134,22 +119,19 @@ function SpaceApp() {
         error={error}
         onErrorClear={clearError}
         isLoading={isLoading}
-        
-        // 統計情報関連（将来的に使用）
-        activeSpaces={activeSpaces}
-        finishedSpaces={finishedSpaces}
-        
+
         // 追加モーダル関連
         isAddModalOpen={isAddModalOpen}
         onAddModalClose={() => setIsAddModalOpen(false)}
         onAddSpace={handleAddSpace}
-        
+
         // 編集モーダル関連
         isEditModalOpen={isEditModalOpen}
         onEditModalClose={handleEditModalClose}
         onUpdateSpace={handleUpdateSpace}
         editingSpace={editingSpace}
       />
+
 
       {/* アクティブスペース一覧 */}
       <ActiveSpacesSection

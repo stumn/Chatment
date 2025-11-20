@@ -8,7 +8,6 @@ import useSocket from '../../hooks/shared/useSocket';
 import SidebarClosed from './sidebar/SidebarClosed';
 import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';
-import SidebarFooter from './sidebar/SidebarFooter';
 import '../../styles/sidebar.css';
 
 const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
@@ -19,11 +18,8 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     const toggleColorfulMode = useAppStore((state) => state.toggleColorfulMode);
     const userInfo = propsUserInfo || useAppStore((state) => state.userInfo);
 
-    // ルーム関連の状態
-    const { rooms, activeRoomId, setActiveRoom, switchingRoom, setSwitchingRoom } = useRoomStore();
-
-    // ソケット通信関数を取得
-    const { emitJoinRoom, emitLeaveRoom, emitGetRoomList, emitFetchRoomHistory } = useSocket();
+    // ルーム関連の状態（サブルーム廃止により簡略化）
+    const { activeRoomId } = useRoomStore();
 
     // 目次データを生成
     const tocData = useMemo(() => {
@@ -75,42 +71,13 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
         return lastSection.msg.replace(/^#+\s*/, '');
     }, [tocData]);
 
-    // アクティブルーム情報を取得
+    // アクティブルーム情報を取得（サブルーム廃止により常に"全体"ルーム）
     const activeRoom = useMemo(() => {
-        return rooms.find(room => room.id === activeRoomId);
-    }, [rooms, activeRoomId]);
-
-    const handleRoomClick = (roomId) => {
-        console.log(`🎯 [TableOfContents] ルーム選択開始: ${roomId}`);
-        console.log(`📊 [TableOfContents] 現在のアクティブルーム: ${activeRoomId}`);
-
-        // 同じルームの場合は何もしない
-        if (activeRoomId === roomId) return;
-
-        // 切り替え中の状態を設定
-        setSwitchingRoom(true);
-
-        // 現在のルームから退出（異なるルームの場合のみ）
-        if (activeRoomId && activeRoomId !== roomId) {
-            emitLeaveRoom(activeRoomId);
-        }
-
-        // ローカルストアを先に更新（UI反応の高速化）
-        setActiveRoom(roomId);
-
-        // 新しいルームに参加
-        emitJoinRoom(roomId);
-
-        // ルーム履歴を事前に取得（キャッシュされていない場合のみ）
-        emitFetchRoomHistory(roomId);
-
-        // 少し待ってから切り替え状態をクリア
-        setTimeout(() => {
-            setSwitchingRoom(false);
-        }, 2000);
-
-        console.log(`✅ [TableOfContents] ルーム選択完了: ${roomId}`);
-    };
+        return {
+            id: activeRoomId,
+            name: '全体'
+        };
+    }, [activeRoomId]);
 
     if (!isOpen) {
         return (
@@ -137,14 +104,6 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
                 tocData={tocData}
                 handleItemClick={handleItemClick}
                 isColorfulMode={isColorfulMode}
-            />
-
-            <SidebarFooter
-                rooms={rooms}
-                activeRoomId={activeRoomId}
-                handleRoomClick={handleRoomClick}
-                isColorfulMode={isColorfulMode}
-                switchingRoom={switchingRoom}
             />
         </div>
     );
