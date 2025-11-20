@@ -10,7 +10,7 @@ import useAppStore from "../../store/spaces/appStore";
 import usePostStore from "../../store/spaces/postStore";
 import useRoomStore from "../../store/spaces/roomStore";
 
-export default function ResizablePanels({ appController, spaceId }) {
+export default function ResizablePanels({ appController, spaceId, onScrollToItem }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -154,7 +154,7 @@ export default function ResizablePanels({ appController, spaceId }) {
                 id='doc-container'
                 className="bg-[#fefefe]"
                 style={{ height: `${myHeight}px` }}>
-                <DocComments lines={lines} documentFunctions={documentFunctions} />
+                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} />
             </div>
 
             <div
