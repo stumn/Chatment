@@ -24,8 +24,7 @@ const ChatRow = ({ data, index, style }) => {
     // --- 文字サイズと色を⬆⬇の差で決定（差が大きいほど変化） ---
     const diff = positive - negative;
     let fontSize = 15 + diff * 2; // 差が1で17px、2で19px、-1で13pxなど
-    if (fontSize > 30) fontSize = 30;
-    if (fontSize < 10) fontSize = 10;
+    fontSize = constrain(fontSize, 10, 28); // 最小10px、最大28px
 
     // 見出しの場合はさらに大きく
     if (isHeading) {
