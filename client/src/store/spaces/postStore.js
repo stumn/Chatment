@@ -13,10 +13,6 @@ const usePostStore = create((set, get) => ({
     // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
     addPost: (post, isNewlyCreated = false, roomId) =>
         set((state) => {
-            // 🚫デバッグログ
-            // const spaceName = useAppStore.getState().spaceName || '(未設定)';
-            // const targetRoomId = roomId || '(ルーム未指定)';
-            // console.log(`💬 [postStore] ${spaceName} ${targetRoomId}にメッセージ追加:`, post);
 
             // 受け取ったpostはサーバーからの完全なデータであることを前提とする
             // post.idが存在しない場合はエラー
