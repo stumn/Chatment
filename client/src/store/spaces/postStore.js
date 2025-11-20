@@ -1,7 +1,5 @@
 // 投稿に関連するストア
 import { create } from 'zustand';
-import useAppStore from './appStore';
-
 const usePostStore = create((set, get) => ({
 
     // ----- 全投稿（サーバのPostコレクションと同じになるよう管理） -----
