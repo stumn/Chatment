@@ -25,20 +25,20 @@ const PostsList = ({ posts, docId, spaceId }) => {
  */
 const AllPostsView = ({ posts }) => {
     return (
-        <div>
+        <div className="text-left">
             {/* 投稿統計ヘッダー */}
             <PostsStatistics posts={posts} />
-            
+
             {/* 投稿スタイル定義 */}
             <PostsStyles />
-            
+
             {/* 投稿リスト */}
-            <div className="space-y-2">
+            <div className="space-y-0.5">
                 {posts.map((post, index) => (
-                    <PostItem 
-                        key={post.id || index} 
-                        post={post} 
-                        index={index} 
+                    <PostItem
+                        key={post.id || index}
+                        post={post}
+                        index={index}
                     />
                 ))}
             </div>
@@ -51,26 +51,22 @@ const AllPostsView = ({ posts }) => {
  */
 const SectionView = ({ posts, docId, spaceId }) => {
     return (
-        <div>
+        <div className="text-left">
             {/* 統計情報 */}
-            <div className="mb-8 p-5 bg-gray-50 rounded-lg border-l-4 border-gray-400">
-                <h3 className="text-gray-600 font-medium mb-2">
-                    📑 セクション {docId} - 開発準備中
-                </h3>
-                <p className="text-sm text-gray-500">
-                    <strong>投稿総数:</strong> {posts.length}件 | 
-                    <strong>実装予定:</strong> 見出しレベル別表示
-                </p>
+            <div className="mb-1 px-2 py-0.5 bg-gray-50 rounded border-l-2 border-gray-400">
+                <div className="text-xs text-gray-600">
+                    📑 セクション {docId} - 開発準備中 | {posts.length}件
+                </div>
             </div>
 
             {/* 開発中メッセージ */}
-            <div className="text-center py-12 text-gray-500">
-                <h2 className="text-2xl mb-4">🚧 機能開発中</h2>
-                <p className="mb-5">見出しレベル別の表示機能を実装中です</p>
-                
-                <div className="max-w-md mx-auto mb-5 p-4 bg-gray-50 rounded-md text-left">
-                    <h4 className="font-medium text-gray-600 mb-2">実装予定機能:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1 ml-5 list-disc">
+            <div className="py-3 text-gray-500">
+                <div className="text-sm mb-2 font-medium">🚧 機能開発中</div>
+                <p className="text-xs mb-3">見出しレベル別の表示機能を実装中です</p>
+
+                <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
+                    <div className="font-medium text-gray-600 mb-1">実装予定機能:</div>
+                    <ul className="text-gray-600 space-y-0.5 ml-4 list-disc">
                         <li>見出し（#）による自動セクション分割</li>
                         <li>階層的なナビゲーション</li>
                         <li>セクション間のリンク機能</li>
@@ -81,9 +77,9 @@ const SectionView = ({ posts, docId, spaceId }) => {
                 <button
                     onClick={() => window.location.href = `/document/${spaceId}/0`}
                     className="
-                        px-6 py-3 bg-gray-500 text-white rounded-md
-                        hover:bg-gray-600 transition-colors duration-200
-                        text-sm font-medium
+                        px-3 py-1 bg-gray-500 text-white rounded
+                        hover:bg-gray-600 transition-colors
+                        text-xs
                     "
                 >
                     📄 全投稿を表示
@@ -98,12 +94,10 @@ const SectionView = ({ posts, docId, spaceId }) => {
  */
 const PostsStatistics = ({ posts }) => {
     return (
-        <div className="mb-8 p-5 bg-gray-50 rounded-lg border-l-4 border-gray-400">
-            <h3 className="text-gray-600 font-medium mb-2">📊 全投稿データ</h3>
-            <p className="text-sm text-gray-500">
-                <strong>総件数:</strong> {posts.length}件 | 
-                <strong>生成日時:</strong> {new Date().toLocaleString('ja-JP')}
-            </p>
+        <div className="mb-1 px-2 py-0.5 bg-gray-50 rounded border-l-2 border-gray-400">
+            <div className="text-xs text-gray-600">
+                📊 {posts.length}件 | {new Date().toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+            </div>
         </div>
     );
 };

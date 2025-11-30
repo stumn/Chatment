@@ -1,6 +1,7 @@
 // File: client/src/components/sidebar/SidebarContent.jsx
 
 import React from 'react';
+import { useParams } from 'react-router-dom';
 
 /**
  * サイドバーのメインコンテンツ部分（チャプターと注目コメント）
@@ -10,6 +11,15 @@ import React from 'react';
  * @param {Function} props.onItemClick - 項目クリック時のハンドラ
  */
 const SidebarContent = ({ tocData, isColorfulMode, onItemClick }) => {
+    const { spaceId } = useParams();
+    const documentId = 0;
+
+    const openDocumentWindow = () => {
+        // 新しいタブでドキュメントページを開く（React Routerを使用）
+        const documentUrl = `/document/${spaceId}/${documentId}`;
+        window.open(documentUrl, '_blank');
+    };
+
     return (
         <div className="flex-1 px-6 overflow-hidden min-h-0 flex flex-col">
             {/* チャプターと注目コメントセクション */}
@@ -20,13 +30,19 @@ const SidebarContent = ({ tocData, isColorfulMode, onItemClick }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <div>
-                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide m-0">チャプター（見出しと注目コメント）</h2>
+                        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide m-0">チャプター選択（見出し・注目コメント）</h2>
                     </div>
                 </div>
 
                 {/* スクロール可能なリスト部分 */}
                 <div className="flex-1 overflow-y-auto min-h-0 pt-2 sidebar-text">
                     <div className="flex flex-col gap-2">
+                        <button
+                            onClick={() => openDocumentWindow()}
+                            className={`w-full text-left p-3 bg-transparent border-none rounded-lg cursor-pointer text-sm font-normal text-gray-700 transition-all duration-200 font-inherit hover:bg-gray-200 sb-heading-button ${isColorfulMode ? 'colorful-mode' : ''}`}
+                        >
+                            全編の振り返り（新しいタブで開く）
+                        </button>
                         {tocData.length === 0
                             ? (
                                 <div className="text-gray-400 text-sm p-3">

@@ -10,7 +10,7 @@ import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';
 import '../../styles/sidebar.css';
 
-const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
+const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToItemById }) => {
     // TODO: spaceIdに基づいてスペース固有の投稿データをフィルタリング
     // TODO: スペースタイトルや説明などの情報を表示
     const posts = usePostStore((state) => state.posts);
@@ -60,8 +60,12 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     }, [posts]);
 
     const handleItemClick = (postId) => {
-        // TODO: 後で実装予定：該当の投稿位置にスクロール
         console.log('TOC item clicked:', postId);
+        if (scrollToItemById) {
+            scrollToItemById(postId);
+        } else {
+            console.warn('scrollToItemById function is not available yet');
+        }
     };
 
     // 直近の見出しを取得
@@ -102,7 +106,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
 
             <SidebarContent
                 tocData={tocData}
-                handleItemClick={handleItemClick}
+                onItemClick={handleItemClick}
                 isColorfulMode={isColorfulMode}
             />
         </div>
