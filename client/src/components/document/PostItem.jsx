@@ -37,10 +37,10 @@ const HeadingPost = ({ post }) => {
         HeadingTag,
         {
             className: `
-                text-white font-medium my-8 p-3 rounded-md
+                text-white font-medium my-1 px-2 py-0.5 text-xs rounded text-left
                 bg-gradient-to-r from-blue-500 to-blue-600
-                shadow-sm
-            `
+            `,
+            style: { fontSize: '0.75rem' }
         },
         headingText
     );
@@ -88,14 +88,14 @@ const RegularPost = ({ post, reactionScore, reactionTotal }) => {
 
     return (
         <div className={`
-            group relative my-2 p-3 rounded-md border-l-3 
-            transition-all duration-200 ease-in-out cursor-default
-            hover:translate-x-1 hover:shadow-md
+            group relative my-0.5 px-2 py-0.5 rounded border-l-2 
+            transition-all duration-150 ease-in-out cursor-default
+            hover:translate-x-1
             ${getPostStyles()}
         `}>
             {/* ホバー時のメタ情報 */}
             <PostMeta post={post} reactionTotal={reactionTotal} />
-            
+
             {/* 投稿内容 */}
             <PostContent post={post} />
         </div>
@@ -111,10 +111,10 @@ const PostMeta = ({ post, reactionTotal }) => {
 
     return (
         <div className="
-            absolute top-2 right-3 z-10
-            bg-black/80 text-white text-xs px-2 py-1 rounded
+            absolute top-1 right-2 z-10
+            bg-black/80 text-white text-xs px-1.5 py-0.5 rounded
             opacity-0 invisible group-hover:opacity-100 group-hover:visible
-            transition-all duration-200 pointer-events-none
+            transition-all duration-150 pointer-events-none
         ">
             <div>👤 {post.nickname || 'Unknown'}</div>
             <div>⏰ {post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}</div>
@@ -131,8 +131,8 @@ const PostMeta = ({ post, reactionTotal }) => {
 const PostContent = ({ post }) => {
     return (
         <div className="
-            text-gray-800 leading-relaxed whitespace-pre-wrap break-words
-            mr-16
+            text-gray-800 text-sm leading-snug whitespace-pre-wrap break-words
+            mr-12
         ">
             {post.msg || '(空のメッセージ)'}
         </div>
