@@ -115,7 +115,7 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
       }
 
       // ルーム一覧を受信したら、最初のルームに自動参加
-      if (data.rooms.length > 0) {
+      if (data.rooms.length <= 1) {
         const firstRoom = data.rooms[0];
         console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
 
