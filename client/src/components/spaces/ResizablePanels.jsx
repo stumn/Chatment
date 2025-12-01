@@ -159,13 +159,15 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
             <div
                 id='divider'
-                className="bg-gray-600/60 cursor-row-resize"
+                className="bg-gray-600/60 cursor-row-resize relative group"
                 style={{
                     height: `${DIVIDER_HEIGHT}px`,
                     width: `${CONTAINER_resizable_WIDTH}px`,
                 }}
                 onMouseDown={handleMouseDown}
-            />
+            >
+                <div className="absolute top-1/2 left-1/2 w-13 h-[2px] bg-black opacity-0 group-hover:opacity-100 transition-opacity duration-200 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+            </div>
 
             <div
                 id='chat-container'
