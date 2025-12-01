@@ -45,7 +45,7 @@ const SpaceInfo = ({ spaceData, currentSpaceId, docId, posts, isLoading }) => {
     return (
         <div className="flex-1 flex items-center gap-3 text-sm">
             {/* スペース名 */}
-            <span className="font-semibold text-gray-800">
+            <span className="font-semibold text-lg text-gray-800">
                 {spaceData ? spaceData.name : `スペース ${currentSpaceId}`}
             </span>
 

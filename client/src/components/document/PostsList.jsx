@@ -26,8 +26,6 @@ const PostsList = ({ posts, docId, spaceId }) => {
 const AllPostsView = ({ posts }) => {
     return (
         <div className="text-left">
-            {/* 投稿統計ヘッダー */}
-            <PostsStatistics posts={posts} />
 
             {/* 投稿スタイル定義 */}
             <PostsStyles />
@@ -84,19 +82,6 @@ const SectionView = ({ posts, docId, spaceId }) => {
                 >
                     📄 全投稿を表示
                 </button>
-            </div>
-        </div>
-    );
-};
-
-/**
- * 投稿統計情報
- */
-const PostsStatistics = ({ posts }) => {
-    return (
-        <div className="mb-1 px-2 py-0.5 bg-gray-50 rounded border-l-2 border-gray-400">
-            <div className="text-xs text-gray-600">
-                📊 {posts.length}件 | {new Date().toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </div>
         </div>
     );

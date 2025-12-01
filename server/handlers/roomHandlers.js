@@ -18,6 +18,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         roomExists: rooms.has(roomId)
       });
 
+      // ルームの存在確認
+      // roomsがない場合
+
+      // roomIdがない場合
+
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
         return;
@@ -162,6 +167,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       if (spaceId !== undefined && spaceId !== null) {
         dbRooms = await getActiveRoomsBySpaceId(spaceId);
         console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
+        console.log(dbRooms);
 
         // スペース情報も取得してサブルーム設定を含める
         const { Space } = require('../db');

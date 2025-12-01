@@ -29,20 +29,14 @@ const PostItem = ({ post, index }) => {
  * 見出し投稿コンポーネント
  */
 const HeadingPost = ({ post }) => {
-    const headingLevel = (post.msg.match(/^#+/) || ['#'])[0].length;
-    const headingText = post.msg.replace(/^#+\s*/, '');
-    const HeadingTag = `h${Math.min(headingLevel, 6)}`;
-
-    return React.createElement(
-        HeadingTag,
-        {
-            className: `
-                text-white font-medium my-1 px-2 py-0.5 text-xs rounded text-left
-                bg-gradient-to-r from-blue-500 to-blue-600
-            `,
-            style: { fontSize: '0.75rem' }
-        },
-        headingText
+    return (
+        <div className="group relative">
+            <PostMeta post={post} />
+            <div className="text-white font-medium mb-1 px-2 mt-2 py-0.5 text-lg rounded text-left bg-gradient-to-r from-blue-500 to-blue-600"
+                style={{ fontSize: '0.75rem' }}>
+                {post.msg}
+            </div>
+        </div >
     );
 };
 
@@ -59,7 +53,6 @@ const RegularPost = ({ post, reactionScore, reactionTotal }) => {
         if (reactionTotal > 0) {
             if (reactionScore > 0) {
                 // ポジティブな反応が多い
-                const intensity = Math.min(reactionScore * 10, 30);
                 bgColor = `bg-green-50`;
                 borderColor = 'border-green-400';
             } else if (reactionScore < 0) {
@@ -90,13 +83,9 @@ const RegularPost = ({ post, reactionScore, reactionTotal }) => {
         <div className={`
             group relative my-0.5 px-2 py-0.5 rounded border-l-2 
             transition-all duration-150 ease-in-out cursor-default
-            hover:translate-x-1
             ${getPostStyles()}
         `}>
-            {/* ホバー時のメタ情報 */}
-            <PostMeta post={post} reactionTotal={reactionTotal} />
-
-            {/* 投稿内容 */}
+            <PostMeta post={post} />
             <PostContent post={post} />
         </div>
     );
@@ -105,22 +94,16 @@ const RegularPost = ({ post, reactionScore, reactionTotal }) => {
 /**
  * 投稿メタ情報（ホバー時表示）
  */
-const PostMeta = ({ post, reactionTotal }) => {
-    const positive = post.positive || 0;
-    const negative = post.negative || 0;
-
+const PostMeta = ({ post }) => {
     return (
         <div className="
-            absolute top-1 right-2 z-10
+            absolute top-1 left-2 z-10
             bg-black/80 text-white text-xs px-1.5 py-0.5 rounded
             opacity-0 invisible group-hover:opacity-100 group-hover:visible
             transition-all duration-150 pointer-events-none
         ">
-            <div>👤 {post.nickname || 'Unknown'}</div>
-            <div>⏰ {post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}</div>
-            {reactionTotal > 0 && (
-                <div>👍{positive} 👎{negative}</div>
-            )}
+            <div>{post.nickname || 'Unknown'}さん</div>
+            <div>{post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}</div>
         </div>
     );
 };

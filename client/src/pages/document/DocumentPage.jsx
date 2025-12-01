@@ -44,7 +44,7 @@ const DocumentPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-left">
+        <div className="min-h-screen bg-white text-left min-w-[800px] max-w-[960px] mx-auto pb-[49px] px-[42px]">
             <DocumentHeader
                 spaceData={spaceData}
                 currentSpaceId={currentSpaceId}

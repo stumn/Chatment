@@ -40,7 +40,7 @@ const DocumentContent = ({
 
     // 正常時:PostsListコンポーネントを使用
     return (
-        <div className="px-3 py-2 text-left">
+        <div className="px-3 pb-2 pt-[21px] text-left">
             <PostsList
                 posts={posts}
                 docId={currentDocId}
