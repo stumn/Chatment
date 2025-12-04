@@ -33,12 +33,16 @@ function calculateDisplayOrder(prevOrder, nextOrder) {
 }
 
 // 高さメモリ管理
-function addHeightMemory(heightMemory, id, height) {
+function addHeightMemory(heightMemory, id, height, spaceId) {
     const index = heightMemory.findIndex(item => item.id === id);
-    index !== -1
-        ? heightMemory[index].height = height
-        : heightMemory.push({ id, height });
-    return heightMemory.map(item => item.height); // 高さを全て返す
+    if (index !== -1) {
+        heightMemory[index].height = height;
+        heightMemory[index].spaceId = spaceId;
+    } else {
+        heightMemory.push({ id, height, spaceId });
+    }
+    // オブジェクト全体を返す（height, spaceIdを含む）
+    return heightMemory.map(item => ({ height: item.height, spaceId: item.spaceId }));
 }
 
 // ロック管理関連の関数

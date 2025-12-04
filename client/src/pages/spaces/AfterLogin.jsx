@@ -37,6 +37,10 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
     // 目次が開いている場合のレイアウト調整
     const tocOffset = isTocOpen ? 80 : 0; // 目次の幅分オフセット
 
+    // heightArray のうち、spaceId が一致するもののみ残す
+    // console.log("AfterLogin heightArray:", heightArray);
+    const filteredHeightArray = heightArray.filter(item => item.spaceId === spaceId);
+
     return (
         <div
             id="after-login-container"
@@ -65,7 +69,7 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
 
                 <ResizablePanels appController={appController} spaceId={spaceId} onScrollToItem={handleScrollToItem} />
 
-                <Telomere heightArray={heightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
+                <Telomere heightArray={filteredHeightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 
             </div>
 
