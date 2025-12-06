@@ -29,7 +29,7 @@ function SpaceApp() {
   // カスタムフックでレスポンシブサイズを管理
   useResponsiveSize();
 
-  const CONTAINER_1_HEIGHT = sizeStore((state) => state.height);
+  const width = sizeStore((state) => state.width);
 
   // 初期化時にデータを取得
   useEffect(() => {
@@ -107,9 +107,9 @@ function SpaceApp() {
   };
 
   return (
-    <div className="font-system bg-white p-8 rounded-lg shadow-lg max-w-5xl mx-auto my-8"
-      style={{ minHeight: `${CONTAINER_1_HEIGHT - 64}px` }}>
-      <h2 className="text-3xl font-bold text-gray-800 mb-10">Chatment スペース管理</h2>
+    <div className="font-system bg-white px-8 py-6 rounded-lg shadow-md max-w-4xl mx-auto my-6"
+      style={{ width: `${width}px` }}>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Chatment スペース管理</h2>
 
       {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
       <SpaceMessageModal
