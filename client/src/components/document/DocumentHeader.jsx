@@ -19,7 +19,7 @@ const DocumentHeader = ({
     onClose
 }) => {
     return (
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="border-b border-gray-200 bg-white">
             <div className="px-3 py-2 flex justify-between items-center">
                 <SpaceInfo
                     spaceData={spaceData}

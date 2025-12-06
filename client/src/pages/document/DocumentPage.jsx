@@ -2,6 +2,7 @@ import React from 'react';
 import DocumentHeader from '../../components/document/DocumentHeader.jsx';
 import DocumentContent from '../../components/document/DocumentContent.jsx';
 import { useDocumentData } from '../../hooks/document/useDocumentData.js';
+import useSizeStore from '../../store/shared/sizeStore.js';
 
 /**
  * 統一ドキュメント表示ページ
@@ -18,6 +19,9 @@ import { useDocumentData } from '../../hooks/document/useDocumentData.js';
  * - 管理画面終了スペース → 全投稿ログ閲覧用
  */
 const DocumentPage = () => {
+    // === サイズストアから横幅を取得 ===
+    const width = useSizeStore((state) => state.width);
+
     // === カスタムフックでデータ管理 ===
     const {
         posts,
@@ -44,7 +48,10 @@ const DocumentPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white text-left min-w-[800px] max-w-[960px] mx-auto pb-[49px] px-[42px]">
+        <div
+            className="min-h-screen bg-[#fefefe] text-[#4A4A4A] text-left mx-auto pb-[49px] px-[42px] my-6 shadow-[0_4px_0_rgba(0,0,0,.16)] rounded-t"
+            style={{ width: `${width}px` }}
+        >
             <DocumentHeader
                 spaceData={spaceData}
                 currentSpaceId={currentSpaceId}
