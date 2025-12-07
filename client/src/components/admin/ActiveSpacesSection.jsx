@@ -23,6 +23,14 @@ const TableHeader = () => (
           </svg>
         </div>
       </th>
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[140px]">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+      </th>
       <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -38,6 +46,13 @@ const TableHeader = () => (
 
 // アクティブなスペースの行をレンダリングするコンポーネント
 const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) => {
+
+  // 最終更新日時のフォーマット
+  const formatUpdatedAt = (updatedAt) => {
+    if (!updatedAt) return '不明';
+    const date = new Date(updatedAt);
+    return date.toLocaleDateString('ja-JP') + ' ' + date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  };
 
   const GoButton = () => {
     return (
@@ -108,6 +123,10 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
 
       <td className="px-3 py-2 !whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[100px] text-left">
         {space.participantCount || 0} 人
+      </td>
+
+      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[140px] text-left">
+        {formatUpdatedAt(space.updatedAt)}
       </td>
 
       <td className="flex flex-row px-3 py-2 !whitespace-nowrap text-sm border-b border-gray-200 text-left">

@@ -2,37 +2,50 @@ import React, { useState } from 'react';
 import DocumentViewButton from './ui/DocumentViewButton';
 
 // テーブルヘッダーコンポーネント
-const TableHeader = ({ columns }) => (
+const TableHeader = () => (
   <thead className="bg-gray-50">
     <tr>
-      {columns.map(col => (
-        <th key={col} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">{col}</th>
-      ))}
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[200px]">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+      </th>
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[100px]">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+      </th>
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[140px]">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+      </th>
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="12" cy="5" r="1"></circle>
+            <circle cx="12" cy="19" r="1"></circle>
+          </svg>
+        </div>
+      </th>
     </tr>
   </thead>
 );
 
 // 終了した部屋の行をレンダリングするコンポーネント
 const FinishedSpaceRow = ({ space }) => {
-  const [openDropdown, setOpenDropdown] = useState(null);
-
-  const handleDropdownToggle = (menu) => {
-    setOpenDropdown(openDropdown === menu ? null : menu);
-  };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    if (openDropdown) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [openDropdown]);
-
   // 終了日時のフォーマット
   const formatFinishedAt = (finishedAt) => {
     if (!finishedAt) return '不明';
@@ -42,50 +55,43 @@ const FinishedSpaceRow = ({ space }) => {
 
   return (
     <tr>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-200">
-        {space.name}
+      <td className="px-3 py-2 text-sm font-medium text-gray-900 border-b border-gray-200 w-[200px] text-left">
+        <div className="truncate max-w-[180px]" title={space.name}>
+          {space.name}
+        </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">
-        <span className="relative inline-block mr-2 dropdown-container">
-          <button
-            className="px-3 py-1 text-blue-500 bg-transparent border-none cursor-pointer text-sm hover:text-blue-700 transition-colors duration-150"
-            type="button"
-            onClick={() => handleDropdownToggle('export')}
+      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[100px] text-left">
+        {space.participantCount || 0} 人
+      </td>
+      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[140px] text-left">{formatFinishedAt(space.finishedAt)}</td>
+      <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-gray-200 text-left">
+        <div className="flex gap-1">
+          <DocumentViewButton spaceId={space.id} />
+          <a
+            href={`/api/spaces/${space.id}/export/json`}
+            className="px-3 py-2 !bg-slate-500 !text-white border-none rounded text-sm font-medium cursor-pointer hover:!bg-slate-600 transition-colors duration-150 no-underline flex items-center justify-center"
+            download
+            title="JSONでエクスポート"
           >
-            エクスポート
-            <svg className="inline-block ml-1 w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-          </button>
-          <ul
-            className={`absolute left-0 mt-2 py-1 w-32 bg-white rounded-md shadow-lg z-10 border ${openDropdown === 'export' ? 'block' : 'hidden'}`}
+          </a>
+          <a
+            href={`/api/spaces/${space.id}/export/csv`}
+            className="px-3 py-2 !bg-slate-400 !text-white border-none rounded text-sm font-medium cursor-pointer hover:!bg-slate-500 transition-colors duration-150 no-underline flex items-center justify-center"
+            download
+            title="CSVでエクスポート"
           >
-            <li>
-              <a
-                href={`/api/spaces/${space.id}/export/csv`}
-                className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
-                download
-                onClick={() => setOpenDropdown(null)}
-              >
-                📄 CSV
-              </a>
-            </li>
-            <li>
-              <a
-                href={`/api/spaces/${space.id}/export/json`}
-                className="block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-gray-100 transition-colors duration-150"
-                download
-                onClick={() => setOpenDropdown(null)}
-              >
-                📄 JSON
-              </a>
-            </li>
-          </ul>
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200">{formatFinishedAt(space.finishedAt)}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm border-b border-gray-200">
-        <DocumentViewButton spaceId={space.id} />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </a>
+        </div>
       </td>
     </tr>
   );
@@ -102,8 +108,8 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
     <div className="mb-8">
       <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したスペース</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-[800px] w-full max-w-6xl border-collapse border-b border-gray-200">
-          <TableHeader columns={['スペース名', 'エクスポート', '終了日時', 'アクション']} />
+        <table className="w-full border-collapse border-b border-gray-200">
+          <TableHeader />
           <tbody>
             {finishedSpaces.length > 0 ? (
               finishedSpaces.map(space => (
