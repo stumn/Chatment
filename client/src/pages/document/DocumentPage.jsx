@@ -48,29 +48,32 @@ const DocumentPage = () => {
     };
 
     return (
-        <div
-            className="min-h-screen bg-[#fefefe] text-[#4A4A4A] text-left mx-auto pb-[49px] px-[42px] my-6 shadow-[0_4px_0_rgba(0,0,0,.16)] rounded-t"
-            style={{ width: `${width}px` }}
-        >
-            <DocumentHeader
-                spaceData={spaceData}
-                currentSpaceId={currentSpaceId}
-                docId={docId}
-                posts={posts}
-                isLoading={isLoading}
-                onRefresh={refetch}
-                onClose={handleClose}
-            />
+        <>
+            <title>Chatment | ドキュメント</title>
+            <div
+                className="min-h-screen bg-[#fefefe] text-[#4A4A4A] text-left mx-auto pb-[49px] px-[42px] my-6 shadow-[0_4px_0_rgba(0,0,0,.16)] rounded-t"
+                style={{ width: `${width}px` }}
+            >
+                <DocumentHeader
+                    spaceData={spaceData}
+                    currentSpaceId={currentSpaceId}
+                    docId={docId}
+                    posts={posts}
+                    isLoading={isLoading}
+                    onRefresh={refetch}
+                    onClose={handleClose}
+                />
 
-            <DocumentContent
-                posts={posts}
-                isLoading={isLoading}
-                error={error}
-                isValidDocId={isValidDocId}
-                currentDocId={currentDocId}
-                currentSpaceId={currentSpaceId}
-            />
-        </div>
+                <DocumentContent
+                    posts={posts}
+                    isLoading={isLoading}
+                    error={error}
+                    isValidDocId={isValidDocId}
+                    currentDocId={currentDocId}
+                    currentSpaceId={currentSpaceId}
+                />
+            </div>
+        </>
     );
 };
 

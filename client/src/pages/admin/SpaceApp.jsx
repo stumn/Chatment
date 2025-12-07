@@ -107,50 +107,53 @@ function SpaceApp() {
   };
 
   return (
-    <div className="font-system bg-white px-8 py-6 rounded-lg shadow-md max-w-4xl mx-auto my-6"
-      style={{ width: `${width}px` }}>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Chatment スペース管理</h2>
+    <>
+      <title>Chatment | スペース管理</title>
+      <div className="font-system bg-white px-8 py-6 rounded-lg shadow-md max-w-4xl mx-auto my-6"
+        style={{ width: `${width}px` }}>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Chatment スペース管理</h2>
 
-      {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
-      <SpaceMessageModal
-        // メッセージ関連
-        successMessage={successMessage}
-        onSuccessMessageClose={() => setSuccessMessage('')}
-        error={error}
-        onErrorClear={clearError}
-        isLoading={isLoading}
+        {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
+        <SpaceMessageModal
+          // メッセージ関連
+          successMessage={successMessage}
+          onSuccessMessageClose={() => setSuccessMessage('')}
+          error={error}
+          onErrorClear={clearError}
+          isLoading={isLoading}
 
-        // 追加モーダル関連
-        isAddModalOpen={isAddModalOpen}
-        onAddModalClose={() => setIsAddModalOpen(false)}
-        onAddSpace={handleAddSpace}
+          // 追加モーダル関連
+          isAddModalOpen={isAddModalOpen}
+          onAddModalClose={() => setIsAddModalOpen(false)}
+          onAddSpace={handleAddSpace}
 
-        // 編集モーダル関連
-        isEditModalOpen={isEditModalOpen}
-        onEditModalClose={handleEditModalClose}
-        onUpdateSpace={handleUpdateSpace}
-        editingSpace={editingSpace}
-      />
+          // 編集モーダル関連
+          isEditModalOpen={isEditModalOpen}
+          onEditModalClose={handleEditModalClose}
+          onUpdateSpace={handleUpdateSpace}
+          editingSpace={editingSpace}
+        />
 
 
-      {/* アクティブスペース一覧 */}
-      <ActiveSpacesSection
-        activeSpaces={activeSpaces}
-        onSelectSpace={handleSelectSpace}
-        onFinishSpace={handleFinishSpace}
-        onEditSpace={handleEditSpace}
-        onAddSpaceClick={() => setIsAddModalOpen(true)}
-      />
+        {/* アクティブスペース一覧 */}
+        <ActiveSpacesSection
+          activeSpaces={activeSpaces}
+          onSelectSpace={handleSelectSpace}
+          onFinishSpace={handleFinishSpace}
+          onEditSpace={handleEditSpace}
+          onAddSpaceClick={() => setIsAddModalOpen(true)}
+        />
 
-      {/* 終了スペース一覧 */}
-      <FinishedSpacesSection finishedSpaces={finishedSpaces} />
+        {/* 終了スペース一覧 */}
+        <FinishedSpacesSection finishedSpaces={finishedSpaces} />
 
-      {/* フッター */}
-      <div className="text-center text-gray-500 mt-8">
-        <hr className="my-4 border-gray-200" />
-        <p>© Mao NAKANO - Chatment </p>
+        {/* フッター */}
+        <div className="text-center text-gray-500 mt-8">
+          <hr className="my-4 border-gray-200" />
+          <p>© Mao NAKANO - Chatment </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

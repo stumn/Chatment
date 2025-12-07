@@ -89,20 +89,26 @@ function ChatApp() {
 
   if (isLoggedIn) { // ログイン完了後
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <AfterLogin
-          heightArray={heightArray}
-          appController={appController}
-          userInfo={userInfo}
-          spaceId={spaceId}
-        />
-      </Suspense>
+      <>
+        <title>Chatment</title>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AfterLogin
+            heightArray={heightArray}
+            appController={appController}
+            userInfo={userInfo}
+            spaceId={spaceId}
+          />
+        </Suspense>
+      </>
     );
   } else { // ログイン前
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <BeforeLogin open={open} onLogin={setUserInfo} spaceId={spaceId} />
-      </Suspense>
+      <>
+        <title>Chatment | ログイン</title>
+        <Suspense fallback={<div>Loading...</div>}>
+          <BeforeLogin open={open} onLogin={setUserInfo} spaceId={spaceId} />
+        </Suspense>
+      </>
     );
   }
 }
