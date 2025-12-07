@@ -1,4 +1,4 @@
-import usePostStore from '../../../../store/spaces/postStore';
+import usePostStore from '../../../store/spaces/postStore';
 
 export const useBasicHandlers = (socket) => {
   const handleHeightChange = (data) => {

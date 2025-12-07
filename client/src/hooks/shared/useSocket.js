@@ -4,21 +4,21 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 // ハンドラーのインポート
-import { useBasicHandlers } from '../spaces/socket/handlers/useBasicHandlers';
-import { useChatHandlers } from '../spaces/socket/handlers/useChatHandlers';
-import { useDocHandlers } from '../spaces/socket/handlers/useDocHandlers';
-import { useLockHandlers } from '../spaces/socket/handlers/useLockHandlers';
-import { useRoomHandlers } from '../spaces/socket/handlers/useRoomHandlers';
+import { useBasicHandlers } from '../spaces/handlers/useBasicHandlers';
+import { useChatHandlers } from '../spaces/handlers/useChatHandlers';
+import { useDocHandlers } from '../spaces/handlers/useDocHandlers';
+import { useLockHandlers } from '../spaces/handlers/useLockHandlers';
+import { useRoomHandlers } from '../spaces/handlers/useRoomHandlers';
 
 // エミッターのインポート
-import { useBasicEmitters } from '../spaces/socket/emitters/useBasicEmitters';
-import { useChatEmitters } from '../spaces/socket/emitters/useChatEmitters';
-import { useDocEmitters } from '../spaces/socket/emitters/useDocEmitters';
-import { useRoomEmitters } from '../spaces/socket/emitters/useRoomEmitters';
+import { useBasicEmitters } from '../spaces/emitters/useBasicEmitters';
+import { useChatEmitters } from '../spaces/emitters/useChatEmitters';
+import { useDocEmitters } from '../spaces/emitters/useDocEmitters';
+import { useRoomEmitters } from '../spaces/emitters/useRoomEmitters';
 
 // ユーティリティのインポート
-import { createEmitLog } from '../spaces/socket/utils/socketUtils';
-import { createEventHandlerMap } from '../spaces/socket/utils/eventMap';
+import { createEmitLog } from '../spaces/socketUtils/socketUtils';
+import { createEventHandlerMap } from '../spaces/socketUtils/eventMap';
 
 const socket = io();
 

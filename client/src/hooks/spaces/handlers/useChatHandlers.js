@@ -1,6 +1,6 @@
-import usePostStore from '../../../../store/spaces/postStore';
-import useRoomStore from '../../../../store/spaces/roomStore';
-import { validUserId } from '../utils/socketUtils';
+import usePostStore from '../../../store/spaces/postStore';
+import useRoomStore from '../../../store/spaces/roomStore';
+import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatHandlers = (emitLog) => {
   const addMessage = usePostStore((state) => state.addPost);

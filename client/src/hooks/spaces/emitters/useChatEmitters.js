@@ -1,5 +1,5 @@
-import useAppStore from '../../../../store/spaces/appStore';
-import { validUserId } from '../utils/socketUtils';
+import useAppStore from '../../../store/spaces/appStore';
+import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
   const emitChatMessage = (nickname, message, userId, roomId = null) => {

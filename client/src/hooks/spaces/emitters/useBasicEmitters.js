@@ -1,8 +1,8 @@
-import useAppStore from '../../../../store/spaces/appStore';
-import { validUserId } from '../utils/socketUtils';
+import useAppStore from '../../../store/spaces/appStore';
+import { validUserId } from '../socketUtils/socketUtils';
 
 export const useBasicEmitters = (socket, emitLog) => {
-  
+
   const emitLoginName = () => {
     const { userInfo } = useAppStore.getState();
     socket.emit('login', userInfo);

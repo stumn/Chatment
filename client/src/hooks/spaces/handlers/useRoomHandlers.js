@@ -1,7 +1,7 @@
-import usePostStore from '../../../../store/spaces/postStore';
-import useRoomStore from '../../../../store/spaces/roomStore';
-import useAppStore from '../../../../store/spaces/appStore';
-import { validUserId } from '../utils/socketUtils';
+import usePostStore from '../../../store/spaces/postStore';
+import useRoomStore from '../../../store/spaces/roomStore';
+import useAppStore from '../../../store/spaces/appStore';
+import { validUserId } from '../socketUtils/socketUtils';
 
 export const useRoomHandlers = (emitLog, roomEmitters) => {
   const addMessage = usePostStore((state) => state.addPost);

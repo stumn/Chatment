@@ -1,18 +1,18 @@
-import useAppStore from '../../../../store/spaces/appStore';
-import { validUserId } from '../utils/socketUtils';
+import useAppStore from '../../../store/spaces/appStore';
+import { validUserId } from '../socketUtils/socketUtils';
 
 export const useDocEmitters = (socket, emitLog) => {
-  
+
   const emitDocAdd = (payload) => {
     // const { userInfo } = useAppStore.getState();
     console.log('emitDocAdd', payload.spaceId, payload);
-    
+
     // spaceIdを追加(不要説)　ここでuserInfoを取得するから、元のpayloadにuser情報を載せないという手もある
     const payloadWithSpace = {
       ...payload,
       // spaceId: userInfo.spaceId
     };
-    
+
     socket.emit('doc-add', payloadWithSpace);
 
     emitLog({
@@ -56,13 +56,13 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocEdit = (payload) => {
     const { userInfo } = useAppStore.getState();
     console.log('emitDocEdit', payload);
-    
+
     // spaceIdを追加
     const payloadWithSpace = {
       ...payload,
       spaceId: userInfo.spaceId
     };
-    
+
     socket.emit('doc-edit', payloadWithSpace);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
@@ -75,15 +75,15 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocReorder = (payload) => {
     const { userInfo } = useAppStore.getState();
     console.log('emitDocReorder', payload);
-    
+
     // spaceIdを追加
     const payloadWithSpace = {
       ...payload,
       spaceId: userInfo.spaceId
     };
-    
+
     socket.emit('doc-reorder', payloadWithSpace);
-    
+
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
