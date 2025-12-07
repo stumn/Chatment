@@ -8,7 +8,7 @@ import useSocket from '../../hooks/shared/useSocket';
 import SidebarClosed from './sidebar/SidebarClosed';
 import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';
-import '../../styles/sidebar.css';
+import './sidebar/sidebar.css';
 
 const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToItemById }) => {
     // TODO: spaceIdに基づいてスペース固有の投稿データをフィルタリング
