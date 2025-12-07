@@ -1,8 +1,8 @@
 import React from 'react';
-import DocumentHeader from '../../components/document/DocumentHeader.jsx';
-import DocumentContent from '../../components/document/DocumentContent.jsx';
-import { useDocumentData } from '../../hooks/document/useDocumentData.js';
-import useSizeStore from '../../store/shared/sizeStore.js';
+import DocumentHeader from '../components/document/DocumentHeader.jsx';
+import DocumentContent from '../components/document/DocumentContent.jsx';
+import { useDocumentData } from '../hooks/document/useDocumentData.js';
+import useSizeStore from '../store/shared/sizeStore.js';
 
 /**
  * 統一ドキュメント表示ページ

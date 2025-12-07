@@ -1,10 +1,10 @@
 // File: client/src/AfterLogin.jsx
 
 import { useState, useCallback } from 'react';
-import ResizablePanels from '../../components/spaces/ResizablePanels'
-import InputForm from '../../components/spaces/InputForm'
-import Telomere from '../../components/spaces/Telomere';
-import Sidebar from '../../components/spaces/Sidebar';
+import ResizablePanels from './ResizablePanels'
+import InputForm from './InputForm'
+import Telomere from './Telomere';
+import Sidebar from './Sidebar';
 
 import sizeStore from '../../store/shared/sizeStore';
 import useAppStore from '../../store/spaces/appStore';
