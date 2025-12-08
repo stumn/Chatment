@@ -97,8 +97,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
       isError: true,
       createdAt: new Date().toISOString()
     };
-
-    addMessage(errorMessage, true);
   };
 
   const handleRoomList = (data) => {

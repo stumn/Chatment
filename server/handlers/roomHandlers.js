@@ -19,6 +19,12 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       });
 
       // ルームの存在確認
+      console.log('🔍 [server] ルーム存在確認:', {
+        roomId,
+        rooms,
+        roomsHasRoomId: rooms.has(roomId)
+      });
+
       // roomsがない場合
 
       // roomIdがない場合
@@ -199,6 +205,8 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
           settings: dbRoom.settings
         };
       });
+
+      console.log(`🌍 [server] ルーム一覧送信: ${roomList}`);
 
       // スペース情報も含めて送信
       socket.emit('room-list', {
