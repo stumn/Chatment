@@ -3,12 +3,10 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { SOCKET_EVENTS } = require('../constants');
-
 // --- positive/negativeリアクションの共通ハンドラー ---
 function setupReactionHandlers(socket, io) {
 
-  const reactionTypes = [SOCKET_EVENTS.POSITIVE, SOCKET_EVENTS.NEGATIVE];
+  const reactionTypes = ['positive', 'negative'];
 
   reactionTypes.forEach(reactionType => {
 
@@ -20,7 +18,7 @@ function setupReactionHandlers(socket, io) {
 
         // ブロードキャスト用データの作成
         const broadcastData =
-          reactionType === SOCKET_EVENTS.POSITIVE
+          reactionType === 'positive'
             ? { id: reactionResult.id, positive: reactionResult.reaction, userHasVotedPositive: reactionResult.userHasReacted }
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 

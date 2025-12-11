@@ -13,12 +13,10 @@ const {
   unlockRowByPostId,
 } = require('../socketUtils');
 
-const { SOCKET_EVENTS } = require('../constants');
-
 // --- ドキュメントハンドラーのセットアップ ---
 function setupDocHandlers(socket, io, lockedRows) {
 
-  socket.on(SOCKET_EVENTS.DOC_ADD, async (payload) => {
+  socket.on('doc-add', async (payload) => {
     try {
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
@@ -54,7 +52,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       };
 
       // 新規行追加を全クライアントにブロードキャスト
-      io.emit(SOCKET_EVENTS.DOC_ADD, data);
+      io.emit('doc-add', data);
 
       // ログ記録
       saveLog({ userId: newPost.userId, action: 'doc-add', detail: data, spaceId: payload.spaceId });
@@ -62,7 +60,7 @@ function setupDocHandlers(socket, io, lockedRows) {
     } catch (e) { console.error(e); }
   });
 
-  socket.on(SOCKET_EVENTS.DOC_EDIT, async (payload) => {
+  socket.on('doc-edit', async (payload) => {
     try {
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
@@ -84,7 +82,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       const updatedPost = await updatePostData(payload);
 
       // updatedAtをpayloadに追加してemit
-      io.emit(SOCKET_EVENTS.DOC_EDIT, { ...payload, updatedAt: updatedPost.updatedAt });
+      io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
 
       // 編集完了時にロック解除
       unlockRowByPostId(lockedRows, io, payload.id);
@@ -95,7 +93,7 @@ function setupDocHandlers(socket, io, lockedRows) {
     } catch (e) { console.error(e); }
   });
 
-  socket.on(SOCKET_EVENTS.DOC_REORDER, async (payload) => {
+  socket.on('doc-reorder', async (payload) => {
     try {
 
       // 受信データをデストラクション
@@ -118,7 +116,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       const posts = await getPostsByDisplayOrder(spaceId);
 
       // 並び替え情報に実行者の情報を含めて送信
-      io.emit(SOCKET_EVENTS.DOC_REORDER, {
+      io.emit('doc-reorder', {
         posts: posts,
         reorderInfo: {
           movedPostId: movedPostId,
@@ -135,7 +133,7 @@ function setupDocHandlers(socket, io, lockedRows) {
     } catch (e) { console.error(e); }
   });
 
-  socket.on(SOCKET_EVENTS.DOC_DELETE, async (payload) => {
+  socket.on('doc-delete', async (payload) => {
     try {
 
       // 行削除処理
@@ -143,8 +141,8 @@ function setupDocHandlers(socket, io, lockedRows) {
 
       // 削除結果を全クライアントにブロードキャスト
       if (deleted) {
-        
-        io.emit(SOCKET_EVENTS.DOC_DELETE, { id: payload.id });
+
+        io.emit('doc-delete', { id: payload.id });
 
         // ログ記録
         saveLog({ userId: null, action: 'doc-delete', detail: payload });

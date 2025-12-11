@@ -5,8 +5,6 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { SOCKET_EVENTS } = require('../constants');
-
 // --- displayOrderの最後尾を取得（ヘルパー）（スペース別） ---
 async function getLastDisplayOrder(spaceId = null) {
   try {
@@ -21,7 +19,7 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
 
-  socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId }) => {
+  socket.on('chat-message', async ({ nickname, message, userId, roomId, spaceId }) => {
     try {
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
@@ -43,7 +41,7 @@ function setupChatHandlers(socket, io) {
       const responseData = { ...p, roomId };
 
       // メッセージをルームに送信
-      io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, responseData);
+      io.to(roomId).emit('chat-message', responseData);
 
       // ルーム統計をデータベースで更新
       await updateRoomStats(roomId, { $inc: { messageCount: 1 } });

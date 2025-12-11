@@ -6,11 +6,9 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { SOCKET_EVENTS } = require('../constants');
-
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
-  socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
+  socket.on('join-room', ({ roomId, userId, nickname, userInfo }) => {
     try {
       // ルームの存在確認
       if (rooms.size === 0) {
@@ -96,7 +94,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
     }
   });
 
-  socket.on(SOCKET_EVENTS.LEAVE_ROOM, ({ roomId, userId, nickname }) => {
+  socket.on('leave-room', ({ roomId, userId, nickname }) => {
     try {
       if (!rooms.has(roomId)) {
         // ルームが存在しない場合でも退出完了として扱う

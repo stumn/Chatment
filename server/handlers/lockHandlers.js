@@ -1,7 +1,5 @@
-const { SOCKET_EVENTS } = require('../constants');
-
 function setupLockHandlers(socket, io, lockedRows) {
-  socket.on(SOCKET_EVENTS.DEMAND_LOCK, async (data) => {
+  socket.on('demand-lock', async (data) => {
     try {
       console.log('demand-lock received:', data);
 
