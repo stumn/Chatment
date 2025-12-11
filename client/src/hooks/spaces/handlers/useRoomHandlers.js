@@ -112,8 +112,8 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
         useRoomStore.getState().setRooms(data.rooms);
       }
 
-      // ルーム一覧を受信したら、最初のルームに自動参加
-      if (data.rooms.length <= 1) {
+      // ルーム一覧を受信したら、最初のルームに自動参加（デフォルトスペースにサブルームが2つ残っているため）
+      if (data.rooms.length <= 3) {
         const firstRoom = data.rooms[0];
         console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
 
@@ -127,6 +127,7 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
           console.error('❌ roomEmitters.emitJoinRoom が利用できません');
         }
       } else {
+        console.log(data.rooms);
         console.warn('⚠️ 利用可能なルームが見つかりませんでした');
       }
     }
