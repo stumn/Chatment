@@ -31,7 +31,7 @@ function initializeSocketHandlers(io) {
     });
 
     // その他のイベントハンドラー
-    setupChatHandlers(socket, io, rooms);
+    setupChatHandlers(socket, io);
     setupUIHandlers(socket, io, heightMemory);
     setupReactionHandlers(socket, io);
     setupDocHandlers(socket, io, lockedRows);

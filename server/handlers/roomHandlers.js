@@ -9,6 +9,7 @@ const {
 const { SOCKET_EVENTS } = require('../constants');
 
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
+
   socket.on(SOCKET_EVENTS.JOIN_ROOM, ({ roomId, userId, nickname, userInfo }) => {
     try {
       console.log(`🚪 [roomHandlers] ルーム参加リクエスト受信:`, {
@@ -18,17 +19,15 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         roomExists: rooms.has(roomId)
       });
 
-      // ルームの存在確認
-      console.log('🔍 [server] ルーム存在確認:', {
-        roomId,
-        rooms,
-        roomsHasRoomId: rooms.has(roomId)
-      });
+      console.log('🗺️ [server] 利用可能なルーム:', Array.from(rooms.keys()));
 
-      // roomsがない場合
+      // ルームの存在確認
+      if (rooms.size === 0) {
+        socket.emit('room-error', { error: 'No rooms available', message: '利用可能なルームがありません' });
+        return;
+      }
 
       // roomIdがない場合
-
       if (!rooms.has(roomId)) {
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
         return;
@@ -175,6 +174,20 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         console.log(`🏠 [server] スペース ${spaceId} のルーム取得: ${dbRooms.length}件`);
         console.log(dbRooms);
 
+        // DBから取得したルームをメモリに登録
+        dbRooms.forEach(dbRoom => {
+          if (!rooms.has(dbRoom.id)) {
+            rooms.set(dbRoom.id, {
+              id: dbRoom.id,
+              name: dbRoom.name,
+              spaceId: dbRoom.spaceId,
+              participants: new Set(),
+              settings: dbRoom.settings
+            });
+            console.log(`📝 [server] ルームをメモリに登録: ${dbRoom.id} (${dbRoom.name})`);
+          }
+        });
+
         // スペース情報も取得してサブルーム設定を含める
         const { Space } = require('../db');
         const space = await Space.findOne({ id: spaceId }).lean();
@@ -206,7 +219,8 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         };
       });
 
-      console.log(`🌍 [server] ルーム一覧送信: ${roomList}`);
+      console.log(`🌍 [server] ルーム一覧送信:`, roomList.length, '件');
+      console.log(`🗺️ [server] メモリ上のルーム:`, Array.from(rooms.keys()));
 
       // スペース情報も含めて送信
       socket.emit('room-list', {

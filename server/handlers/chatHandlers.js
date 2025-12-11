@@ -19,7 +19,7 @@ async function getLastDisplayOrder(spaceId = null) {
 }
 
 // --- チャットハンドラーのセットアップ ---
-function setupChatHandlers(socket, io, rooms) {
+function setupChatHandlers(socket, io) {
 
   socket.on(SOCKET_EVENTS.CHAT_MESSAGE, async ({ nickname, message, userId, roomId, spaceId }) => {
     try {

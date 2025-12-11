@@ -32,10 +32,12 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     e.preventDefault();
     setError(''); // エラーをクリア
 
+    console.log('Submitting message:', { handleName, message, activeRoomId }, 'in', { rooms });
+
     // activeRoomIdがnullの場合はエラーを表示
-    if (!activeRoomId) {
+    if (!activeRoomId && !rooms[0]) {
       setError('ルームに参加していません。しばらくお待ちください。');
-      return;
+      // return;
     }
 
     // バリデーション付きでメッセージ送信
