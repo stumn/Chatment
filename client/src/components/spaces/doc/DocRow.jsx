@@ -10,6 +10,7 @@ import useFadeOut from '../../../hooks/spaces/useFadeOut';
 import useEditMode from '../../../hooks/spaces/useEditMode';
 import ActionButtons from './ActionButtons';
 import ChangeBar from './ChangeBar';
+import { linkifyText } from '../../../utils/linkify';
 import './Doc.css';
 
 const DocRow = ({ data, index, style }) => {
@@ -187,12 +188,23 @@ const DocRow = ({ data, index, style }) => {
                         spellCheck={true}
                         style={getContentStyle()} // 見出しスタイルとハイライトを統合
                     >
-                        {(message?.msg || '').split('\n').map((line, i, arr) => (
-                            <React.Fragment key={i}>
-                                {line}
-                                {i < arr.length - 1 && <br />}
-                            </React.Fragment>
-                        ))}
+                        {isEditing ? (
+                            // 編集中は通常のテキストを表示
+                            (message?.msg || '').split('\n').map((line, i, arr) => (
+                                <React.Fragment key={i}>
+                                    {line}
+                                    {i < arr.length - 1 && <br />}
+                                </React.Fragment>
+                            ))
+                        ) : (
+                            // 表示中はURLをリンクに変換
+                            (message?.msg || '').split('\n').map((line, i, arr) => (
+                                <React.Fragment key={i}>
+                                    {linkifyText(line)}
+                                    {i < arr.length - 1 && <br />}
+                                </React.Fragment>
+                            ))
+                        )}
                     </div>
 
                     {/* 編集エラーメッセージの表示 */}

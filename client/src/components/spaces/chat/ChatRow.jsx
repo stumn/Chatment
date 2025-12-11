@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useAppStore from '../../../store/spaces/appStore';
+import { linkifyText } from '../../../utils/linkify';
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
@@ -88,9 +89,7 @@ const ChatRow = ({ data, index, style }) => {
                 style={{ fontSize }}
             >
                 <span
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="block cursor-text outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8"
+                    className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8"
                     style={{
                         fontSize,
                         color: textColor,
@@ -98,7 +97,7 @@ const ChatRow = ({ data, index, style }) => {
                     }}
                     title={cMsg.msg} // ホバーで全文表示
                 >
-                    {cMsg.msg}
+                    {linkifyText(cMsg.msg)}
                 </span>
                 {/* 右端にフェードアウトグラデーション */}
                 <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
