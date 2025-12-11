@@ -7,17 +7,4 @@ function handleErrors(error, customMsg = '') {
     throw error;
 }
 
-
-//　--以下、index.js で使う関数--
-
-// ユーザーのイベント状況を確認
-async function checkEventStatus(events, userSocketId) {
-    let isAlert = false;
-    if (events.length > 0) {
-        const existingUser = events.find(obj => obj.userSocketId === userSocketId);
-        if (existingUser) { isAlert = true; }
-    }
-    return isAlert;
-}
-
-module.exports = { handleErrors, checkEventStatus };
+module.exports = { handleErrors };
