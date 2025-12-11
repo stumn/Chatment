@@ -8,8 +8,6 @@ async function getActiveRooms() {
         // アクティブなルームを取得（roomIdの昇順でソート）
         const rooms = await Room.find({ isActive: true }).sort({ id: 1 }).lean().exec();
 
-        console.log(`🏠 [dbOperation] アクティブルーム取得: ${rooms.length}件`);
-
         return rooms;
 
     } catch (error) {
@@ -53,9 +51,6 @@ async function updateRoomStats(roomId, updates = {}) {
             { new: true, lean: true }
         );
 
-        // 更新結果のログ出力
-        if (updatedRoom) { console.log(`📊 [dbOperation] ルーム統計更新: ${roomId}`, updates); }
-
         return updatedRoom;
 
     } catch (error) {
@@ -86,8 +81,6 @@ async function createRoom(roomData) {
             }
         });
 
-        console.log(`🏠 [dbOperation] 新しいルーム作成: ${name} (${id})`);
-
         return newRoom.toObject();
 
     } catch (error) {
@@ -105,8 +98,6 @@ async function getActiveRoomsBySpaceId(spaceId) {
             spaceId: spaceId
         }).sort({ id: 1 }).lean().exec();
 
-        console.log(`🏠 [dbOperation] スペース ${spaceId} のアクティブルーム取得: ${rooms.length}件`);
-
         return rooms;
 
     } catch (error) {
@@ -118,8 +109,6 @@ async function getActiveRoomsBySpaceId(spaceId) {
 // --- スペース固有のデフォルトルームを作成 ---
 async function createDefaultRoomsForSpace(spaceId) {
     try {
-        console.log(`🏠 [roomManagement] スペース ${spaceId} のルーム作成開始`);
-
         // スペース情報を取得
         const { Space } = require('../db');
         const space = await Space.findOne({ id: spaceId });
@@ -135,7 +124,6 @@ async function createDefaultRoomsForSpace(spaceId) {
         const existingRoom = await Room.findOne({ id: mainRoomId });
 
         if (existingRoom) {
-            console.log(`🔄 [roomManagement] 既存全体ルーム確認: ${existingRoom.name}`);
             createdRooms.push(existingRoom.toObject());
         } else {
             const newRoom = await Room.create({
@@ -151,11 +139,9 @@ async function createDefaultRoomsForSpace(spaceId) {
                     allowAnonymous: true
                 }
             });
-            console.log(`✅ [roomManagement] 全体ルーム作成: ${newRoom.name}`);
             createdRooms.push(newRoom.toObject());
         }
 
-        console.log(`🏠 [roomManagement] スペース ${spaceId} のルーム作成完了: ${createdRooms.length}件`);
         return createdRooms;
 
     } catch (error) {

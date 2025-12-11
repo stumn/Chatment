@@ -23,41 +23,40 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
         }
 
         // 既存ユーザーを検索（nickname, status, ageGroup, spaceIdの組み合わせで判定）
-        let existingUser = await User.findOne({ 
-            nickname, 
-            status, 
+        let existingUser = await User.findOne({
+            nickname,
+            status,
             ageGroup,
             spaceId
         });
 
         if (existingUser) {
             // 既存ユーザーが見つかった場合、更新
-            
+
             // socketIdを追加（重複チェック）
             if (!existingUser.socketId.includes(socketId)) {
                 existingUser.socketId.push(socketId);
             }
-            
+
             // ログイン履歴を追加
             existingUser.loginHistory.push({
                 socketId: socketId,
                 loginAt: new Date()
             });
-            
+
             // 最後のログイン日時を更新
             existingUser.lastLoginAt = new Date();
-            
+
             // 保存
             const updatedUser = await existingUser.save();
-            console.log('📝 既存ユーザーを更新:', nickname, 'スペース:', spaceId, '(', spaceExists.name, ')');
-            
+
             return updatedUser;
         } else {
             // 新規ユーザーの場合、作成
-            const userData = { 
-                nickname, 
-                status, 
-                ageGroup, 
+            const userData = {
+                nickname,
+                status,
+                ageGroup,
                 spaceId,
                 socketId: [socketId], // 配列として初期化
                 loginHistory: [{
@@ -68,8 +67,7 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
             };
 
             const newUser = await User.create(userData);
-            console.log('🆕 新規ユーザーを作成:', nickname, 'スペース:', spaceId, '(', spaceExists.name, ')');
-            
+
             return newUser;
         }
 
@@ -82,10 +80,10 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
 // --- ログイン時・過去ログをDBから取得（スペース別） ---
 async function getPastLogs(spaceId = null) {
     try {
-        if(!spaceId){
+        if (!spaceId) {
             throw new Error('スペースIDが指定されていません');
         }
-        
+
         // 過去ログを取得・整形
         const posts = await Post.find({ spaceId });
         const pastLogs = await processXlogs(posts);
@@ -140,17 +138,17 @@ function organizeCreatedAt(createdAt) {
 // --- ユーザーのログイン履歴を取得 ---
 async function getUserLoginHistory(nickname, status, ageGroup, spaceId) {
     try {
-        const user = await User.findOne({ 
-            nickname, 
-            status, 
+        const user = await User.findOne({
+            nickname,
+            status,
             ageGroup,
             spaceId
         });
-        
+
         if (user) {
             return user.loginHistory;
         }
-        
+
         return [];
     } catch (error) {
         handleErrors(error, 'ユーザーログイン履歴取得時にエラーが発生しました');
@@ -162,12 +160,12 @@ async function getUserLoginHistory(nickname, status, ageGroup, spaceId) {
 async function getActiveUsers(spaceId = null, limit = 10) {
     try {
         const query = spaceId ? { spaceId } : {};
-        
+
         const users = await User.find(query)
             .sort({ lastLoginAt: -1 })
             .limit(limit)
             .select('nickname status ageGroup spaceId lastLoginAt loginHistory');
-            
+
         return users;
     } catch (error) {
         handleErrors(error, 'アクティブユーザー取得時にエラーが発生しました');
@@ -178,12 +176,12 @@ async function getActiveUsers(spaceId = null, limit = 10) {
 // --- 特定ユーザーの全スペース参加履歴を取得 ---
 async function getUserSpaceHistory(nickname, status, ageGroup) {
     try {
-        const users = await User.find({ 
-            nickname, 
-            status, 
-            ageGroup 
+        const users = await User.find({
+            nickname,
+            status,
+            ageGroup
         }).select('spaceId lastLoginAt loginHistory createdAt');
-        
+
         return users.map(user => ({
             spaceId: user.spaceId,
             firstJoinedAt: user.createdAt,

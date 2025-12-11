@@ -28,39 +28,8 @@ async function getRoomHistory(roomId, spaceId = null) {
             ]
         };
 
-        console.log(`🔍 [dbOperation] クエリ実行:`, JSON.stringify(query));
-
-        // デバッグ: そのスペースの全投稿数を確認
-        const allPostsCount = await Post.countDocuments({ spaceId: targetSpaceId });
-        console.log(`📊 [dbOperation] スペース${targetSpaceId}の全投稿数: ${allPostsCount}件`);
-
-        // デバッグ: roomIdがnullの投稿数を確認
-        const nullRoomIdCount = await Post.countDocuments({ spaceId: targetSpaceId, roomId: null });
-        console.log(`📊 [dbOperation] スペース${targetSpaceId}でroomId=nullの投稿: ${nullRoomIdCount}件`);
-
-        // デバッグ: roomIdが存在しない投稿数を確認
-        const noRoomIdCount = await Post.countDocuments({ spaceId: targetSpaceId, roomId: { $exists: false } });
-        console.log(`📊 [dbOperation] スペース${targetSpaceId}でroomId未定義の投稿: ${noRoomIdCount}件`);
-
-        // デバッグ: 実際のspaceIdの値を確認（型の問題かもしれない）
-        const samplePost = await Post.findOne({ spaceId: targetSpaceId });
-        if (samplePost) {
-            console.log(`📝 [dbOperation] サンプル投稿:`, {
-                id: samplePost._id,
-                spaceId: samplePost.spaceId,
-                spaceIdType: typeof samplePost.spaceId,
-                roomId: samplePost.roomId,
-                roomIdType: typeof samplePost.roomId,
-                msg: samplePost.msg?.substring(0, 30)
-            });
-        } else {
-            console.log(`❌ [dbOperation] スペース${targetSpaceId}の投稿が見つかりません`);
-        }
-
         // ルームの投稿を取得（新しい順・パフォーマンス向上のためleanクエリ）
         const posts = await Post.find(query).sort({ createdAt: -1 }).lean().exec();
-
-        console.log(`📚 [dbOperation] ${roomId}の履歴取得完了 (スペース${targetSpaceId}): ${posts.length}件`);
 
         // 時系列順に並び替えて返す（古い順）
         const sortedPosts = posts.reverse();
@@ -98,7 +67,6 @@ async function getAllRoomsWithStats() {
                 }
             }
         ]);
-        console.log(`📊 [dbOperation] ルーム統計取得完了: ${roomStats.length}ルーム`);
 
         return roomStats;
     } catch (error) {
@@ -121,7 +89,6 @@ async function getRoomMessageCounts() {
                 $sort: { count: -1 }
             }
         ]);
-        console.log('📈 [dbOperation] ルーム別メッセージ数:', counts);
 
         return counts;
     } catch (error) {

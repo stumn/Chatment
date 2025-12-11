@@ -31,14 +31,14 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/plain')) {
     return next();
   }
-  
+
   // 静的ファイル（CSS、JS、画像など）のリクエストかチェック
   if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
     return next();
   }
-  
+
   const indexPath = path.join(__dirname, '../client/dist/index.html');
-  
+
   // ファイルが存在するかチェック
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
@@ -50,8 +50,8 @@ app.get('*', (req, res, next) => {
 
 // Socket.IOハンドラー
 const { initializeSocketHandlers, rooms } = require('./socketHandlers');
-const { 
-  initializeDefaultRooms, 
+const {
+  initializeDefaultRooms,
   getActiveRooms,
   initializeDefaultSpace,
   migrateExistingDataToSpace
@@ -62,8 +62,6 @@ initializeSocketHandlers(io);
 // サーバー起動時にデフォルトスペース・ルームを初期化（DB経由）
 const initializeRoomsFromDatabase = async () => {
   try {
-    console.log('🔧 [server] データベースからスペース・ルーム初期化開始');
-
     const dbRooms = await getActiveRooms();
 
     rooms.clear(); // 既存のメモリデータをクリア
@@ -77,17 +75,15 @@ const initializeRoomsFromDatabase = async () => {
         dbRoom: room
       });
     });
-
-    console.log(`✅ [server] ${dbRooms.length}個のルームを初期化完了`);
   } catch (error) {
-    console.error('❌ [server] スペース・ルーム初期化失敗:', error);
+    console.error('❌ [server] ルーム初期化失敗:', error);
   }
 };
 
 // サーバー起動
 const startServer = async () => {
   await initializeRoomsFromDatabase();
-  
+
   server.listen(PORT, () => {
     console.log('listening on PORT:' + PORT);
   });
