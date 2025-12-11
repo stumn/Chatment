@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 const ChatRow = React.lazy(() => import('./ChatRow'));
 
-import usePostStore from '../../store/spaces/postStore';
+import usePostStore from '../../../store/spaces/postStore';
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
     const listRef = useRef(null);

@@ -3,11 +3,11 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 
-import usePostStore from '../../store/spaces/postStore';
-import useAppStore from '../../store/spaces/appStore';
+import usePostStore from '../../../store/spaces/postStore';
+import useAppStore from '../../../store/spaces/appStore';
 
-import useFadeOut from '../../hooks/spaces/useFadeOut';
-import useEditMode from '../../hooks/spaces/useEditMode';
+import useFadeOut from '../../../hooks/spaces/useFadeOut';
+import useEditMode from '../../../hooks/spaces/useEditMode';
 import ActionButtons from './ActionButtons';
 import ChangeBar from './ChangeBar';
 import './Doc.css';

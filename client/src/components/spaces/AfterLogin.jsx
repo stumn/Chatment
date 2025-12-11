@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import ResizablePanels from './ResizablePanels'
-import InputForm from './InputForm'
+import InputForm from './chat/InputForm'
 import Telomere from './Telomere';
 import Sidebar from './Sidebar';
 

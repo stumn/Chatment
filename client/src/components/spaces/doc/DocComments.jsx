@@ -7,9 +7,9 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import './Doc.css';
 import DocRow from './DocRow';
 
-import useSizeStore from '../../store/sizeStore';
-import useAppStore from '../../store/spaces/appStore';
-import usePostStore from '../../store/spaces/postStore';
+import useSizeStore from '../../../store/sizeStore';
+import useAppStore from '../../../store/spaces/appStore';
+import usePostStore from '../../../store/spaces/postStore';
 
 const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
 

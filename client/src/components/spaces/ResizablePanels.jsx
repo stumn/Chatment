@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 
-import ChatComments from "./ChatComments";
-import DocComments from "./DocComments";
+import ChatComments from "./chat/ChatComments";
+import DocComments from "./doc/DocComments";
 
 import useSizeStore from "../../store/sizeStore";
 import useAppStore from "../../store/spaces/appStore";

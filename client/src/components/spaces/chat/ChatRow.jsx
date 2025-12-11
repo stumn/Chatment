@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import useAppStore from '../../store/spaces/appStore';
+import useAppStore from '../../../store/spaces/appStore';
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
