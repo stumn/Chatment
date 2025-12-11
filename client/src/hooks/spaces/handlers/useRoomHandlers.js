@@ -21,10 +21,8 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
     // postStoreの表示をルーム用に切り替え（キャッシュから復元）
     const cachedMessages = getRoomMessages(data.roomId);
     if (cachedMessages && cachedMessages.length > 0) {
-      console.log(`📦 [roomHandlers] キャッシュから復元: ${cachedMessages.length}件`);
       usePostStore.getState().setPosts(cachedMessages);
     } else {
-      console.log(`📭 [roomHandlers] キャッシュなし、ルーム履歴を取得します`);
       // キャッシュがない場合は、サーバーからルーム履歴を取得
       if (roomEmitters && roomEmitters.emitFetchRoomHistory) {
         roomEmitters.emitFetchRoomHistory(data.roomId);
@@ -105,7 +103,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
     if (data.rooms && Array.isArray(data.rooms)) {
       // スペース情報も含まれている場合は同時に更新
       if (data.spaceInfo) {
-        console.log('🌍 [roomHandlers] スペース情報も同時更新:', data.spaceInfo);
         useRoomStore.getState().updateRoomsAndSpaceInfo(data.rooms, data.spaceInfo);
       } else {
         // ルーム一覧のみ更新（後方互換性）
@@ -115,7 +112,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
       // ルーム一覧を受信したら、最初のルームに自動参加（デフォルトスペースにサブルームが2つ残っているため）
       if (data.rooms.length <= 3) {
         const firstRoom = data.rooms[0];
-        console.log('🚀 最初のルームに自動参加:', firstRoom.id, firstRoom.name);
 
         // ログ記録
         emitLog('join-room', { roomId: firstRoom.id });
@@ -127,7 +123,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
           console.error('❌ roomEmitters.emitJoinRoom が利用できません');
         }
       } else {
-        console.log(data.rooms);
         console.warn('⚠️ 利用可能なルームが見つかりませんでした');
       }
     }
@@ -135,7 +130,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
   const handleRoomInfo = (data) => {
     // data: { roomId, roomInfo: { name, participantCount, participants } }
-    console.log('Room info received:', data);
 
     if (data.roomInfo) {
       // 特定のルームの情報を更新
@@ -149,13 +143,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
   const handleRoomHistory = (data) => {
     // data: { roomId, messages: [...], startTime? }
-    const endTime = performance.now();
-    const loadTime = data.startTime ? endTime - data.startTime : 0;
-
-    console.log(`📚 [useSocket] ${data.roomId}の履歴を受信:`, data.messages.length, '件');
-    if (loadTime > 0) {
-      console.log(`⏱️ [useSocket] 履歴読み込み時間: ${loadTime.toFixed(2)}ms`);
-    }
 
     if (data.roomId && data.messages && Array.isArray(data.messages)) {
       // ルームストアに履歴を設定

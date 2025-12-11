@@ -13,13 +13,11 @@ export const useBasicHandlers = (socket) => {
 
   const handleHistory = (historyArray) => {
     usePostStore.getState().setPosts(historyArray);
-    console.log('History received:', historyArray.length, 'posts');
   };
 
   const handleDocsHistory = (docs) => {
     // docsはdisplayOrder順でソートされている前提
     usePostStore.getState().setPosts(docs);
-    console.log('Docs history received:', docs.length, 'posts');
   };
 
   const handleConnectError = (error) => {

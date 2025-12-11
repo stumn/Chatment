@@ -35,7 +35,6 @@ export const useRoomEmitters = (socket, emitLog) => {
       nickname: userInfo.nickname
     };
 
-    console.log('Leaving room:', leaveData);
     socket.emit('leave-room', leaveData);
 
     emitLog({
@@ -48,7 +47,6 @@ export const useRoomEmitters = (socket, emitLog) => {
 
   const emitGetRoomList = () => {
     const { userInfo } = useAppStore.getState();
-    console.log('Requesting room list', userInfo);
     socket.emit('get-room-list', userInfo);
 
     emitLog({
@@ -63,7 +61,6 @@ export const useRoomEmitters = (socket, emitLog) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId) return;
 
-    console.log('Requesting room info for:', roomId);
     socket.emit('get-room-info', { roomId });
 
     emitLog({
@@ -80,7 +77,6 @@ export const useRoomEmitters = (socket, emitLog) => {
 
     // 既に履歴が読み込み済みの場合はスキップ
     if (useRoomStore.getState().isRoomHistoryLoaded(roomId)) {
-      console.log(`📚 [useSocket] ${roomId}の履歴は既に読み込み済み`);
       return;
     }
 

@@ -5,7 +5,6 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocAdd = (payload) => {
     // const { userInfo } = useAppStore.getState();
-    console.log('emitDocAdd', payload.spaceId, payload);
 
     // spaceIdを追加(不要説)　ここでuserInfoを取得するから、元のpayloadにuser情報を載せないという手もある
     const payloadWithSpace = {
@@ -27,7 +26,6 @@ export const useDocEmitters = (socket, emitLog) => {
     const { userInfo } = useAppStore.getState();
     // data:{ `dc-${index}-${message?.displayOrder}-${message?.id}`, nickname }
     const { rowElementId, nickname } = data;
-    console.log('emitDemandLock', { rowElementId, nickname });
 
     socket.emit('demand-lock', data);
 
@@ -41,7 +39,6 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitUnlockRow = (data) => {
     const { userInfo } = useAppStore.getState();
-    console.log('emitUnlockRow', data);
 
     socket.emit('unlock-row', data);
 
@@ -55,7 +52,6 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocEdit = (payload) => {
     const { userInfo } = useAppStore.getState();
-    console.log('emitDocEdit', payload);
 
     // spaceIdを追加
     const payloadWithSpace = {
@@ -74,7 +70,6 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocReorder = (payload) => {
     const { userInfo } = useAppStore.getState();
-    console.log('emitDocReorder', payload);
 
     // spaceIdを追加
     const payloadWithSpace = {

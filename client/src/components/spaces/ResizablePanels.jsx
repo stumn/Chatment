@@ -27,13 +27,9 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
     // ルーム変更を監視してログ出力
     useEffect(() => {
         if (!activeRoomId) {
-            console.log(`⏳ [ResizablePanels] ルーム参加待機中...`);
-        } else if (currentRoom) {
-            console.log(`[ResizablePanels] 表示ルーム変更: 
-                ${currentRoom?.name} (${currentRoom?.id}) 
-                ${currentRoom?.participantCount}人参加中`);
-        } else {
-            console.log(`⚠️ [ResizablePanels] ルーム情報が見つかりません: ${activeRoomId}`);
+            // ルーム参加待機中
+        } else if (!currentRoom) {
+            console.warn(`⚠️ [ルーム情報が見つかりません: ${activeRoomId}`);
         }
     }, [activeRoomId, currentRoom]);
 
@@ -100,8 +96,6 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
         // 表示できる行数を計算
         const lineCount = Math.floor(newBottomHeight / FIXED_LINE_HEIGHT);
-
-        console.log(`[calculateLines] newBottomHeight: ${newBottomHeight}, lineCount: ${lineCount}`);
 
         return Math.max(lineCount, 1); // 最低1行は表示
     };

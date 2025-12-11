@@ -54,8 +54,6 @@ export default function useSocket() {
       basicHandlers.handleConnectOK(userInfo);
 
       // 認証完了後にルーム関連の処理を実行
-      console.log('🔐 認証完了後の処理を開始:', userInfo);
-
       // ルーム一覧を取得（一覧取得後にルーム参加処理は別途ハンドラーで実行）
       roomEmitters.emitGetRoomList();
     };

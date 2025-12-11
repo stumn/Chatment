@@ -243,7 +243,6 @@ export const useAppController = () => {
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
 
-            console.log(`📤[useAppController] Sending chat message from ${handleName}: "${validatedMessage}" to room ${roomId}`);
             emitChatMessage(handleName, validatedMessage, userInfo?._id, roomId);
 
             // ログ記録

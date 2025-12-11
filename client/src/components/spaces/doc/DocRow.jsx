@@ -71,7 +71,6 @@ const DocRow = ({ data, index, style }) => {
 
         // ロック中の場合は編集不可
         if (locked) {
-            console.log('Row is locked by:', lockInfo?.nickname);
             return;
         }
 

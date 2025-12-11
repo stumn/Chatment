@@ -60,7 +60,6 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToI
     }, [posts]);
 
     const handleItemClick = (postId) => {
-        console.log('TOC item clicked:', postId);
         if (scrollToItemById) {
             scrollToItemById(postId);
         } else {

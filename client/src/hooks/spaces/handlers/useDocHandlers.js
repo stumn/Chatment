@@ -7,10 +7,8 @@ export const useDocHandlers = (emitLog) => {
   const setChangeState = usePostStore((state) => state.setChangeState);
 
   const handleDocAdd = (payload) => {
-    console.log('handleDocAdd called with payload:', payload);
     // 新規作成として変更状態を記録
     addMessage(payload, true, payload.roomId);
-    console.log('addMessage called with isNewlyCreated=true');
   };
 
   const handleDocEdit = (payload) => {

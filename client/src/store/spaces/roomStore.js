@@ -36,7 +36,6 @@ const useRoomStore = create((set, get) => ({
 
     // ルーム一覧とスペース情報を同時に更新
     updateRoomsAndSpaceInfo: (rooms, spaceInfo) => {
-        console.log('🔄 [roomStore] ルーム一覧とスペース情報を同時更新');
         set({
             rooms,
             currentSpaceInfo: spaceInfo
@@ -45,7 +44,6 @@ const useRoomStore = create((set, get) => ({
 
     // 特定のルームの参加者数を更新する
     updateRoomParticipantCount: (roomId, count) => {
-        console.log(`🏠 [roomStore] ${roomId}の参加者数更新: ${count}人`);
         set((state) => ({
             rooms: state.rooms.map(room =>
                 room.id === roomId ? { ...room, participantCount: count } : room

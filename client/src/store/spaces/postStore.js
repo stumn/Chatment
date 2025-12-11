@@ -210,7 +210,6 @@ function addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated = false) {
         // 極端に古い場合（1分以上）のみ除外
         if (timeDiffSeconds > 60) {
             shouldAddChangeState = false;
-            console.log('Post too old (>60s), not adding change state');
         }
 
     }

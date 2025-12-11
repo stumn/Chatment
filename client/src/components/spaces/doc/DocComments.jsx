@@ -63,8 +63,6 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
 
     // ドラッグ開始時のロック要求
     const onDragStart = (start) => {
-        console.log('onDragStart:', start);
-
         const draggedMessage = docMessages[start.source.index];
         if (draggedMessage && draggedMessage.id) {
             const rowElementId = `dc-${start.source.index}-${draggedMessage.displayOrder}-${draggedMessage.id}`;
@@ -84,19 +82,15 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
 
         // ドラッグが中断された場合（destination が null）はロック解除のみ
         if (!destination) {
-            console.log('Drag cancelled, unlocking row:', rowElementId);
             documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
             return;
         }
 
         // 同じ位置にドロップされた場合もロック解除のみ
         if (source.index === destination.index) {
-            console.log('Drag to same position, unlocking row:', rowElementId);
             documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
             return;
         }
-
-        console.log('onDragEnd:', source, destination);
 
         // 並び替え先の前後displayOrderを取得し新しいdisplayOrderを計算
         // **この計算はサーバーサイドで行うべきなので、ここでは送信する情報に留める**
@@ -111,14 +105,11 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
             prev: beforePostDisplayOrder,
             next: afterPostDisplayOrder
         }
-        console.log('onDragEnd data:', data)
-
 
         // サーバーに並び替えを通知
         reorder && reorder(data);
 
         // ドラッグ完了後にロック解除
-        console.log('Drag completed successfully, unlocking row:', rowElementId);
         documentFunctions.document.unlockRow({ rowElementId, postId: draggedMessage?.id });
 
         if (listRef.current) {
@@ -147,7 +138,6 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
             const targetIndex = filteredDocMessages.findIndex(msg => msg.id === postId);
             if (targetIndex !== -1) {
                 listRef.current.scrollToItem(targetIndex, "center");
-                console.log(`Scrolled to post ${postId} at index ${targetIndex}`);
             } else {
                 console.warn(`Post ${postId} not found in filteredDocMessages`);
             }
