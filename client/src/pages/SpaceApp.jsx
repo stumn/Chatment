@@ -43,7 +43,7 @@ function SpaceApp() {
         };
 
         initializeStore();
-    }, [fetchAllSpaces]);
+    }, []);
 
     // コミュニケーションスペースを追加する関数
     const handleAddSpace = async (newSpace) => {
