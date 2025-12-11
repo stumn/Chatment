@@ -24,15 +24,9 @@ const useAppStore = create((set) => ({
   isTocOpen: true,
 
   // アクション: ユーザー情報を設定する
-  setUserInfo: ({ nickname, status, ageGroup, userId, spaceId }) => set((state) => ({
-    userInfo: {
-      nickname,
-      status,
-      ageGroup,
-      userId, // userIdも保持
-      spaceId // spaceIdも保持
-    }
-  })),
+  setUserInfo: ({ nickname, status, ageGroup, userId, spaceId }) => set({
+    userInfo: { nickname, status, ageGroup, userId, spaceId }
+  }),
 
   // アクション: スペース名を設定する
   setSpaceName: (name) => set({ spaceName: name }),
