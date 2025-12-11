@@ -33,9 +33,6 @@ export const useAppController = () => {
     const userInfo = useAppStore((state) => state.userInfo);
     const { addPost, updatePost, removePost, reorderPost } = usePostStore();
 
-    // socketFunctionsの参照を安定化（useMemoで包む）
-    const stableSocketFunctions = useMemo(() => socketFunctions, [socketFunctions]);
-
     // ===== DOCUMENT操作 =====
 
     /**
@@ -63,7 +60,9 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to add document:', error);
         }
-    }, [userInfo, emitDocAdd, emitLog]);
+        // emitDocAdd, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
     /**
      * ドキュメントを編集する（楽観的更新付き）
@@ -151,7 +150,9 @@ export const useAppController = () => {
             console.error('Failed to edit document:', error);
             return { success: false, error: '編集に失敗しました。もう一度お試しください。' };
         }
-    }, [userInfo, updatePost, emitDocEdit, emitLog]);
+        // emitDocEdit, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo, updatePost]);
 
     /**
      * ドキュメントを削除する（楽観的更新付き）
@@ -174,7 +175,9 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to delete document:', error);
         }
-    }, [removePost, emitDocDelete, emitLog, userInfo]);
+        // emitDocDelete, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [removePost, userInfo]);
 
     /**
      * ドキュメントの並び替え
@@ -197,7 +200,9 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to reorder document:', error);
         }
-    }, [userInfo, emitDocReorder, emitLog]);
+        // emitDocReorder, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
     // ===== CHAT操作 =====
 
@@ -257,7 +262,9 @@ export const useAppController = () => {
             console.error('Failed to send chat message:', error);
             return { success: false, error: 'メッセージの送信に失敗しました。もう一度お試しください。' };
         }
-    }, [userInfo, emitChatMessage, emitLog]);
+        // emitChatMessage, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
     /**
      * ポジティブ評価
@@ -302,7 +309,9 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to request lock:', error);
         }
-    }, [userInfo, emitDemandLock]);
+        // emitDemandLockはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
     /**
      * ドキュメント行のロックを解除
@@ -318,7 +327,9 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to unlock row:', error);
         }
-    }, [userInfo, emitUnlockRow]);
+        // emitUnlockRowはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
 
     // ===== 公開API =====
     const api = useMemo(() => ({
@@ -346,14 +357,14 @@ export const useAppController = () => {
         },
 
         // 生のsocket関数（後方互換性のため）
-        raw: stableSocketFunctions, // 安定化されたsocketFunctionsを使用
+        raw: socketFunctions,
 
         // ユーザー情報
         user: userInfo
     }), [
         addDocument, editDocument, deleteDocument, reorderDocument,
         requestLock, unlockRow, sendChatMessage, addPositive,
-        addNegative, socketId, heightArray, stableSocketFunctions,
+        addNegative, socketId, heightArray, socketFunctions,
         userInfo
     ]);
 
