@@ -143,6 +143,8 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
   const handleRoomHistory = (data) => {
     // data: { roomId, messages: [...], startTime? }
+    const endTime = performance.now();
+    const loadTime = data.startTime ? endTime - data.startTime : 0;
 
     if (data.roomId && data.messages && Array.isArray(data.messages)) {
       // ルームストアに履歴を設定
