@@ -55,15 +55,14 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
     const posts = usePostStore((state) => state.posts);
-    // useMemoの依存配列を最適化し、posts.lengthも考慮する
+    // postsが変更された時のみソートを実行
     const messages = useMemo(() => {
-        const sorted = [...posts].sort((a, b) => {
+        return [...posts].sort((a, b) => {
             const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return aTime - bTime;
         });
-        return sorted;
-    }, [posts.length, posts.map(p => p.createdAt).join(',')]); // より効率的な依存配列
+    }, [posts]);
 
     const [lines, setLines] = useState({ num: null, timestamp: 0 });
 
