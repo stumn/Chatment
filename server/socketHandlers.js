@@ -8,8 +8,6 @@ const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupRoomHandlers } = require('./handlers/roomHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
 
-const { SOCKET_EVENTS } = require('./constants');
-
 // グローバル変数
 const userSockets = new Map();
 const lockedRows = new Map();
@@ -19,12 +17,12 @@ const heightMemory = [];
 
 // --- Socket.IOの初期化 ---
 function initializeSocketHandlers(io) {
-  io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
+  io.on('connection', (socket) => {
 
     console.log('a user connected', socket.id);
 
     // ログインハンドラー
-    socket.on(SOCKET_EVENTS.LOGIN, async (userInfo) => {
+    socket.on('login', async (userInfo) => {
       await handleLogin(socket, userInfo);
       // ログイン後にuserSocketsにソケットを追加
       userSockets.set(socket.userId, socket);
