@@ -7,7 +7,7 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import './Doc.css';
 import DocRow from './DocRow';
 
-import useSizeStore from '../../store/shared/sizeStore';
+import useSizeStore from '../../store/sizeStore';
 import useAppStore from '../../store/spaces/appStore';
 import usePostStore from '../../store/spaces/postStore';
 

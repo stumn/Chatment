@@ -6,7 +6,7 @@ import InputForm from './InputForm'
 import Telomere from './Telomere';
 import Sidebar from './Sidebar';
 
-import sizeStore from '../../store/shared/sizeStore';
+import sizeStore from '../../store/sizeStore';
 import useAppStore from '../../store/spaces/appStore';
 
 export default function AfterLogin({ heightArray, appController, userInfo, spaceId = null }) {

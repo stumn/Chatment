@@ -1,6 +1,6 @@
 // useResponsiveSize.js
 import { useEffect } from 'react';
-import useSizeStore from '../../store/shared/sizeStore';
+import useSizeStore from '../../store/sizeStore';
 
 export default function useResponsiveSize() {
     const updateSize = useSizeStore((state) => state.updateSize);

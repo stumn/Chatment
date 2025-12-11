@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useAppController } from '../hooks/spaces/useAppController';
 
 import useAppStore from '../store/spaces/appStore';
-import useSizeStore from '../store/shared/sizeStore';
+import useSizeStore from '../store/sizeStore';
 import useSocket from '../hooks/shared/useSocket';
 
 import useResponsiveSize from '../hooks/shared/useResponsiveSize';

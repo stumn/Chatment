@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import FinishedSpacesSection from '../components/admin/FinishedSpacesSection';
 import ActiveSpacesSection from '../components/admin/ActiveSpacesSection';
 import SpaceMessageModal from '../components/admin/SpaceMessageModal';
-import useSpaceStore from '../store/admin/spaceStore';
+import useSpaceStore from '../store/spaceStore';
 import useResponsiveSize from '../hooks/shared/useResponsiveSize';
-import sizeStore from '../store/shared/sizeStore';
+import sizeStore from '../store/sizeStore';
 
 function SpaceApp() {
     // Zustandストアから状態とアクションを取得
