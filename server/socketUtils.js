@@ -68,10 +68,30 @@ function unlockRowByPostId(lockedRows, io, postId) {
     }
 }
 
+// 特定のsocketIdが保持している全てのロックを解放
+function unlockAllBySocketId(lockedRows, io, socketId) {
+    const unlockedRows = [];
+    
+    for (const [rowElementId, lockInfo] of lockedRows.entries()) {
+        if (lockInfo.socketId === socketId) {
+            lockedRows.delete(rowElementId);
+            unlockedRows.push({ id: rowElementId });
+        }
+    }
+
+    // 解放された行を全クライアントに通知
+    unlockedRows.forEach(row => {
+        io.emit('row-unlocked', row);
+    });
+
+    return unlockedRows.length;
+}
+
 module.exports = {
     calculateDisplayOrder,
     detectInsertPosition,
     addHeightMemory,
     removeHeightMemory,
-    unlockRowByPostId
+    unlockRowByPostId,
+    unlockAllBySocketId
 };

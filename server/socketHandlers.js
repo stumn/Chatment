@@ -7,7 +7,7 @@ const { setupDocHandlers } = require('./handlers/docHandlers');
 const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupRoomHandlers } = require('./handlers/roomHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
-const { removeHeightMemory } = require('./socketUtils');
+const { removeHeightMemory, unlockAllBySocketId } = require('./socketUtils');
 
 // グローバル変数
 const userSockets = new Map();
@@ -45,6 +45,12 @@ function initializeSocketHandlers(io) {
       // heightMemoryから削除
       const heightArray = removeHeightMemory(heightMemory, socket.id);
       io.emit('heightChange', heightArray);
+
+      // このsocketが保持している全てのロックを解放
+      const unlockedCount = unlockAllBySocketId(lockedRows, io, socket.id);
+      if (unlockedCount > 0) {
+        console.log(`🔓 [server] ${socket.nickname || socket.id} のロック ${unlockedCount}件を解放`);
+      }
 
       // userSocketsから削除
       if (socket.userId) {
