@@ -45,6 +45,15 @@ function addHeightMemory(heightMemory, id, height, spaceId) {
     return heightMemory.map(item => ({ height: item.height, spaceId: item.spaceId }));
 }
 
+// 高さメモリから削除
+function removeHeightMemory(heightMemory, id) {
+    const index = heightMemory.findIndex(item => item.id === id);
+    if (index !== -1) {
+        heightMemory.splice(index, 1);
+    }
+    return heightMemory.map(item => ({ height: item.height, spaceId: item.spaceId }));
+}
+
 // ロック管理関連の関数
 function unlockRowByPostId(lockedRows, io, postId) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
@@ -63,5 +72,6 @@ module.exports = {
     calculateDisplayOrder,
     detectInsertPosition,
     addHeightMemory,
+    removeHeightMemory,
     unlockRowByPostId
 };

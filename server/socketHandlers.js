@@ -7,6 +7,7 @@ const { setupDocHandlers } = require('./handlers/docHandlers');
 const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupRoomHandlers } = require('./handlers/roomHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
+const { removeHeightMemory } = require('./socketUtils');
 
 // グローバル変数
 const userSockets = new Map();
@@ -36,6 +37,41 @@ function initializeSocketHandlers(io) {
     setupRoomHandlers(socket, io, rooms, userRooms, userSockets);
     setupLockHandlers(socket, io, lockedRows);
     setupLogHandlers(socket, io);
+
+    // 切断時の処理
+    socket.on('disconnect', () => {
+      console.log('user disconnected', socket.id);
+
+      // heightMemoryから削除
+      const heightArray = removeHeightMemory(heightMemory, socket.id);
+      io.emit('heightChange', heightArray);
+
+      // userSocketsから削除
+      if (socket.userId) {
+        userSockets.delete(socket.userId);
+      }
+
+      // ルームから退出
+      const currentRoomId = userRooms.get(socket.userId);
+      if (currentRoomId && rooms.has(currentRoomId)) {
+        const room = rooms.get(currentRoomId);
+        room.participants.delete(socket.userId);
+        userRooms.delete(socket.userId);
+
+        // 他の参加者に退出を通知
+        room.participants.forEach(participantUserId => {
+          const participantSocket = userSockets.get(participantUserId);
+          if (participantSocket) {
+            participantSocket.emit('user-left', {
+              roomId: currentRoomId,
+              userId: socket.userId,
+              nickname: socket.nickname,
+              participantCount: room.participants.size
+            });
+          }
+        });
+      }
+    });
   });
 }
 
