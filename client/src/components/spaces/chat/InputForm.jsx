@@ -34,7 +34,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
 
     // activeRoomIdがnullの場合はエラーを表示
     if (!activeRoomId && !rooms[0]) {
-      setError('ルームに参加していません。しばらくお待ちください。');
+      // setError('ルームに参加していません。しばらくお待ちください。');
+      console.error('ルームに参加していません。しばらくお待ちください。');
       // return;
     }
 
