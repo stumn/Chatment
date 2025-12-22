@@ -10,21 +10,25 @@
     align-items: center;
     padding-top: 4px;
     padding-bottom: 4px;
-    padding-left: 4px;  
+    padding-left: 4px;
     padding-right: 16px;
     box-sizing: border-box;
     background-color: white;
     border: 1px solid transparent;
     transition: all 0.2s ease;
     align-items: stretch;
-    position: relative; /* エラーメッセージ位置調整のため */
+    position: relative;
+    /* エラーメッセージ位置調整のため */
 }
 
 /* ホバー時の視覚的フィードバック */
 .doc-comment-item:hover {
-    background-color: #f3f4f6; /* hover:bg-gray-100相当 */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* hover:shadow-md相当 */
-    border-color: #e5e7eb; /* ボーダーも少し強調 */
+    background-color: #f3f4f6;
+    /* hover:bg-gray-100相当 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* hover:shadow-md相当 */
+    border-color: #e5e7eb;
+    /* ボーダーも少し強調 */
 }
 
 /* ★改善: ドラッグ中のアイテムが元あった場所のスタイル */
@@ -57,26 +61,31 @@
 .locked {
     background-color: #fff3cd !important;
     border-color: #ffeaa7 !important;
-    pointer-events: none; /* ドラッグを完全に無効化 */
+    pointer-events: none;
+    /* ドラッグを完全に無効化 */
 }
 
 .locked .doc-comment-content {
-    pointer-events: auto; /* テキスト選択は有効にする */
+    pointer-events: auto;
+    /* テキスト選択は有効にする */
 }
 
 .is-dragging {
     background-color: #f0f8ff;
     border: 1.5px solid #8ec3f1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transform: scale(1.05);
     z-index: 10;
 }
 
 /* 既存のスタイル ... */
 .doc-comment-content {
-    flex: none; /* flex: 1 を削除してコンテンツ幅に合わせる */
-    width: fit-content; /* テキストコンテンツの幅に合わせる */
-    max-width: calc(100% - 150px); /* ボタンエリアを考慮した最大幅 */
+    flex: none;
+    /* flex: 1 を削除してコンテンツ幅に合わせる */
+    width: fit-content;
+    /* テキストコンテンツの幅に合わせる */
+    max-width: calc(100% - 150px);
+    /* ボタンエリアを考慮した最大幅 */
     outline: none;
     word-break: break-word;
     cursor: default;
@@ -134,8 +143,15 @@
     pointer-events: auto;
 }
 
+/* コンパクトモードではない場合は常時表示 */
+.doc-comment-item:not(.compact-mode) .add-button {
+    opacity: 1;
+}
+
+/* コンパクトモードの場合はホバー時のみ表示 */
+.doc-comment-item.compact-mode:hover .add-button,
 .doc-comment-item:hover .add-button,
-.doc-comment-content:focus + .add-button {
+.doc-comment-content:focus+.add-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
 }
@@ -151,6 +167,13 @@
     pointer-events: auto;
 }
 
+/* コンパクトモードではない場合は常時表示 */
+.doc-comment-item:not(.compact-mode) .edit-button {
+    opacity: 1;
+}
+
+/* コンパクトモードの場合はホバー時のみ表示 */
+.doc-comment-item.compact-mode:hover .edit-button,
 .doc-comment-item:hover .edit-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
@@ -167,6 +190,13 @@
     pointer-events: auto;
 }
 
+/* コンパクトモードではない場合は常時表示 */
+.doc-comment-item:not(.compact-mode) .delete-button {
+    opacity: 1;
+}
+
+/* コンパクトモードの場合はホバー時のみ表示 */
+.doc-comment-item.compact-mode:hover .delete-button,
 .doc-comment-item:hover .delete-button {
     opacity: 1;
     transform: translateY(-50%) scale(1.1);
@@ -175,40 +205,40 @@
 /* ロック状態の視覚的表現 */
 
 .doc-comment-item.locked {
-  background-color: #fff3cd !important;
-  border-left: 4px solid #ffc107 !important;
-  opacity: 0.8;
-  position: relative;
+    background-color: #fff3cd !important;
+    border-left: 4px solid #ffc107 !important;
+    opacity: 0.8;
+    position: relative;
 }
 
 .doc-comment-item.locked .doc-comment-content {
-  pointer-events: none !important;
-  user-select: none !important;
-  cursor: not-allowed !important;
-  background-color: rgba(255, 243, 205, 0.5) !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    cursor: not-allowed !important;
+    background-color: rgba(255, 243, 205, 0.5) !important;
 }
 
 .doc-comment-item.locked .edit-button,
 .doc-comment-item.locked .delete-button,
 .doc-comment-item.locked .add-button {
-  display: none !important;
+    display: none !important;
 }
 
 /* ドラッグ・アンド・ドロップのロック状態 */
 .doc-comment-item.locked .dot {
-  cursor: not-allowed !important;
-  opacity: 0.5;
+    cursor: not-allowed !important;
+    opacity: 0.5;
 }
 
 .doc-comment-item.locked .dot:hover {
-  background-color: #dc3545 !important;
-  transform: none !important;
+    background-color: #dc3545 !important;
+    transform: none !important;
 }
 
 /* ドラッグ中の状態 */
 .doc-comment-item.drag-disabled {
-  pointer-events: none;
-  user-select: none;
+    pointer-events: none;
+    user-select: none;
 }
 
 /* 変更バー（サイドバー）のスタイル */
@@ -216,41 +246,52 @@
     width: 12px;
     height: 100%;
     min-height: 20px;
-    margin-left: 4px; /* 左側に寄せる */
+    margin-left: 4px;
+    /* 左側に寄せる */
     margin-right: 4px;
     border-radius: 2px;
     transition: all 0.2s ease;
-    cursor: pointer; /* ホバー可能であることを示す */
+    cursor: pointer;
+    /* ホバー可能であることを示す */
     opacity: 1;
 }
 
 .change-bar.fade-out {
     opacity: 0;
-    transition: opacity 2s ease-out; /* 2秒かけてフェードアウト */
+    transition: opacity 2s ease-out;
+    /* 2秒かけてフェードアウト */
 }
 
 .change-bar:hover {
-    width: 12px; /* ホバー時に少し太く */
-    box-shadow: 0 0 4px rgba(0,0,0,0.3); /* ホバー時に影を追加 */
-    opacity: 1 !important; /* ホバー中はフェードアウトを一時停止 */
+    width: 12px;
+    /* ホバー時に少し太く */
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    /* ホバー時に影を追加 */
+    opacity: 1 !important;
+    /* ホバー中はフェードアウトを一時停止 */
 }
 
-.bar-added { 
-    background-color: #2196F3; /* 青 - 空行追加 */
+.bar-added {
+    background-color: #2196F3;
+    /* 青 - 空行追加 */
 }
 
-.bar-deleted { 
-    background-color: #F44336; /* 赤 - 削除 */
+.bar-deleted {
+    background-color: #F44336;
+    /* 赤 - 削除 */
 }
 
-.bar-modified { 
-    background-color: #4CAF50; /* 緑 - 編集 */
+.bar-modified {
+    background-color: #4CAF50;
+    /* 緑 - 編集 */
 }
 
-.bar-reordered { 
-    background-color: #FF9800; /* オレンジ - 並び替え */
+.bar-reordered {
+    background-color: #FF9800;
+    /* オレンジ - 並び替え */
 }
 
-.bar-none { 
-    background-color: transparent; /* 変更なし */
+.bar-none {
+    background-color: transparent;
+    /* 変更なし */
 }

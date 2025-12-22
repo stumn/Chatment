@@ -20,6 +20,9 @@ const useAppStore = create((set) => ({
   // カラフルモード（true: カラフル、false: シンプル）
   isColorfulMode: true,
 
+  // コンパクトモード（true: ホバー時のみボタン表示、false: 常時表示）
+  isCompactMode: false,
+
   // 目次の開閉状態
   isTocOpen: true,
 
@@ -36,6 +39,9 @@ const useAppStore = create((set) => ({
 
   // アクション: カラフルモードを切り替える
   toggleColorfulMode: () => set((state) => ({ isColorfulMode: !state.isColorfulMode })),
+
+  // アクション: コンパクトモードを切り替える
+  toggleCompactMode: () => set((state) => ({ isCompactMode: !state.isCompactMode })),
 
   // アクション: 目次の開閉を切り替える
   toggleToc: () => set((state) => ({ isTocOpen: !state.isTocOpen })),

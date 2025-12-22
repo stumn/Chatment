@@ -14,13 +14,17 @@ import useAppStore from '../../../store/spaces/appStore';
  * @param {Object} props.userInfo - ユーザー情報
  * @param {boolean} props.isColorfulMode - カラフルモードの状態
  * @param {Function} props.toggleColorfulMode - カラフルモード切り替え関数
+ * @param {boolean} props.isCompactMode - コンパクトモードの状態
+ * @param {Function} props.toggleCompactMode - コンパクトモード切り替え関数
  */
 const SidebarHeader = ({
     onToggle,
     spaceId,
     userInfo,
     isColorfulMode,
-    toggleColorfulMode
+    toggleColorfulMode,
+    isCompactMode,
+    toggleCompactMode
 }) => {
     // ストアからスペース名を取得
     const spaceName = useAppStore((state) => state.spaceName);
@@ -58,7 +62,26 @@ const SidebarHeader = ({
                                     color="primary"
                                 />
                             }
-                            label="リッチモード"
+                            label="カラー表示"
+                            labelPlacement="start"
+                            sx={{
+                                margin: 0,
+                                '& .MuiFormControlLabel-label': {
+                                    fontSize: '12px',
+                                    color: '#6b7280'
+                                }
+                            }}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={isCompactMode}
+                                    onChange={toggleCompactMode}
+                                    size="small"
+                                    color="primary"
+                                />
+                            }
+                            label="コンパクト表示"
                             labelPlacement="start"
                             sx={{
                                 margin: 0,

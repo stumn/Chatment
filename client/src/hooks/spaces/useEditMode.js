@@ -65,7 +65,7 @@ const useEditMode = (
     const startEdit = (requestLock, rowElementId) => {
         // エラーをクリア
         setEditError('');
-        
+
         // ロック要求を送信
         requestLock && requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
 
@@ -79,7 +79,7 @@ const useEditMode = (
      */
     const saveAndFinishEdit = (newContent) => {
         setEditError(''); // エラーをクリア
-        
+
         const originalContent = message.msg || '';
 
         // バリデーション付きで編集実行
@@ -94,7 +94,9 @@ const useEditMode = (
         // バリデーション成功時のローカル更新
         updateDocMessage(message.id, result?.validatedMsg || newContent);
 
-        // 内容が実際に変更された場合のみ変更状態を記録
+        // 内容が実際に変更された場合のみ変更状態を記録 空白の追加の場合は変更とみなさない
+        // 見出しの追加の場合には、チャットに追加しない
+        // 異なる人が編集した場合には、チャット名前を追加する [+1] みたいな書き方？
         const finalContent = result?.validatedMsg || newContent;
         if (finalContent !== originalContent) {
             setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
@@ -154,7 +156,7 @@ const useEditMode = (
         handleCompleteEdit,
         handleInput,
         handleKeyDown,
-        
+
         // エラー制御
         clearEditError: () => setEditError('')
     };

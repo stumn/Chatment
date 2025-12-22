@@ -151,107 +151,112 @@ const DocRow = ({ data, index, style }) => {
             key={message?.id ?? index}
             isDragDisabled={locked} // ロック中はドラッグ無効化
         >
-            {(provided, snapshot) => (
-                <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}`}
-                    style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
-                // ロック管理用のdata属性
-                >
-                    <ChangeBar
-                        changeState={changeState}
-                        isFadingOut={isFadingOut}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />
+            {(provided, snapshot) => {
+                // コンパクトモードの状態を取得
+                const isCompactMode = useAppStore.getState().isCompactMode;
 
-                    {/* 見出し行の場合は.dotを非表示 */}
-                    {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
+                return (
                     <div
-                        id={rowElementId}
-                        className='doc-comment-content'
-                        contentEditable={isEditing && !locked} // ロック中は編集不可
-                        suppressContentEditableWarning={true}
-                        ref={contentRef}
-                        onBlur={handleBlur}
-                        onInput={(e) => {
-                            handleInput(e);
-                            // 入力中にエラーをクリア
-                            if (editError) {
-                                clearEditError();
-                            }
-                        }}
-                        onKeyDown={handleKeyDown} // Ctrl+Enter対応
-                        tabIndex={0}
-                        spellCheck={true}
-                        style={getContentStyle()} // 見出しスタイルとハイライトを統合
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''}`}
+                        style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
+                    // ロック管理用のdata属性
                     >
-                        {isEditing ? (
-                            // 編集中は通常のテキストを表示
-                            (message?.msg || '').split('\n').map((line, i, arr) => (
-                                <React.Fragment key={i}>
-                                    {line}
-                                    {i < arr.length - 1 && <br />}
-                                </React.Fragment>
-                            ))
-                        ) : (
-                            // 表示中はURLをリンクに変換
-                            (message?.msg || '').split('\n').map((line, i, arr) => (
-                                <React.Fragment key={i}>
-                                    {linkifyText(line)}
-                                    {i < arr.length - 1 && <br />}
-                                </React.Fragment>
-                            ))
+                        <ChangeBar
+                            changeState={changeState}
+                            isFadingOut={isFadingOut}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        />
+
+                        {/* 見出し行の場合は.dotを非表示 */}
+                        {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
+                        <div
+                            id={rowElementId}
+                            className='doc-comment-content'
+                            contentEditable={isEditing && !locked} // ロック中は編集不可
+                            suppressContentEditableWarning={true}
+                            ref={contentRef}
+                            onBlur={handleBlur}
+                            onInput={(e) => {
+                                handleInput(e);
+                                // 入力中にエラーをクリア
+                                if (editError) {
+                                    clearEditError();
+                                }
+                            }}
+                            onKeyDown={handleKeyDown} // Ctrl+Enter対応
+                            tabIndex={0}
+                            spellCheck={true}
+                            style={getContentStyle()} // 見出しスタイルとハイライトを統合
+                        >
+                            {isEditing ? (
+                                // 編集中は通常のテキストを表示
+                                (message?.msg || '').split('\n').map((line, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        {line}
+                                        {i < arr.length - 1 && <br />}
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                // 表示中はURLをリンクに変換
+                                (message?.msg || '').split('\n').map((line, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        {linkifyText(line)}
+                                        {i < arr.length - 1 && <br />}
+                                    </React.Fragment>
+                                ))
+                            )}
+                        </div>
+
+                        {/* 編集エラーメッセージの表示 */}
+                        {editError && isEditing && (
+                            <div className="edit-error" style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: '20px',
+                                right: '20px',
+                                backgroundColor: '#ffebee',
+                                border: '1px solid #f44336',
+                                borderRadius: '4px',
+                                padding: '8px',
+                                fontSize: '12px',
+                                color: '#d32f2f',
+                                zIndex: 1000,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}>
+                                ⚠️ {editError}
+                            </div>
+                        )}
+
+                        {/* ロック中は操作ボタンを非表示 */}
+                        {!locked && (
+                            <ActionButtons
+                                isEditing={isEditing}
+                                isBlank={isBlank}
+                                onEdit={handleEdit}
+                                onCompleteEdit={handleCompleteEdit}
+                                onDelete={handleDelete}
+                                onAddBelow={handleAddBelow}
+                            />
+                        )}
+
+                        {locked && (
+                            <div className="lock-info" style={{
+                                position: 'absolute',
+                                top: '2px',
+                                right: '8px',
+                                fontSize: '11px',
+                                color: '#856404'
+                            }}>
+                                🔒他のユーザが編集中です
+                            </div>
                         )}
                     </div>
-
-                    {/* 編集エラーメッセージの表示 */}
-                    {editError && isEditing && (
-                        <div className="edit-error" style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: '20px',
-                            right: '20px',
-                            backgroundColor: '#ffebee',
-                            border: '1px solid #f44336',
-                            borderRadius: '4px',
-                            padding: '8px',
-                            fontSize: '12px',
-                            color: '#d32f2f',
-                            zIndex: 1000,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            ⚠️ {editError}
-                        </div>
-                    )}
-
-                    {/* ロック中は操作ボタンを非表示 */}
-                    {!locked && (
-                        <ActionButtons
-                            isEditing={isEditing}
-                            isBlank={isBlank}
-                            onEdit={handleEdit}
-                            onCompleteEdit={handleCompleteEdit}
-                            onDelete={handleDelete}
-                            onAddBelow={handleAddBelow}
-                        />
-                    )}
-
-                    {locked && (
-                        <div className="lock-info" style={{
-                            position: 'absolute',
-                            top: '2px',
-                            right: '8px',
-                            fontSize: '11px',
-                            color: '#856404'
-                        }}>
-                            🔒他のユーザが編集中です
-                        </div>
-                    )}
-                </div>
-            )}
+                );
+            }}
         </Draggable>
     );
 };

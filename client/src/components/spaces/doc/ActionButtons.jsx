@@ -1,6 +1,7 @@
 // File: client/src/components/ActionButtons.jsx
 
 import React from 'react';
+import useAppStore from '../../../store/spaces/appStore';
 
 /**
  * DocRowのアクションボタン群を管理するコンポーネント
@@ -20,6 +21,8 @@ const ActionButtons = ({
     onDelete,
     onAddBelow
 }) => {
+    // コンパクトモードの状態を取得
+    const isCompactMode = useAppStore((state) => state.isCompactMode);
     if (isEditing) {// 編集中の場合は編集完了ボタンのみ表示
         return (
             <button
@@ -38,7 +41,8 @@ const ActionButtons = ({
 
     return (
         <>
-            <>
+            {/* コンパクトモード時はホバーで表示、それ以外は常時表示 */}
+            <div className={isCompactMode ? "opacity-0 group-hover:opacity-100 transition-opacity duration-200" : ""}>
                 {/* 編集ボタン */}
                 <button
                     className="edit-button p-1 ml-1 bg-white text-gray-400 hover:text-green-600 hover:bg-gray-200 rounded-full shadow-md border transition-colors duration-150"
@@ -87,7 +91,7 @@ const ActionButtons = ({
                         <path d="M12 5v14m-7-7h14" />
                     </svg>
                 </button>
-            </>
+            </div>
         </>
     );
 };

@@ -12,7 +12,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
 
     const chatMessages = useMemo(() => {
 
-        // createdAt または updatedAt でソート
+        // createdAt または updatedAt でソート resizable de useState update vs create の差をマークしておく
         const sorted = [...posts].sort((a, b) => {
             const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
             const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();

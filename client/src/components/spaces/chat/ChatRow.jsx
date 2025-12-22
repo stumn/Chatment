@@ -11,6 +11,7 @@ const ChatRow = ({ data, index, style }) => {
 
     // カラフルモードの状態を取得
     const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+    const isCompactMode = useAppStore((state) => state.isCompactMode);
 
     // --- ホバー状態を管理 ---
     const [isHovered, setIsHovered] = useState(false);
@@ -101,10 +102,10 @@ const ChatRow = ({ data, index, style }) => {
                 </span>
                 {/* 右端にフェードアウトグラデーション */}
                 <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
-                {/* positive/negativeボタン（ホバー時のみ表示） */}
+                {/* positive/negativeボタン（コンパクトモード時はホバー時のみ表示、それ以外は常時表示） */}
                 <div
                     className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200"
-                    style={{ opacity: isHovered ? 1 : 0 }}
+                    style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
                 >
                     <button
                         contentEditable={false}
