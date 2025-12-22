@@ -5,6 +5,7 @@ export const useDocHandlers = (emitLog) => {
   const updatePost = usePostStore((state) => state.updatePost);
   const reorderPost = usePostStore((state) => state.reorderPost);
   const setChangeState = usePostStore((state) => state.setChangeState);
+  const updateIndentLevel = usePostStore((state) => state.updateIndentLevel);
 
   const handleDocAdd = (payload) => {
     // 新規作成として変更状態を記録
@@ -42,11 +43,17 @@ export const useDocHandlers = (emitLog) => {
     alert(`❌ ${data.message || 'ドキュメント編集中にエラーが発生しました'}`);
   };
 
+  const handleIndentChange = (payload) => {
+    // payload: { postId, indentLevel }
+    updateIndentLevel(payload.postId, payload.indentLevel);
+  };
+
   return {
     handleDocAdd,
     handleDocEdit,
     handleDocReorder,
     handleDocDelete,
-    handleDocError
+    handleDocError,
+    handleIndentChange
   };
 };

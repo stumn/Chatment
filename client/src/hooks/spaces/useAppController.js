@@ -19,6 +19,7 @@ export const useAppController = () => {
         emitDocEdit,
         emitDocDelete,
         emitDocReorder,
+        emitIndentChange,
         emitChatMessage,
         emitPositive,
         emitNegative,
@@ -331,6 +332,29 @@ export const useAppController = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
 
+    /**
+     * インデントレベルを変更する
+     * @param {string} postId - 投稿ID
+     * @param {number} newIndentLevel - 新しいインデントレベル (0-2)
+     */
+    const changeIndent = useCallback((postId, newIndentLevel) => {
+        try {
+            console.log(postId, newIndentLevel);
+            emitIndentChange(postId, newIndentLevel);
+
+            // ログ記録
+            emitLog({
+                userId: userInfo?._id,
+                action: 'indent-change',
+                detail: { postId, newIndentLevel }
+            });
+        } catch (error) {
+            console.error('Failed to change indent:', error);
+        }
+        // emitIndentChange, emitLogはuseSocket内で安定しているため依存配列から除外
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userInfo]);
+
     // ===== 公開API =====
     const api = useMemo(() => ({
         // Document操作
@@ -340,7 +364,8 @@ export const useAppController = () => {
             delete: deleteDocument,
             reorder: reorderDocument,
             requestLock,
-            unlockRow
+            unlockRow,
+            changeIndent
         },
 
         // Chat操作  
@@ -363,7 +388,7 @@ export const useAppController = () => {
         user: userInfo
     }), [
         addDocument, editDocument, deleteDocument, reorderDocument,
-        requestLock, unlockRow, sendChatMessage, addPositive,
+        requestLock, unlockRow, changeIndent, sendChatMessage, addPositive,
         addNegative, socketId, heightArray, socketFunctions,
         userInfo
     ]);

@@ -8,7 +8,7 @@ async function getPostsByDisplayOrder(spaceId = null) {
     try {
         // スペース指定がある場合はそのスペースのドキュメントのみ取得
         const query = spaceId ? { spaceId } : {};
-        
+
         const posts = await Post.find(query).sort({ displayOrder: 1 });
         return processXlogs(posts);
     } catch (error) {
@@ -17,7 +17,7 @@ async function getPostsByDisplayOrder(spaceId = null) {
 }
 
 // --- 新規行追加 ---
-async function addDocRow({ nickname, msg = '', displayOrder, spaceId }) {
+async function addDocRow({ nickname, msg = '', displayOrder, spaceId, indentLevel = 0 }) {
     try {
         let order = displayOrder;
         if (!Number.isFinite(order)) {
@@ -30,6 +30,7 @@ async function addDocRow({ nickname, msg = '', displayOrder, spaceId }) {
             msg,
             displayOrder: order,
             spaceId, // spaceIdを追加
+            indentLevel: Math.min(Math.max(indentLevel || 0, 0), 2), // 0-2の範囲に制限
             source: 'document', // ドキュメントソースを明示的に指定
             previousData: {
                 nickname,
@@ -67,9 +68,26 @@ async function deleteDocRow(id) {
     }
 }
 
+// --- インデントレベルの更新 ---
+async function updateIndentLevel(postId, newIndentLevel) {
+    try {
+        const post = await Post.findById(postId);
+        if (!post) throw new Error(`Post not found: ${postId}`);
+
+        // インデントレベルを0-2の範囲に制限
+        post.indentLevel = Math.min(Math.max(newIndentLevel || 0, 0), 2);
+        const updatedPost = await post.save();
+
+        return organizeLogs(updatedPost);
+    } catch (error) {
+        handleErrors(error, 'indentLevel更新中にエラーが発生しました');
+    }
+}
+
 module.exports = {
     getPostsByDisplayOrder,
     addDocRow,
     updateDisplayOrder,
+    updateIndentLevel,
     deleteDocRow
 };

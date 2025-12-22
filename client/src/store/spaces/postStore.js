@@ -122,6 +122,13 @@ const usePostStore = create((set, get) => ({
         ),
     })),
 
+    // IndentLevel
+    updateIndentLevel: (id, indentLevel) => set((state) => ({
+        posts: state.posts.map((msg) =>
+            (msg.id === id || msg.id === String(id)) ? { ...msg, indentLevel } : msg
+        ),
+    })),
+
     // ----- ロックされた行の状態管理 -----
     lockedRows: new Map(), // rowElementId -> { nickname, userId, postId }
 

@@ -8,25 +8,26 @@ export const createEventHandlerMap = (handlers) => {
     handleDocsHistory,
     handleConnectError,
     handleDisconnect,
-    
+
     // Chat handlers
     handleChatMessage,
     handlePositive,
     handleNegative,
-    
+
     // Doc handlers
     handleDocAdd,
     handleDocEdit,
     handleDocReorder,
     handleDocDelete,
     handleDocError,
-    
+    handleIndentChange,
+
     // Lock handlers
     handleLockPermitted,
     handleRowLocked,
     handleRowUnlocked,
     handleLockNotAllowed,
-    
+
     // Room handlers
     handleRoomJoined,
     handleRoomLeft,
@@ -57,6 +58,7 @@ export const createEventHandlerMap = (handlers) => {
     'doc-edit': handleDocEdit,
     'doc-reorder': handleDocReorder,
     'doc-delete': handleDocDelete,
+    'doc-indent-change': handleIndentChange,
     // Room関連のイベント
     'room-joined': handleRoomJoined,
     'room-left': handleRoomLeft,

@@ -114,6 +114,7 @@ function organizeLogs(post, mySocketId = null) {
         userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
         userHasVotedNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
         displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
+        indentLevel: post.indentLevel ? post.indentLevel : 0,
         previousData: post.previousData || null
     };
     return data;

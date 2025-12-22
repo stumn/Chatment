@@ -93,12 +93,34 @@ export const useDocEmitters = (socket, emitLog) => {
     emitLog({ action: 'doc-delete', detail: { id } });
   };
 
+  const emitIndentChange = (postId, newIndentLevel) => {
+    const { userInfo } = useAppStore.getState();
+    const payload = {
+      postId,
+      newIndentLevel,
+      nickname: userInfo.nickname,
+      spaceId: userInfo.spaceId
+    };
+
+    console.log(payload);
+
+    socket.emit('doc-indent-change', payload);
+
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo.nickname,
+      action: 'doc-indent-change',
+      detail: payload
+    });
+  };
+
   return {
     emitDocAdd,
     emitDemandLock,
     emitUnlockRow,
     emitDocEdit,
     emitDocReorder,
-    emitDocDelete
+    emitDocDelete,
+    emitIndentChange
   };
 };

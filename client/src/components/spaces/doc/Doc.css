@@ -295,3 +295,53 @@
     background-color: transparent;
     /* 変更なし */
 }
+
+/* インデントレベルに応じたスタイル */
+.doc-comment-item.indent-level-0 {
+    padding-left: 4px !important;
+}
+
+.doc-comment-item.indent-level-1 {
+    padding-left: 28px !important;
+}
+
+.doc-comment-item.indent-level-2 {
+    padding-left: 52px !important;
+}
+
+/* インデントボタンのスタイル */
+.indent-buttons {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+    align-items: center;
+}
+
+.indent-button {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #d0d0d0;
+    background-color: white;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+
+.indent-button:hover {
+    background-color: #f0f0f0;
+    border-color: #8ec3f1;
+    color: #333;
+    transform: scale(1.1);
+}
+
+.indent-button:active {
+    transform: scale(0.95);
+    background-color: #e0e0e0;
+}

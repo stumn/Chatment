@@ -144,6 +144,9 @@ const postSchema = new mongoose.Schema({
     // --- 浮動小数点数で順番を管理　前後の投稿のこの値の中間値を設定 ---
     displayOrder: { type: Number, default: 0 },
 
+    // --- インデントレベル (0: なし, 1: 1段階, 2: 2段階) ---
+    indentLevel: { type: Number, default: 0, min: 0, max: 2 },
+
     // --- 新規行追加者の情報を保持 ---
     previousData: {
         nickname: String,

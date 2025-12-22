@@ -56,11 +56,15 @@ const DocRow = ({ data, index, style }) => {
 
     // 新規行追加
     const handleAddBelow = () => {
+        // 親行のインデントレベルより1段深くする（最大2まで）
+        const newIndentLevel = Math.min((message.indentLevel || 0) + 1, 2);
+
         const data = {
             nickname: userInfo.id || 'Undefined', // userInfo.nicknameも考慮
             msg: '',
             insertAfterId: message.id, // このメッセージの後に挿入したいという意図を伝える
             prevDisplayOrder: message.displayOrder, // ここでdisplayOrderを指定
+            indentLevel: newIndentLevel, // インデントレベルを追加
             datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
             spaceId: documentFunctions.spaceId, // spaceIdを追加
         };
@@ -143,6 +147,26 @@ const DocRow = ({ data, index, style }) => {
         }
     };
 
+    // インデント変更処理
+    const handleIndentChange = (delta) => {
+        console.log('handleIndentChange', delta);
+
+        const currentIndent = message.indentLevel || 0;
+        console.log('currentIndent', currentIndent);
+
+        const newIndent = Math.min(Math.max(currentIndent + delta, 0), 2);
+        console.log('newIndent', newIndent);
+
+        console.log(message.id);
+        if (newIndent !== currentIndent) {
+            console.log(newIndent !== currentIndent);
+            if (documentFunctions.document.changeIndent) {
+                console.log(documentFunctions.document.changeIndent);
+                documentFunctions.document.changeIndent(message.id, newIndent);
+            }
+        };
+    }
+
     return (
         // --- draggableIdにindexではなくmessage.idを使うことでDnDの安定性向上 ---
         <Draggable
@@ -154,13 +178,14 @@ const DocRow = ({ data, index, style }) => {
             {(provided, snapshot) => {
                 // コンパクトモードの状態を取得
                 const isCompactMode = useAppStore.getState().isCompactMode;
+                const currentIndent = message?.indentLevel || 0;
 
                 return (
                     <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''}`}
+                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
                         style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                     // ロック管理用のdata属性
                     >
@@ -173,6 +198,31 @@ const DocRow = ({ data, index, style }) => {
 
                         {/* 見出し行の場合は.dotを非表示 */}
                         {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
+
+                        {/* インデントボタン（見出し以外） */}
+                        {!isHeading && !locked && (
+                            <div className="indent-buttons">
+                                {currentIndent > 0 && (
+                                    <button
+                                        className="indent-button indent-decrease"
+                                        onClick={() => handleIndentChange(-1)}
+                                        title="インデントを戻す"
+                                    >
+                                        ＜
+                                    </button>
+                                )}
+                                {currentIndent < 2 && (
+                                    <button
+                                        className="indent-button indent-increase"
+                                        onClick={() => handleIndentChange(1)}
+                                        title="インデントする"
+                                    >
+                                        ＞
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
                         <div
                             id={rowElementId}
                             className='doc-comment-content'

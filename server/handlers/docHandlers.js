@@ -4,7 +4,8 @@ const {
   updatePostData,
   updateDisplayOrder,
   deleteDocRow,
-  saveLog
+  saveLog,
+  updateIndentLevel
 } = require('../dbOperation');
 
 const {
@@ -41,6 +42,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
         spaceId: payload.spaceId, // spaceIdを追加
+        indentLevel: payload.indentLevel || 0, // インデントレベルを追加
       });
 
       // 新規行追加の結果を整形
@@ -48,7 +50,8 @@ function setupDocHandlers(socket, io, lockedRows) {
         id: newPost.id,
         nickname: newPost.nickname,
         msg: newPost.msg,
-        displayOrder: newPost.displayOrder
+        displayOrder: newPost.displayOrder,
+        indentLevel: newPost.indentLevel || 0
       };
 
       // 新規行追加を全クライアントにブロードキャスト
@@ -146,6 +149,39 @@ function setupDocHandlers(socket, io, lockedRows) {
 
         // ログ記録
         saveLog({ userId: null, action: 'doc-delete', detail: payload });
+      }
+
+    } catch (e) { console.error(e); }
+  });
+
+  socket.on('doc-indent-change', async (payload) => {
+    try {
+      console.log(payload);
+      const { postId, newIndentLevel, nickname, spaceId } = payload;
+
+      // バリデーション
+      if (!postId || newIndentLevel === undefined) {
+        console.warn('❌ DOC_INDENT_CHANGE拒否: postIdまたはnewIndentLevelが未指定', payload);
+        socket.emit('doc-error', {
+          error: 'DOC_INDENT_CHANGE',
+          message: 'インデント変更でエラーが発生しました。'
+        });
+        return;
+      }
+
+      // DB更新
+      const updatedPost = await updateIndentLevel(postId, newIndentLevel);
+      console.log(updatedPost);
+
+      if (updatedPost) {
+        // 全クライアントにインデント変更をブロードキャスト
+        io.emit('doc-indent-change', {
+          postId,
+          indentLevel: updatedPost.indentLevel
+        });
+
+        // ログ記録
+        saveLog({ userId: null, userNickname: nickname, action: 'doc-indent-change', detail: payload, spaceId });
       }
 
     } catch (e) { console.error(e); }
