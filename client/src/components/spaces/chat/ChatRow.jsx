@@ -102,30 +102,32 @@ const ChatRow = ({ data, index, style }) => {
                     {/* 右端にフェードアウトグラデーション */}
                     <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
                 </span>
-                {/* positive/negativeボタン（コンパクトモード時はホバー時のみ表示、それ以外は常時表示） */}
-                <div
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
-                    style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
-                >
-                    <button
-                        contentEditable={false}
-                        className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                        onClick={handlePositive}
-                        disabled={hasVotedPositive}
-                        title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                {/* positive/negativeボタン（見出し行以外で表示、コンパクトモード時はホバー時のみ表示） */}
+                {!isHeading && (
+                    <div
+                        className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
+                        style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
                     >
-                        ⬆
-                    </button>
-                    <button
-                        contentEditable={false}
-                        className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                        onClick={handleNegative}
-                        disabled={hasVotedNegative}
-                        title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
-                    >
-                        ⬇
-                    </button>
-                </div>
+                        <button
+                            contentEditable={false}
+                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                            onClick={handlePositive}
+                            disabled={hasVotedPositive}
+                            title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                        >
+                            ⬆
+                        </button>
+                        <button
+                            contentEditable={false}
+                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                            onClick={handleNegative}
+                            disabled={hasVotedNegative}
+                            title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
+                        >
+                            ⬇
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
