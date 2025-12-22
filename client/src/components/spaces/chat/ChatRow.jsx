@@ -90,7 +90,7 @@ const ChatRow = ({ data, index, style }) => {
                 style={{ fontSize }}
             >
                 <span
-                    className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8"
+                    className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8 relative"
                     style={{
                         fontSize,
                         color: textColor,
@@ -99,17 +99,17 @@ const ChatRow = ({ data, index, style }) => {
                     title={cMsg.msg} // ホバーで全文表示
                 >
                     {linkifyText(cMsg.msg)}
+                    {/* 右端にフェードアウトグラデーション */}
+                    <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
                 </span>
-                {/* 右端にフェードアウトグラデーション */}
-                <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
                 {/* positive/negativeボタン（コンパクトモード時はホバー時のみ表示、それ以外は常時表示） */}
                 <div
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
                     style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
                 >
                     <button
                         contentEditable={false}
-                        className={`text-[18px] border-none bg-none py-[2px] px-1 rounded transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-[rgba(76,175,80,0.1)] hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                        className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
                         onClick={handlePositive}
                         disabled={hasVotedPositive}
                         title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
@@ -118,7 +118,7 @@ const ChatRow = ({ data, index, style }) => {
                     </button>
                     <button
                         contentEditable={false}
-                        className={`text-[18px] border-none bg-none py-[2px] px-1 rounded transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-[rgba(244,67,54,0.1)] hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                        className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
                         onClick={handleNegative}
                         disabled={hasVotedNegative}
                         title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
