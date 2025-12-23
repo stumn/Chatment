@@ -104,18 +104,22 @@ async function processXlogs(xLogs) {
 function organizeLogs(post, mySocketId = null) {
 
     const data = {
-        id: post._id || post.id, // _idがなければidを使う
-        createdAt: post.createdAt,
         nickname: post.nickname,
         msg: post.msg,
         userId: post.userId,
+        // spaceId
+        // roomId
+        source: post.source || 'unknown',
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
-        userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
-        userHasVotedNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
         displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
         indentLevel: post.indentLevel ? post.indentLevel : 0,
-        previousData: post.previousData || null
+        previousData: post.previousData || null,
+        // 
+        id: post._id || post.id, // _idがなければidを使う
+        createdAt: post.createdAt,
+        userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
+        userHasVotedNegative: mySocketId ? post.negative?.some(n => n.userSocketId === mySocketId) : false,
     };
     return data;
 }
