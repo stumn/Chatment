@@ -33,7 +33,7 @@ function App() {
           <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
 
           {/* ルートアクセスは管理画面にリダイレクト */}
-          <Route path="/" element={<Navigate to="/admin" replace />} />
+          {/* <Route path="/" element={<Navigate to="/admin" replace />} /> */}
         </Routes>
       </Suspense>
     </Router>
