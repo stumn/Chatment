@@ -11,10 +11,11 @@ import React from 'react';
  */
 const PostItem = ({ post, index }) => {
     const isHeading = post.msg && post.msg.trim().startsWith('#');
-    const positive = post.positive || 0;
-    const negative = post.negative || 0;
-    const reactionTotal = positive + negative;
-    const reactionScore = positive - negative;
+    const positive = post.positive.length || 0;
+    const negative = post.negative.length || 0;
+    const diff = positive - negative;
+
+    console.log(positive, negative, diff);
 
     // 見出し投稿の場合
     if (isHeading) {
@@ -22,7 +23,7 @@ const PostItem = ({ post, index }) => {
     }
 
     // 通常投稿の場合
-    return <RegularPost post={post} reactionScore={reactionScore} reactionTotal={reactionTotal} />;
+    return <RegularPost post={post} reactionDiff={diff} />;
 };
 
 /**
@@ -43,50 +44,31 @@ const HeadingPost = ({ post }) => {
 /**
  * 通常投稿コンポーネント
  */
-const RegularPost = ({ post, reactionScore, reactionTotal }) => {
-    // リアクションに基づく背景色とボーダー色を決定
-    const getPostStyles = () => {
-        let bgColor = 'bg-white';
-        let borderColor = 'border-gray-200';
-        let borderWidth = 'border-l-3';
+const RegularPost = ({ post, reactionDiff }) => {
+    // インデントレベルを取得（0, 1, 2）
+    const indentLevel = post.indentLevel || 0;
 
-        if (reactionTotal > 0) {
-            if (reactionScore > 0) {
-                // ポジティブな反応が多い
-                bgColor = `bg-green-50`;
-                borderColor = 'border-green-400';
-            } else if (reactionScore < 0) {
-                // ネガティブな反応が多い
-                bgColor = `bg-red-50`;
-                borderColor = 'border-red-400';
-            } else {
-                // 同じ数の反応
-                bgColor = 'bg-yellow-50';
-                borderColor = 'border-yellow-400';
-            }
+    // リアクションに基づく背景色スタイル（DocRowと同じ色コード）
+    const getReactionStyle = () => {
+
+        if (reactionDiff === 0) {
+            // 差がない場合は何もしない
+            return {};
         }
 
-        // 特に注目度が高い投稿（リアクション10以上）
-        if (reactionTotal >= 10) {
-            borderColor = 'border-orange-400';
-        }
-
-        // 非常に注目度が高い投稿（リアクション5以上）はボーダーを太く
-        if (reactionTotal >= 5) {
-            borderWidth = 'border-l-4';
-        }
-
-        return `${bgColor} ${borderColor} ${borderWidth}`;
+        return reactionDiff > 0
+            ? { backgroundColor: '#e6ffe6', padding: '2px 4px', borderRadius: '4px' }
+            : { backgroundColor: '#ffe6e6', padding: '2px 4px', borderRadius: '4px' };
     };
 
     return (
-        <div className={`
-            group relative my-0.5 px-2 py-0.5 rounded border-l-2 
-            transition-all duration-150 ease-in-out cursor-default
-            ${getPostStyles()}
-        `}>
+        <div className="group relative my-0.5 rounded transition-all duration-150 ease-in-out cursor-default"
+            style={getReactionStyle()}>
             <PostMeta post={post} />
-            <PostContent post={post} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: `${indentLevel * 1}em` }}>
+                <span className="text-gray-400 text-sm leading-snug select-none" style={{ marginRight: '0.25em' }}>・</span>
+                <PostContent post={post} />
+            </div>
         </div>
     );
 };
