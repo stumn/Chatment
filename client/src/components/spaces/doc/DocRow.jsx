@@ -24,6 +24,9 @@ const DocRow = ({ data, index, style }) => {
         document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage
     } = documentFunctions;
 
+    // 行のElement IDを生成（useEditModeより前に定義する必要がある）
+    const rowElementId = `dc-${index}-${message?.displayOrder}-${message?.id}`;
+
     // カスタムフックで編集モード管理
     const {
         isEditing,
@@ -35,14 +38,14 @@ const DocRow = ({ data, index, style }) => {
         handleKeyDown,
         editError,
         clearEditError
-    } = useEditMode(message, userInfo, edit, listRef, index);
+    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId);
 
-    // 行のElement IDを生成
-    const rowElementId = `dc-${index}-${message?.displayOrder}-${message?.id}`;
+    // この行がロックされているかチェック（Zustandで購読して再レンダリングを有効化）
+    const locked = usePostStore((state) => state.isRowLocked(rowElementId));
+    const lockInfo = usePostStore((state) => state.getRowLockInfo(rowElementId));
 
-    // この行がロックされているかチェック
-    const locked = usePostStore.getState().isRowLocked(rowElementId);
-    const lockInfo = usePostStore.getState().getRowLockInfo(rowElementId);
+    // 自分以外がロックしている場合のみ編集不可にする
+    const lockedByOthers = locked && lockInfo?.nickname !== userInfo?.nickname;
 
     // この行の変更状態を取得
     const changeState = usePostStore.getState().getChangeState(message?.id);
@@ -72,16 +75,23 @@ const DocRow = ({ data, index, style }) => {
     };
 
     // 編集ボタン押下で編集モードに
-    const handleEdit = () => {
+    const handleEdit = async () => {
 
-        // ロック中の場合は編集不可
-        if (locked) {
+        // 他のユーザーがロック中の場合は編集不可
+        if (lockedByOthers) {
             return;
         }
 
-        // カスタムフックの編集開始関数を使用
-        startEdit(requestLock, rowElementId);
+        // 既に自分がロックしている場合は、ロック要求なしで編集開始
+        const lockedByMe = locked && lockInfo?.nickname === userInfo?.nickname;
 
+        if (lockedByMe) {
+            // ロック要求をスキップして編集開始
+            await startEdit(null, rowElementId);
+        } else {
+            // ロック要求を送信してから編集開始（応答を待つ）
+            await startEdit(requestLock, rowElementId);
+        }
     };
 
     // 空白行判定
@@ -173,7 +183,7 @@ const DocRow = ({ data, index, style }) => {
             draggableId={String(message?.id ?? index)}
             index={index}
             key={message?.id ?? index}
-            isDragDisabled={locked} // ロック中はドラッグ無効化
+            isDragDisabled={lockedByOthers} // 他のユーザーがロック中はドラッグ無効化
         >
             {(provided, snapshot) => {
                 // コンパクトモードの状態を取得
@@ -185,7 +195,7 @@ const DocRow = ({ data, index, style }) => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${locked ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
+                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${lockedByOthers ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
                         style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                     // ロック管理用のdata属性
                     >
@@ -200,7 +210,7 @@ const DocRow = ({ data, index, style }) => {
                         {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
 
                         {/* インデントボタン（見出し以外） */}
-                        {!isHeading && !locked && (
+                        {!isHeading && !lockedByOthers && (
                             <div className="indent-buttons">
                                 {currentIndent > 0 && (
                                     <button
@@ -226,7 +236,7 @@ const DocRow = ({ data, index, style }) => {
                         <div
                             id={rowElementId}
                             className='doc-comment-content'
-                            contentEditable={isEditing && !locked} // ロック中は編集不可
+                            contentEditable={isEditing && !lockedByOthers} // 他のユーザーがロック中は編集不可
                             suppressContentEditableWarning={true}
                             ref={contentRef}
                             onBlur={handleBlur}
@@ -281,8 +291,8 @@ const DocRow = ({ data, index, style }) => {
                             </div>
                         )}
 
-                        {/* ロック中は操作ボタンを非表示 */}
-                        {!locked && (
+                        {/* 他のユーザーがロック中は操作ボタンを非表示 */}
+                        {!lockedByOthers && (
                             <ActionButtons
                                 isEditing={isEditing}
                                 isBlank={isBlank}
@@ -293,7 +303,7 @@ const DocRow = ({ data, index, style }) => {
                             />
                         )}
 
-                        {locked && (
+                        {lockedByOthers && (
                             <div className="lock-info" style={{
                                 position: 'absolute',
                                 top: '2px',
@@ -301,7 +311,7 @@ const DocRow = ({ data, index, style }) => {
                                 fontSize: '11px',
                                 color: '#856404'
                             }}>
-                                🔒他のユーザが編集中です
+                                🔒{lockInfo?.nickname}が編集中です
                             </div>
                         )}
                     </div>

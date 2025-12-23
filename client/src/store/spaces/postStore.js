@@ -12,7 +12,6 @@ const usePostStore = create((set, get) => ({
     addPost: (post, isNewlyCreated = false, roomId = null) =>
         set((state) => {
 
-            // 受け取ったpostはサーバーからの完全なデータであることを前提とする
             // post.idが存在しない場合はエラー
             if (!post.id) {
                 console.error('Invalid post data received:', post);
@@ -70,12 +69,7 @@ const usePostStore = create((set, get) => ({
         }),
 
     // 並び替え
-    reorderPost: (posts) =>
-        set((state) => {
-            return {
-                posts: [...posts]
-            };
-        }),
+    reorderPost: (posts) => set((state) => { return { posts: [...posts] }; }),
 
     // 行削除（id指定）
     removePost: (id) => set((state) => {
@@ -97,7 +91,7 @@ const usePostStore = create((set, get) => ({
         };
     }),
 
-    // ----- 特定ルームのメッセージのみ取得 -----
+    // ----- 特定ルームのメッセージのみ取得 ----- 将来的に削除
     getRoomMessages: (roomId) => {
         return [...get().posts]
             .filter(post => post.roomId === roomId)
@@ -130,7 +124,8 @@ const usePostStore = create((set, get) => ({
     })),
 
     // ----- ロックされた行の状態管理 -----
-    lockedRows: new Map(), // rowElementId -> { nickname, userId, postId }
+    // 全ロック情報を保持するMap（rowElementId -> { nickname, userId, postId }）
+    lockedRows: new Map(),
 
     // ロック状態の操作メソッド
     lockRow: (rowElementId, lockInfo) => set((state) => {
@@ -145,15 +140,20 @@ const usePostStore = create((set, get) => ({
         return { lockedRows: newLockedRows };
     }),
 
+    // 特定の行がロックされているかを確認（Boolean）
     isRowLocked: (rowElementId) => {
         const state = get();
         return state.lockedRows.has(rowElementId);
     },
 
+    // 特定の行のロック情報（lockInfo オブジェクト）を取得
     getRowLockInfo: (rowElementId) => {
         const state = get();
         return state.lockedRows.get(rowElementId);
     },
+
+    // 全てのロック状態をクリア（room切り替え時などに使用）
+    clearAllLocks: () => set({ lockedRows: new Map() }),
 
     // ------ 変更状態を管理するためのマップ ------
     changeStates: new Map(), // postId -> { type: 'added'|'modified'|'deleted'|'reordered', timestamp: Date, userNickname: string }

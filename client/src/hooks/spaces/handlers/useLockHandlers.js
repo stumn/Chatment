@@ -3,13 +3,17 @@ import usePostStore from '../../../store/spaces/postStore';
 export const useLockHandlers = (emitLog) => {
   const handleLockPermitted = (payload) => {
     // payload: { id, nickname}
-    // ロック許可時のUI更新処理を追加
-    // 自分がロックを取得した場合なので、編集可能状態にする
-    // この処理はコンポーネント側で handle する
+    console.log('[Lock] Lock-permitted received:', payload);
+    // 自分がロックを取得した場合、ストアに反映
+    usePostStore.getState().lockRow(payload.id, {
+      nickname: payload.nickname,
+      lockedAt: new Date().toISOString()
+    });
   };
 
   const handleRowLocked = (payload) => {
     // payload: { id, nickname }
+    console.log('[Lock] row-locked received:', payload);
 
     // ロック状態をStoreで管理
     usePostStore.getState().lockRow(payload.id, {
@@ -20,14 +24,17 @@ export const useLockHandlers = (emitLog) => {
 
   const handleRowUnlocked = (payload) => {
     // payload: { id, postId, reason? }
+    console.log('[Lock] row-unlocked received:', payload);
 
     // ストアからロック状態を削除
     usePostStore.getState().unlockRow(payload.id);
   };
 
   const handleLockNotAllowed = (payload) => {
-    // ロックが許可されなかった場合、しばらくお待ち下さいと表示する
-    alert(`ロックが許可されませんでした。しばらくお待ちください。`);
+    // ロックが許可されなかった場合、コンソールに警告を表示
+    console.warn('[Lock] Lock-not-allowed received:', payload);
+    console.warn(`ロックが許可されませんでした: ${payload.id}`, payload.message);
+    // TODO: より適切なUI通知（トースト通知など）の実装を検討
   };
 
   return {
