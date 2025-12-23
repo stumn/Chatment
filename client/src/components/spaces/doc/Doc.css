@@ -45,17 +45,7 @@
     cursor: grabbing;
 }
 
-/* ロック中の行のドラッグ無効化スタイル */
-.locked .dot {
-    cursor: not-allowed !important;
-    opacity: 0.5;
-    background-color: #ccc !important;
-}
 
-.locked .dot:hover {
-    background-color: #ccc !important;
-    transform: none !important;
-}
 
 /* ロック中のアイテム全体のスタイル */
 .locked {
@@ -108,28 +98,7 @@
     background: #f5fbff;
 }
 
-.dot {
-    margin-right: 8px;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    color: #aaaaaa;
-    cursor: grab;
-    font-size: 20px;
-}
 
-.dot::before {
-    content: '●';
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: -2px;
-}
-
-.dot:active {
-    cursor: grabbing;
-}
 
 /* ホバー時に表示される追加ボタン（右側に表示） */
 .add-button {
@@ -224,16 +193,7 @@
     display: none !important;
 }
 
-/* ドラッグ・アンド・ドロップのロック状態 */
-.doc-comment-item.locked .dot {
-    cursor: not-allowed !important;
-    opacity: 0.5;
-}
 
-.doc-comment-item.locked .dot:hover {
-    background-color: #dc3545 !important;
-    transform: none !important;
-}
 
 /* ドラッグ中の状態 */
 .doc-comment-item.drag-disabled {

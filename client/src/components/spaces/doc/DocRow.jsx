@@ -196,22 +196,18 @@ const DocRow = ({ data, index, style }) => {
                             onMouseLeave={handleMouseLeave}
                         />
 
-                        {/* 見出し行の場合は.dotを非表示 */}
-                        {!isHeading && <span {...provided.dragHandleProps} className='dot' />}
-
                         {/* インデントボタン（見出し以外） */}
                         {!isHeading && !locked && (
                             <div className="indent-buttons">
-                                {currentIndent > 0 && (
+                                {currentIndent === 2 ? (
                                     <button
-                                        className="indent-button indent-decrease"
-                                        onClick={() => handleIndentChange(-1)}
+                                        className="indent-button indent-decrease-double"
+                                        onClick={() => handleIndentChange(-2)}
                                         title="インデントを戻す"
                                     >
-                                        ＜
+                                        ≪
                                     </button>
-                                )}
-                                {currentIndent < 2 && (
+                                ) : (
                                     <button
                                         className="indent-button indent-increase"
                                         onClick={() => handleIndentChange(1)}
