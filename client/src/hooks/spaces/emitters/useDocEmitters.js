@@ -24,21 +24,51 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitDemandLock = (data) => {
     const { userInfo } = useAppStore.getState();
-    // data:{ `dc-${index}-${message?.displayOrder}-${message?.id}`, nickname }
-    const { rowElementId, nickname } = data;
+    console.log('[Lock] Emitting demand-lock:', data);
 
-    socket.emit('demand-lock', data);
+    return new Promise((resolve, reject) => {
+      // タイムアウト設定（3秒）
+      const timeout = setTimeout(() => {
+        console.warn('[Lock] Lock request timeout for:', data.rowElementId);
+        reject(new Error('Lock request timeout'));
+      }, 3000);
 
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-demand-lock',
-      detail: data
+      // 一時的なリスナーを設定
+      const onLockPermitted = (payload) => {
+        if (payload.id === data.rowElementId) {
+          clearTimeout(timeout);
+          socket.off('Lock-permitted', onLockPermitted);
+          socket.off('Lock-not-allowed', onLockNotAllowed);
+          resolve(payload);
+        }
+      };
+
+      const onLockNotAllowed = (payload) => {
+        if (payload.id === data.rowElementId) {
+          clearTimeout(timeout);
+          socket.off('Lock-permitted', onLockPermitted);
+          socket.off('Lock-not-allowed', onLockNotAllowed);
+          reject(new Error(payload.message || 'Lock not allowed'));
+        }
+      };
+
+      socket.on('Lock-permitted', onLockPermitted);
+      socket.on('Lock-not-allowed', onLockNotAllowed);
+
+      socket.emit('demand-lock', data);
+
+      emitLog({
+        userId: validUserId(userInfo && userInfo._id),
+        userNickname: userInfo.nickname,
+        action: 'doc-demand-lock',
+        detail: data
+      });
     });
   };
 
   const emitUnlockRow = (data) => {
     const { userInfo } = useAppStore.getState();
+    console.log('[Lock] Emitting unlock-row:', data);
 
     socket.emit('unlock-row', data);
 

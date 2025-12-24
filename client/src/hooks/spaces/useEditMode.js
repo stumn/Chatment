@@ -10,6 +10,8 @@ import usePostStore from '../../store/spaces/postStore';
  * @param {Function} edit - サーバーへの編集送信関数
  * @param {Object} listRef - リストの参照
  * @param {number} index - 行インデックス
+ * @param {Function} unlockRow - ロック解除関数
+ * @param {string} rowElementId - 行のElement ID
  * @returns {Object} 編集モード関連の状態と関数
  */
 const useEditMode = (
@@ -17,7 +19,9 @@ const useEditMode = (
     userInfo,
     edit,
     listRef,
-    index
+    index,
+    unlockRow,
+    rowElementId
 ) => {
     // 編集状態を管理するステート
     const [isEditing, setIsEditing] = useState(false);
@@ -62,13 +66,25 @@ const useEditMode = (
      * @param {Function} requestLock - ロック要求関数
      * @param {string} rowElementId - 行のElement ID
      */
-    const startEdit = (requestLock, rowElementId) => {
+    const startEdit = async (requestLock, rowElementId) => {
         // エラーをクリア
         setEditError('');
 
-        // ロック要求を送信
-        requestLock && requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
+        // ロック要求がある場合は、応答を待つ
+        if (requestLock) {
+            try {
+                const result = await requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
+                if (!result || !result.success) {
+                    console.warn('Lock acquisition failed, not entering edit mode');
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to acquire lock:', error);
+                return;
+            }
+        }
 
+        // ロック取得成功後に編集モードに入る
         setIsEditing(true);
         focusAndMoveCursorToEnd();
     };
@@ -100,6 +116,11 @@ const useEditMode = (
         const finalContent = result?.validatedMsg || newContent;
         if (finalContent !== originalContent) {
             setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
+        }
+
+        // 編集完了時にロックを解除
+        if (unlockRow && rowElementId) {
+            unlockRow({ rowElementId, postId: message.id });
         }
 
         setIsEditing(false);

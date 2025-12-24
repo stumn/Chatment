@@ -299,16 +299,18 @@ export const useAppController = () => {
      * @param {string} nickname - ユーザーのニックネーム  
      * @param {string} userId - ユーザーID
      */
-    const requestLock = useCallback((rowElementId, nickname, userId) => {
+    const requestLock = useCallback(async (rowElementId, nickname, userId) => {
         try {
-            emitDemandLock({
+            await emitDemandLock({
                 rowElementId,
                 nickname: nickname || userInfo?.nickname,
                 userId: userId || userInfo?._id,
                 timestamp: new Date().toISOString()
             });
+            return { success: true };
         } catch (error) {
             console.error('Failed to request lock:', error);
+            return { success: false, error: error.message };
         }
         // emitDemandLockはuseSocket内で安定しているため依存配列から除外
         // eslint-disable-next-line react-hooks/exhaustive-deps
