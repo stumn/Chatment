@@ -40,6 +40,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
         document: appController.document,
         chat: appController.chat.send, // sendChatMessage
         spaceId: spaceId, // spaceIdを追加
+        emitLog: appController.raw.emitLog, // ログ送信関数を追加
     };
 
     // Chat操作用の関数群を抽出  

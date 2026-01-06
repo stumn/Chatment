@@ -13,6 +13,7 @@ import usePostStore from '../../store/spaces/postStore';
  * @param {Function} unlockRow - ロック解除関数
  * @param {string} rowElementId - 行のElement ID
  * @param {Function} deleteDoc - 削除関数
+ * @param {Function} emitLog - ログ送信関数
  * @returns {Object} 編集モード関連の状態と関数
  */
 const useEditMode = (
@@ -23,7 +24,8 @@ const useEditMode = (
     index,
     unlockRow,
     rowElementId,
-    deleteDoc
+    deleteDoc,
+    emitLog
 ) => {
     // 編集状態を管理するステート
     const [isEditing, setIsEditing] = useState(false);
@@ -78,10 +80,24 @@ const useEditMode = (
                 const result = await requestLock(rowElementId, userInfo?.nickname, userInfo?._id);
                 if (!result || !result.success) {
                     console.warn('Lock acquisition failed, not entering edit mode');
+                    // ロック取得失敗のログ
+                    emitLog && emitLog({
+                        userId: userInfo?._id,
+                        userNickname: userInfo?.nickname,
+                        action: 'edit-lock-failed',
+                        detail: { postId: message.id, rowElementId }
+                    });
                     return;
                 }
             } catch (error) {
                 console.error('Failed to acquire lock:', error);
+                // ロック取得エラーのログ
+                emitLog && emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'edit-lock-error',
+                    detail: { postId: message.id, rowElementId, error: error.message }
+                });
                 return;
             }
         }
@@ -89,6 +105,19 @@ const useEditMode = (
         // ロック取得成功後に編集モードに入る
         setIsEditing(true);
         focusAndMoveCursorToEnd();
+
+        // 編集開始のログ
+        emitLog && emitLog({
+            userId: userInfo?._id,
+            userNickname: userInfo?.nickname,
+            action: 'edit-start',
+            detail: {
+                postId: message.id,
+                rowElementId,
+                originalContent: message.msg || '',
+                contentLength: (message.msg || '').length
+            }
+        });
     };
 
     /**
@@ -106,19 +135,51 @@ const useEditMode = (
         if (result && !result.success) {
             // 削除確認が必要な場合
             if (result.requiresDeleteConfirmation) {
+                // 削除確認ダイアログ表示のログ
+                emitLog && emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'edit-empty-delete-confirm-shown',
+                    detail: {
+                        postId: message.id,
+                        originalContent,
+                        attemptedContent: newContent
+                    }
+                });
+
                 const shouldDelete = window.confirm(
                     '内容が空です。この行を削除しますか？\n\n' +
                     'OK: 行を削除\nキャンセル: 編集を続ける'
                 );
 
                 if (shouldDelete) {
+                    // 削除確認でOKを選択したログ
+                    emitLog && emitLog({
+                        userId: userInfo?._id,
+                        userNickname: userInfo?.nickname,
+                        action: 'edit-empty-delete-confirmed',
+                        detail: {
+                            postId: message.id,
+                            originalContent,
+                            deletionReason: 'empty-content-via-edit'
+                        }
+                    });
+
                     // ロックを解除してから削除アクションを返す
                     if (unlockRow && rowElementId) {
                         unlockRow({ rowElementId, postId: message.id });
                     }
                     setIsEditing(false);
-                    return { action: 'delete', postId: result.postId };
+                    return { action: 'delete', postId: result.postId, reason: 'empty-content-via-edit' };
                 } else {
+                    // 削除確認でキャンセルを選択したログ
+                    emitLog && emitLog({
+                        userId: userInfo?._id,
+                        userNickname: userInfo?.nickname,
+                        action: 'edit-empty-delete-cancelled',
+                        detail: { postId: message.id }
+                    });
+
                     // 編集を続ける
                     setEditError('内容を入力してください');
                     return false; // 編集継続
@@ -126,6 +187,19 @@ const useEditMode = (
             }
 
             // その他のバリデーションエラーの場合、エラーメッセージを表示して編集モードを継続
+            emitLog && emitLog({
+                userId: userInfo?._id,
+                userNickname: userInfo?.nickname,
+                action: 'edit-validation-error',
+                detail: {
+                    postId: message.id,
+                    error: result.error,
+                    originalContent,
+                    attemptedContent: newContent,
+                    attemptedLength: newContent?.length
+                }
+            });
+
             setEditError(result.error);
             return false; // 編集継続
         }
@@ -137,9 +211,26 @@ const useEditMode = (
         // 見出しの追加の場合には、チャットに追加しない
         // 異なる人が編集した場合には、チャット名前を追加する [+1] みたいな書き方？
         const finalContent = result?.validatedMsg || newContent;
-        if (finalContent !== originalContent) {
+        const contentChanged = finalContent !== originalContent;
+
+        if (contentChanged) {
             setChangeState(message.id, 'modified', userInfo?.nickname || 'Unknown');
         }
+
+        // 編集完了のログ（変更の有無に関わらず）
+        emitLog && emitLog({
+            userId: userInfo?._id,
+            userNickname: userInfo?.nickname,
+            action: contentChanged ? 'edit-completed-with-change' : 'edit-completed-no-change',
+            detail: {
+                postId: message.id,
+                originalContent,
+                finalContent,
+                originalLength: originalContent.length,
+                finalLength: finalContent.length,
+                isHeading: finalContent.startsWith('#')
+            }
+        });
 
         // 編集完了時にロックを解除
         if (unlockRow && rowElementId) {
@@ -161,7 +252,7 @@ const useEditMode = (
 
         // 削除アクションが返された場合
         if (result && result.action === 'delete') {
-            deleteDoc && deleteDoc(result.postId);
+            deleteDoc && deleteDoc(result.postId, result.reason || 'empty-content-via-edit');
         }
     };
 
@@ -175,7 +266,7 @@ const useEditMode = (
 
             // 削除アクションが返された場合
             if (result && result.action === 'delete') {
-                deleteDoc && deleteDoc(result.postId);
+                deleteDoc && deleteDoc(result.postId, result.reason || 'empty-content-via-edit');
             }
         }
     };

@@ -38,7 +38,7 @@ const DocRow = ({ data, index, style }) => {
         handleKeyDown,
         editError,
         clearEditError
-    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId, deleteDoc);
+    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId, deleteDoc, documentFunctions.emitLog);
 
     // この行がロックされているかチェック（Zustandで購読して再レンダリングを有効化）
     const locked = usePostStore((state) => state.isRowLocked(rowElementId));
@@ -145,8 +145,8 @@ const DocRow = ({ data, index, style }) => {
         // 削除の変更状態を記録
         usePostStore.getState().setChangeState(message.id, 'deleted', userInfo?.nickname || 'Unknown');
 
-        // serverに削除要求を送信
-        deleteDoc && deleteDoc(message.id);
+        // serverに削除要求を送信（削除ボタンからの削除であることを明示）
+        deleteDoc && deleteDoc(message.id, 'manual');
 
         // storeからも削除
         usePostStore.getState().removePost(message.id);

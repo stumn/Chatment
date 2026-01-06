@@ -73,10 +73,21 @@ export const useAppController = () => {
      */
     const editDocument = useCallback((id, newMsg) => {
         try {
+            // 元の内容を取得（ログ用）
+            const posts = usePostStore.getState().posts;
+            const originalPost = posts.find(p => p.id === id);
+            const originalMsg = originalPost?.msg || '';
+
             // 基本バリデーション
             // 内容が空のときは，この行を削除しますか？という確認を行いたい
             if (!newMsg?.trim()) {
                 console.warn('Empty content - requires delete confirmation');
+                emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'document-edit-empty-validation',
+                    detail: { id, originalMsg, attemptedMsg: newMsg }
+                });
                 return {
                     success: false,
                     requiresDeleteConfirmation: true,
@@ -88,6 +99,12 @@ export const useAppController = () => {
             let validatedMsg = newMsg;
             if (newMsg.length > 140) {
                 console.warn('Document content too long, truncating to 140 characters');
+                emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'document-edit-length-validation-error',
+                    detail: { id, originalMsg, attemptedMsg: newMsg, length: newMsg.length }
+                });
                 return { success: false, error: '文字数が140文字を超えています。短くしてください。' };
             }
 
@@ -95,6 +112,12 @@ export const useAppController = () => {
             const lines = validatedMsg.split('\n');
             if (lines.length > 5) {
                 console.warn('Too many lines, limiting to 5 lines');
+                emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'document-edit-lines-validation-error',
+                    detail: { id, originalMsg, attemptedMsg: newMsg, lineCount: lines.length }
+                });
                 return { success: false, error: '改行数が5行を超えています。短くしてください。' };
             }
 
@@ -109,6 +132,12 @@ export const useAppController = () => {
 
             // 正規化後に再度空チェック
             if (!validatedMsg) {
+                emitLog({
+                    userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
+                    action: 'document-edit-invalid-chars-validation-error',
+                    detail: { id, originalMsg, attemptedMsg: newMsg }
+                });
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
 
@@ -126,8 +155,16 @@ export const useAppController = () => {
                 // ログ記録
                 emitLog({
                     userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
                     action: 'document-edit-heading',
-                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                    detail: {
+                        id,
+                        originalMsg,
+                        validatedMsg,
+                        originalLength: originalMsg?.length,
+                        messageLength: validatedMsg?.length,
+                        inputLength: newMsg?.length
+                    }
                 });
 
                 return { success: true, validatedMsg };
@@ -144,8 +181,16 @@ export const useAppController = () => {
                 // ログ記録
                 emitLog({
                     userId: userInfo?._id,
+                    userNickname: userInfo?.nickname,
                     action: 'document-edit',
-                    detail: { id, messageLength: validatedMsg?.length, originalLength: newMsg?.length }
+                    detail: {
+                        id,
+                        originalMsg,
+                        validatedMsg,
+                        originalLength: originalMsg?.length,
+                        messageLength: validatedMsg?.length,
+                        inputLength: newMsg?.length
+                    }
                 });
 
                 return { success: true, validatedMsg };
@@ -163,9 +208,15 @@ export const useAppController = () => {
     /**
      * ドキュメントを削除する（楽観的更新付き）
      * @param {string} id - 削除対象のID
+     * @param {string} reason - 削除理由（オプション）
      */
-    const deleteDocument = useCallback((id) => {
+    const deleteDocument = useCallback((id, reason = 'manual') => {
         try {
+            // 削除前の内容を取得（ログ用）
+            const posts = usePostStore.getState().posts;
+            const deletedPost = posts.find(p => p.id === id);
+            const deletedContent = deletedPost?.msg || '';
+
             // 楽観的更新: 即座にUIから削除
             removePost(id);
 
@@ -175,8 +226,16 @@ export const useAppController = () => {
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
+                userNickname: userInfo?.nickname,
                 action: 'document-delete',
-                detail: { id }
+                detail: {
+                    id,
+                    deletedContent,
+                    contentLength: deletedContent.length,
+                    reason,
+                    displayOrder: deletedPost?.displayOrder,
+                    indentLevel: deletedPost?.indentLevel
+                }
             });
         } catch (error) {
             console.error('Failed to delete document:', error);
