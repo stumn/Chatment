@@ -12,6 +12,7 @@ import usePostStore from '../../store/spaces/postStore';
  * @param {number} index - 行インデックス
  * @param {Function} unlockRow - ロック解除関数
  * @param {string} rowElementId - 行のElement ID
+ * @param {Function} deleteDoc - 削除関数
  * @returns {Object} 編集モード関連の状態と関数
  */
 const useEditMode = (
@@ -21,7 +22,8 @@ const useEditMode = (
     listRef,
     index,
     unlockRow,
-    rowElementId
+    rowElementId,
+    deleteDoc
 ) => {
     // 編集状態を管理するステート
     const [isEditing, setIsEditing] = useState(false);
@@ -102,7 +104,28 @@ const useEditMode = (
         const result = edit && edit(message.id, newContent);
 
         if (result && !result.success) {
-            // バリデーションエラーの場合、エラーメッセージを表示して編集モードを継続
+            // 削除確認が必要な場合
+            if (result.requiresDeleteConfirmation) {
+                const shouldDelete = window.confirm(
+                    '内容が空です。この行を削除しますか？\n\n' +
+                    'OK: 行を削除\nキャンセル: 編集を続ける'
+                );
+
+                if (shouldDelete) {
+                    // ロックを解除してから削除アクションを返す
+                    if (unlockRow && rowElementId) {
+                        unlockRow({ rowElementId, postId: message.id });
+                    }
+                    setIsEditing(false);
+                    return { action: 'delete', postId: result.postId };
+                } else {
+                    // 編集を続ける
+                    setEditError('内容を入力してください');
+                    return false; // 編集継続
+                }
+            }
+
+            // その他のバリデーションエラーの場合、エラーメッセージを表示して編集モードを継続
             setEditError(result.error);
             return false; // 編集継続
         }
@@ -134,7 +157,12 @@ const useEditMode = (
      */
     const handleBlur = (e) => {
         const newContent = e.target.textContent.replace(/\r/g, '');
-        saveAndFinishEdit(newContent);
+        const result = saveAndFinishEdit(newContent);
+
+        // 削除アクションが返された場合
+        if (result && result.action === 'delete') {
+            deleteDoc && deleteDoc(result.postId);
+        }
     };
 
     /**
@@ -143,7 +171,12 @@ const useEditMode = (
     const handleCompleteEdit = () => {
         if (contentRef.current) {
             const newContent = contentRef.current.textContent.replace(/\r/g, '');
-            saveAndFinishEdit(newContent);
+            const result = saveAndFinishEdit(newContent);
+
+            // 削除アクションが返された場合
+            if (result && result.action === 'delete') {
+                deleteDoc && deleteDoc(result.postId);
+            }
         }
     };
 

@@ -74,9 +74,14 @@ export const useAppController = () => {
     const editDocument = useCallback((id, newMsg) => {
         try {
             // 基本バリデーション
+            // 内容が空のときは，この行を削除しますか？という確認を行いたい
             if (!newMsg?.trim()) {
-                console.warn('Empty content not allowed for document edit');
-                return { success: false, error: '内容が空です。文字を入力してください。' };
+                console.warn('Empty content - requires delete confirmation');
+                return {
+                    success: false,
+                    requiresDeleteConfirmation: true,
+                    postId: id
+                };
             }
 
             // 文字数制限（140文字）

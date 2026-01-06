@@ -38,7 +38,7 @@ const DocRow = ({ data, index, style }) => {
         handleKeyDown,
         editError,
         clearEditError
-    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId);
+    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId, deleteDoc);
 
     // この行がロックされているかチェック（Zustandで購読して再レンダリングを有効化）
     const locked = usePostStore((state) => state.isRowLocked(rowElementId));
