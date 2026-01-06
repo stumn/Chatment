@@ -84,12 +84,12 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
     // react-window用のrenderRow
     const renderRow = ({ index, style, data }) => (
         <ChatRow
-            key={data.chatMessages[index]?.id || index}
             data={data}
             index={index}
             style={style}
         />
     );
+    // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
 
     // 最大化モード：react-windowを使用
     if (isChatMaximized) {
