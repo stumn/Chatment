@@ -57,7 +57,9 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
         if (listRef.current) {
             if (isChatMaximized) {
                 // react-windowの場合
-                listRef.current.scrollToItem(filteredChatMessages.length - 1, "end");
+                if (filteredChatMessages.length > 0) {
+                    listRef.current.scrollToItem(filteredChatMessages.length - 1, "end");
+                }
             } else {
                 // 通常モードの場合
                 listRef.current.scrollTop = listRef.current.scrollHeight;
