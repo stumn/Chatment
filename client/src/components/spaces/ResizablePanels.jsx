@@ -51,7 +51,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
     const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
-    const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
+    const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 2; // 最大の高さは、下部の高さを考慮して調整
 
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
@@ -106,7 +106,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
-            let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
+            let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 2);
             newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
             document.getElementById('divider').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
