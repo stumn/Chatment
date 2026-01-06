@@ -57,6 +57,9 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
     // チャットが最大化されているかを判定（ドキュメントが最小 = 0.5行以下）
     const isChatMaximized = myHeight <= STANDARD_FONT_SIZE * 2;
+    
+    // ドキュメントが最大化されているかを判定（チャットが最小 = 0.5行以下）
+    const isDocMaximized = bottomHeight <= STANDARD_FONT_SIZE * 2;
 
     const posts = usePostStore((state) => state.posts);
     // postsが変更された時のみソートを実行
@@ -151,7 +154,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='doc-container'
                 className="bg-[#fefefe]"
                 style={{ height: `${myHeight}px` }}>
-                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} />
+                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} isDocMaximized={isDocMaximized} />
             </div>
 
             <div
