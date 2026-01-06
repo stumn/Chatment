@@ -56,10 +56,10 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
     // チャットが最大化されているかを判定（ドキュメントが最小 = 0）
-    const isChatMaximized = myHeight <= 0;
+    const isChatMaximized = myHeight === 0;
 
     // ドキュメントが最大化されているかを判定（チャットが最小 = 0）
-    const isDocMaximized = bottomHeight <= 0;
+    const isDocMaximized = bottomHeight === 0;
 
     const posts = usePostStore((state) => state.posts);
     // postsが変更された時のみソートを実行
