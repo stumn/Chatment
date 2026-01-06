@@ -100,7 +100,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
                     itemSize={65} // 固定高さ65px
                     width="100%"
                     itemData={itemData}
-                    itemKey={index => index}
+                    itemKey={(index, data) => data.chatMessages[index]?.id || index}
                     style={{ overflowY: 'auto' }}
                 >
                     {renderRow}
