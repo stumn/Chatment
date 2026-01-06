@@ -51,9 +51,15 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
     const DIVIDER_HEIGHT = 15;
     const STANDARD_FONT_SIZE = 16; // スタートのフォントサイズ
-    const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - STANDARD_FONT_SIZE * 5; // 最大の高さは、下部の高さを考慮して調整
+    const MAX_TOP_HEIGHT = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT; // 最大の高さ
 
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
+
+    // チャットが最大化されているかを判定（ドキュメントが最小 = 0）
+    const isChatMaximized = myHeight === 0;
+
+    // ドキュメントが最大化されているかを判定（チャットが最小 = 0）
+    const isDocMaximized = bottomHeight === 0;
 
     const posts = usePostStore((state) => state.posts);
     // postsが変更された時のみソートを実行
@@ -106,8 +112,8 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
-            let newTopHeight = Math.max(startHeight + (currentY - startY), STANDARD_FONT_SIZE * 3.5);
-            newTopHeight = Math.max(STANDARD_FONT_SIZE * 2, Math.min(MAX_TOP_HEIGHT, newTopHeight));
+            let newTopHeight = Math.max(startHeight + (currentY - startY), 0);
+            newTopHeight = Math.max(0, Math.min(MAX_TOP_HEIGHT, newTopHeight));
             setMyHeight(newTopHeight);
             document.getElementById('divider').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
@@ -148,7 +154,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='doc-container'
                 className="bg-[#fefefe]"
                 style={{ height: `${myHeight}px` }}>
-                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} />
+                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} isDocMaximized={isDocMaximized} />
             </div>
 
             <div
@@ -167,7 +173,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='chat-container'
                 className="flex-grow bg-[#fefefe]"
                 style={{ height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} />
             </div>
         </div>
     );

@@ -1,12 +1,13 @@
 // ChatComments.jsx
 
 import React, { useEffect, useMemo, useRef } from 'react';
+import { FixedSizeList as List } from 'react-window';
 
 const ChatRow = React.lazy(() => import('./ChatRow'));
 
 import usePostStore from '../../../store/spaces/postStore';
 
-const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
+const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) => {
     const listRef = useRef(null);
     const posts = usePostStore((state) => state.posts);
 
@@ -33,8 +34,11 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
             else { return !msg.msg.trim().startsWith('#'); }
         });
 
+        // 最大化モードの場合は全件表示、通常モードは制限付き
+        const displayMessages = isChatMaximized ? filtered : filtered.slice(-Math.ceil(lines.num));
+
         // timeプロパティを生成して付与
-        return filtered.slice(-Math.ceil(lines.num)).map(msg => ({
+        return displayMessages.map(msg => ({
             ...msg,
             time: msg.updatedAt
                 ? new Date(msg.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -43,24 +47,71 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                     : ''
         }));
 
-    }, [posts, lines.num]);
+    }, [posts, lines.num, isChatMaximized]);
 
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
 
-    // スクロールを最下部に
+    // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
         if (listRef.current) {
-            listRef.current.scrollTop = listRef.current.scrollHeight;
+            if (isChatMaximized) {
+                // react-windowの場合
+                if (filteredChatMessages.length > 0) {
+                    listRef.current.scrollToItem(filteredChatMessages.length - 1, "end");
+                }
+            } else {
+                // 通常モードの場合
+                listRef.current.scrollTop = listRef.current.scrollHeight;
+            }
         }
-    }, [filteredChatMessages]);
+    }, [filteredChatMessages, isChatMaximized]);
 
     const {
         chat: { send, addPositive, addNegative },
         socket: { id: socketId }
     } = chatFunctions;
 
-    // Listの代わりにdiv+mapで描画（下揃え表示）
+    // itemDataを準備
+    const itemData = useMemo(() => ({
+        chatMessages: filteredChatMessages,
+        sendChatMessage: send,
+        userSocketId: socketId,
+        addPositive,
+        addNegative
+    }), [filteredChatMessages, send, socketId, addPositive, addNegative]);
+
+    // react-window用のrenderRow
+    const renderRow = ({ index, style, data }) => (
+        <ChatRow
+            data={data}
+            index={index}
+            style={style}
+        />
+    );
+    // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
+
+    // 最大化モード：react-windowを使用
+    if (isChatMaximized) {
+        return (
+            <React.Suspense fallback={<div>Loading...</div>}>
+                <List
+                    ref={listRef}
+                    height={bottomHeight}
+                    itemCount={filteredChatMessages.length}
+                    itemSize={65} // 固定高さ65px
+                    width="100%"
+                    itemData={itemData}
+                    itemKey={(index, data) => data.chatMessages[index]?.id || index}
+                    style={{ overflowY: 'auto' }}
+                >
+                    {renderRow}
+                </List>
+            </React.Suspense>
+        );
+    }
+
+    // 通常モード：制限された行数のみ表示（下揃え）
     return (
         <React.Suspense fallback={<div>Loading...</div>}>
             <div
@@ -74,13 +125,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions }) => {
                 {filteredChatMessages.map((msg, idx) => (
                     <ChatRow
                         key={msg.id || idx}
-                        data={{
-                            chatMessages: filteredChatMessages,
-                            sendChatMessage: send,
-                            userSocketId: socketId,
-                            addPositive,
-                            addNegative
-                        }}
+                        data={itemData}
                         index={idx}
                         style={{}}
                     />

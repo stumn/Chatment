@@ -11,7 +11,7 @@ import useSizeStore from '../../../store/sizeStore';
 import useAppStore from '../../../store/spaces/appStore';
 import usePostStore from '../../../store/spaces/postStore';
 
-const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
+const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized }) => {
 
     const listRef = useRef(null);
 
@@ -22,10 +22,11 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem }) => {
     const posts = usePostStore((state) => state.posts);
 
     const docMessages = useMemo(() => {
-        let docPosts = posts.slice(0, -lines.num); // 後ろからlines.num分を除外
+        // 最大化モードの場合は全件表示、通常モードはチャット分を除外
+        let docPosts = isDocMaximized ? [...posts] : posts.slice(0, -lines.num);
         docPosts = [...docPosts].sort((a, b) => a.displayOrder - b.displayOrder);
         return docPosts;
-    }, [posts, lines.num]);
+    }, [posts, lines.num, isDocMaximized]);
 
     // documentFunctionsから必要な関数を取得
     const { document: { reorder }, chat: sendChatMessage } = documentFunctions;
