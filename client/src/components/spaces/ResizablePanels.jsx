@@ -55,6 +55,9 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
 
     const bottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - myHeight;
 
+    // チャットが最大化されているかを判定（ドキュメントが最小 = 0.5行以下）
+    const isChatMaximized = myHeight <= STANDARD_FONT_SIZE * 2;
+
     const posts = usePostStore((state) => state.posts);
     // postsが変更された時のみソートを実行
     const messages = useMemo(() => {
@@ -167,7 +170,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='chat-container'
                 className="flex-grow bg-[#fefefe]"
                 style={{ height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} />
             </div>
         </div>
     );
