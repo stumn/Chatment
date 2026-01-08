@@ -52,9 +52,9 @@ const SpaceInfo = ({ spaceData, currentSpaceId, docId, posts, isLoading }) => {
             {/* メタ情報を1行に */}
             <span className="text-gray-500">
                 {isLoading ? '読み込み中...' : `${posts.length}件`}
-                {docId && parseInt(docId) > 0 && ` | セクション: ${docId}`}
-                {spaceData?.lastActivity && ` | ${new Date(spaceData.lastActivity).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
-                {spaceData?.finishedAt && ` | 終了: ${new Date(spaceData.finishedAt).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
+                {docId && parseInt(docId) > 0 && ` | セクション：${docId}`}
+                {spaceData?.lastActivity && ` | 最新：${new Date(spaceData.lastActivity).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
+                {spaceData?.finishedAt && ` | 終了：${new Date(spaceData.finishedAt).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
             </span>
         </div>
     );
