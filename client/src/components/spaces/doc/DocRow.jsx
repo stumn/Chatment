@@ -195,7 +195,7 @@ const DocRow = ({ data, index, style }) => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${lockedByOthers ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
+                        className={`doc-comment-item group${snapshot.isDragging ? ' is-dragging' : ''}${lockedByOthers ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
                         style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                     // ロック管理用のdata属性
                     >
