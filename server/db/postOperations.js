@@ -25,7 +25,7 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
 
         // 新規投稿をデータベースに保存
         const newPost = await Post.create(npData);
-        
+
         return newPost;
 
     } catch (error) {
@@ -78,7 +78,7 @@ async function updatePostData(payload) {
 
     // 更新処理を実行
     const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
-    
+
     return updatedPost;
 }
 
