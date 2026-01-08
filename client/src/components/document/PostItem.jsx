@@ -79,8 +79,8 @@ const RegularPost = ({ post, reactionDiff }) => {
 const PostMeta = ({ post }) => {
     return (
         <div className="
-            absolute top-1 left-2 z-10
-            bg-black/80 text-white text-xs px-1.5 py-0.5 rounded
+            absolute top-1 right-full mr-2 z-10
+            bg-black/80 text-white text-xs px-1.5 py-0.5 rounded whitespace-nowrap
             opacity-0 invisible group-hover:opacity-100 group-hover:visible
             transition-all duration-150 pointer-events-none
         ">
