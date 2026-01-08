@@ -5,7 +5,7 @@ import DocumentViewButton from './ui/DocumentViewButton';
 const TableHeader = () => (
   <thead className="bg-gray-50">
     <tr>
-      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[200px]">
+      <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 border-b border-gray-200 w-[250px]">
         <div className="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -55,8 +55,8 @@ const FinishedSpaceRow = ({ space }) => {
 
   return (
     <tr>
-      <td className="px-3 py-2 text-sm font-medium text-gray-900 border-b border-gray-200 w-[200px] text-left">
-        <div className="truncate max-w-[180px]" title={space.name}>
+      <td className="px-3 py-2 text-sm font-medium text-gray-900 border-b border-gray-200 w-[250px] text-left">
+        <div className="truncate max-w-[230px]" title={space.name}>
           {space.name}
         </div>
       </td>
