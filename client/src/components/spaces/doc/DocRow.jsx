@@ -173,6 +173,13 @@ const DocRow = ({ data, index, style }) => {
             if (documentFunctions.document.changeIndent) {
                 console.log(documentFunctions.document.changeIndent);
                 documentFunctions.document.changeIndent(message.id, newIndent);
+
+                // インデント変更後にリストの高さを再計算
+                if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+                    setTimeout(() => {
+                        listRef.current.resetAfterIndex(0, true);
+                    }, 0);
+                }
             }
         };
     }
