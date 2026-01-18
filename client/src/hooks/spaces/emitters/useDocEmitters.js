@@ -132,12 +132,12 @@ export const useDocEmitters = (socket, emitLog) => {
 
   const emitIndentChange = (postId, newIndentLevel) => {
     const { userInfo } = useAppStore.getState();
-    
+
     // 編集前の情報を取得
     const posts = window.__postStore?.getState?.().posts || [];
     const targetPost = posts.find(p => p.id === postId);
     const oldIndentLevel = targetPost?.indentLevel;
-    
+
     const payload = {
       postId,
       newIndentLevel,

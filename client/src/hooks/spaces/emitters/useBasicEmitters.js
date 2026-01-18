@@ -16,13 +16,13 @@ export const useBasicEmitters = (socket, emitLog) => {
   const emitHeightChange = (height, prevHeight) => {
     const { userInfo } = useAppStore.getState();
     socket.emit('heightChange', height);
-    
+
     // ログ記録
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo && userInfo.nickname,
       action: 'height-change',
-      detail: { 
+      detail: {
         newHeight: height,
         oldHeight: prevHeight,
         spaceId: userInfo && userInfo.spaceId

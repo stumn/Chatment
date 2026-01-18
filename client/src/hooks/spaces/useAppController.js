@@ -251,7 +251,7 @@ export const useAppController = () => {
             // 編集前の情報を取得
             const posts = usePostStore.getState().posts;
             const oldOrder = posts.map(p => ({ id: p.id, displayOrder: p.displayOrder }));
-            
+
             emitDocReorder({
                 ...data,
                 nickname: userInfo?.nickname + `(${userInfo?.status}+${userInfo?.ageGroup})` || 'Unknown',
@@ -417,7 +417,7 @@ export const useAppController = () => {
             const posts = usePostStore.getState().posts;
             const targetPost = posts.find(p => p.id === postId);
             const oldIndentLevel = targetPost?.indentLevel;
-            
+
             console.log(postId, newIndentLevel);
             emitIndentChange(postId, newIndentLevel);
 
@@ -425,8 +425,8 @@ export const useAppController = () => {
             emitLog({
                 userId: userInfo?._id,
                 action: 'indent-change',
-                detail: { 
-                    documentId: postId, 
+                detail: {
+                    documentId: postId,
                     newIndentLevel,
                     oldIndentLevel
                 }
