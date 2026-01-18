@@ -34,7 +34,10 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
     const { userInfo, myHeight } = useAppStore();
 
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8);
-    const charsPerLine = Math.max(Math.floor(listWidth / 13), 1); // 最小値1を保証
+
+    // 日本語全角文字基準での文字数計算（実測で39文字が1行に入る）
+    // 日本語フォント15pxで1文字約16pxとして計算
+    const charsPerLine = Math.max(Math.floor(listWidth / 16), 1);
 
     // 定期的に古い変更状態をクリア（10分経過したもの）
     useEffect(() => {
