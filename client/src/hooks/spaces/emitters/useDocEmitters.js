@@ -101,6 +101,10 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocReorder = (payload) => {
     const { userInfo } = useAppStore.getState();
 
+    // 編集前の情報を取得
+    const posts = window.__postStore?.getState?.().posts || [];
+    const oldOrder = posts.map(p => ({ id: p.id, displayOrder: p.displayOrder }));
+
     // spaceIdを追加
     const payloadWithSpace = {
       ...payload,
@@ -113,18 +117,27 @@ export const useDocEmitters = (socket, emitLog) => {
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-reorder',
-      detail: payloadWithSpace
+      detail: {
+        ...payloadWithSpace,
+        oldOrder: oldOrder
+      }
     });
   };
 
   const emitDocDelete = (id) => {
     const { userInfo } = useAppStore.getState();
     socket.emit('doc-delete', { id });
-    emitLog({ action: 'doc-delete', detail: { id } });
+    emitLog({ action: 'doc-delete', detail: { documentId: id } });
   };
 
   const emitIndentChange = (postId, newIndentLevel) => {
     const { userInfo } = useAppStore.getState();
+    
+    // 編集前の情報を取得
+    const posts = window.__postStore?.getState?.().posts || [];
+    const targetPost = posts.find(p => p.id === postId);
+    const oldIndentLevel = targetPost?.indentLevel;
+    
     const payload = {
       postId,
       newIndentLevel,
@@ -140,7 +153,11 @@ export const useDocEmitters = (socket, emitLog) => {
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-indent-change',
-      detail: payload
+      detail: {
+        ...payload,
+        oldIndentLevel,
+        documentId: postId
+      }
     });
   };
 

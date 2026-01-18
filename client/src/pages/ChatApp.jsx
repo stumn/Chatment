@@ -84,7 +84,14 @@ function ChatApp() {
 
     // myHeightが変更されたらサーバーに高さを送信
     useEffect(() => {
-        socketFunctions.emitHeightChange(myHeight);
+        // 前回の高さを保存するためのref（初回は現在の高さを記録）
+        const prevHeight = window.__prevHeight ?? myHeight;
+        
+        // 高さが変わった場合のみ送信
+        if (myHeight !== prevHeight) {
+            socketFunctions.emitHeightChange(myHeight, prevHeight);
+            window.__prevHeight = myHeight;
+        }
     }, [myHeight]);
 
     if (isLoggedIn) { // ログイン完了後

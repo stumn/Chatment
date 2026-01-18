@@ -13,9 +13,21 @@ export const useBasicEmitters = (socket, emitLog) => {
     });
   };
 
-  const emitHeightChange = (height) => {
+  const emitHeightChange = (height, prevHeight) => {
+    const { userInfo } = useAppStore.getState();
     socket.emit('heightChange', height);
-    // emitLog 入れる
+    
+    // ログ記録
+    emitLog({
+      userId: validUserId(userInfo && userInfo._id),
+      userNickname: userInfo && userInfo.nickname,
+      action: 'height-change',
+      detail: { 
+        newHeight: height,
+        oldHeight: prevHeight,
+        spaceId: userInfo && userInfo.spaceId
+      }
+    });
   };
 
   return {

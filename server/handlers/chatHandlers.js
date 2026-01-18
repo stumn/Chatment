@@ -46,8 +46,14 @@ function setupChatHandlers(socket, io) {
       // ルーム統計をデータベースで更新
       await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
 
-      // ログ記録
-      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId }, spaceId });
+      // ログ記録 - チャットメッセージ
+      saveLog({
+        userId,
+        userNickname: nickname,
+        action: 'chat-message',
+        detail: { nickname, message, displayOrder, roomId },
+        spaceId
+      });
 
     } catch (e) { console.error(e); }
   });
