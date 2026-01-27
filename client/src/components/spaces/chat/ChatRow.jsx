@@ -181,8 +181,8 @@ const PollDisplay = ({ poll, postId, onVote }) => {
                             onClick={() => onVote(idx)}
                             disabled={hasVoted}
                             className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${hasVoted
-                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 cursor-pointer'
+                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 cursor-pointer'
                                 }`}
                             title={`${opt.label}: ${voteCount}票 (${percentage}%)`}
                         >

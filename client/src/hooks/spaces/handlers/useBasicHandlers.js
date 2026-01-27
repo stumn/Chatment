@@ -1,4 +1,5 @@
 import usePostStore from '../../../store/spaces/postStore';
+import useAppStore from '../../../store/spaces/appStore';
 
 export const useBasicHandlers = (socket) => {
   const handleHeightChange = (data) => {
@@ -7,6 +8,15 @@ export const useBasicHandlers = (socket) => {
   };
 
   const handleConnectOK = (userInfo) => {
+    // サーバーから返されたuserInfo（_idを含む）をappStoreに保存
+    if (userInfo && userInfo._id) {
+      const currentUserInfo = useAppStore.getState().userInfo;
+      useAppStore.getState().setUserInfo({
+        ...currentUserInfo,
+        userId: userInfo._id
+      });
+    }
+
     socket.emit('fetch-history');
     socket.emit('fetch-docs');
   };

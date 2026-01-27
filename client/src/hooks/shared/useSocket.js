@@ -84,8 +84,8 @@ export default function useSocket() {
         socket.off(event);
       });
     };
-
-  }, [basicHandlers, chatHandlers, docHandlers, lockHandlers, roomHandlers, roomEmitters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 空の依存配列にして、マウント時に1度だけ実行
 
   return {
     // 基本
