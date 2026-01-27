@@ -22,6 +22,9 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
 
         // ★空白行を除外 + ソース情報でフィルタリング
         const filtered = sorted.filter(msg => {
+            // アンケート投稿は必ず表示
+            if (msg && msg.poll && msg.poll.question) return true;
+
             // 基本的な空白行除外
             if (!msg || !msg.msg || msg.msg.trim() === "") return false;
 
@@ -68,7 +71,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
     }, [filteredChatMessages, isChatMaximized]);
 
     const {
-        chat: { send, addPositive, addNegative },
+        chat: { send, addPositive, addNegative, votePoll },
         socket: { id: socketId }
     } = chatFunctions;
 
@@ -78,8 +81,9 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
         sendChatMessage: send,
         userSocketId: socketId,
         addPositive,
-        addNegative
-    }), [filteredChatMessages, send, socketId, addPositive, addNegative]);
+        addNegative,
+        votePoll
+    }), [filteredChatMessages, send, socketId, addPositive, addNegative, votePoll]);
 
     // react-window用のrenderRow
     const renderRow = ({ index, style, data }) => (

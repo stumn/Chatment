@@ -106,16 +106,16 @@ function organizeLogs(post, mySocketId = null) {
     const data = {
         nickname: post.nickname,
         msg: post.msg,
-        userId: post.userId,
         // spaceId
         // roomId
         source: post.source || 'unknown',
-        positive: post.positive ? post.positive.length : 0,
-        negative: post.negative ? post.negative.length : 0,
         displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
         indentLevel: post.indentLevel ? post.indentLevel : 0,
+        poll: post.poll,
+        userId: post.userId,
+        positive: post.positive ? post.positive.length : 0,
+        negative: post.negative ? post.negative.length : 0,
         previousData: post.previousData || null,
-        // 
         id: post._id || post.id, // _idがなければidを使う
         createdAt: post.createdAt,
         userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,

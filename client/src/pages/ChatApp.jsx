@@ -65,7 +65,7 @@ function ChatApp() {
         socketFunctions.emitLoginName(userInfo);
 
         setOpen(false);
-    }, [userInfo, isLoggedIn, spaceId]); // spaceIdを依存配列に追加
+    }, [isLoggedIn]); // userInfoとspaceIdを依存配列から削除して、ログイン時に1度だけ実行
 
     /**
      * [Architectural Note]

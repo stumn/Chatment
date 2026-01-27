@@ -100,6 +100,9 @@ const DocRow = ({ data, index, style }) => {
     // 見出し行判定（#で始まる行）
     const isHeading = message?.msg && message.msg.trim().startsWith('#');
 
+    // アンケート判定
+    const isPoll = message?.poll && message.poll.question;
+
     // リアクションによるハイライトスタイルの判定
     const getReactionHighlight = () => {
 
@@ -255,7 +258,10 @@ const DocRow = ({ data, index, style }) => {
                             spellCheck={true}
                             style={getContentStyle()} // 見出しスタイルとハイライトを統合
                         >
-                            {isEditing ? (
+                            {isPoll ? (
+                                // アンケート結果の表示
+                                <PollResult poll={message.poll} />
+                            ) : isEditing ? (
                                 // 編集中は通常のテキストを表示
                                 (message?.msg || '').split('\n').map((line, i, arr) => (
                                     <React.Fragment key={i}>
@@ -321,6 +327,58 @@ const DocRow = ({ data, index, style }) => {
                 );
             }}
         </Draggable>
+    );
+};
+
+// アンケート結果表示コンポーネント（結果閲覧重視）
+const PollResult = ({ poll }) => {
+    const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.voteCount || opt.votes?.length || 0), 0) || 0;
+
+    // 最大得票数を計算
+    const maxVotes = Math.max(...(poll.options?.map(opt => opt.voteCount || opt.votes?.length || 0) || [0]));
+
+    return (
+        <div className="flex flex-col gap-2">
+            {/* 質問行 */}
+            <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-700">{poll.question}</span>
+                {poll.isAnonymous && <span className="text-xs text-indigo-500">🔒匿名</span>}
+                <span className="text-xs text-gray-400">({totalVotes}票)</span>
+            </div>
+
+            {/* 選択肢行（必要に応じて折り返し） */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {poll.options?.map((opt, idx) => {
+                    const voteCount = opt.voteCount || opt.votes?.length || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                    const voters = opt.voters || (opt.votes?.map(v => v.nickname).filter(n => n)) || [];
+
+                    // 最多得票の選択肢は太字に
+                    const isTopChoice = voteCount > 0 && voteCount === maxVotes;
+
+                    return (
+                        <span
+                            key={idx}
+                            className="text-xs whitespace-nowrap"
+                            title={!poll.isAnonymous && voters.length > 0 ? voters.join(', ') : ''}
+                        >
+                            <span
+                                className={`${isTopChoice ? 'font-bold' : 'font-medium'}`}
+                                style={{ color: isTopChoice ? '#15803D' : '#374151' }}
+                            >
+                                {opt.label}
+                            </span>
+                            <span
+                                className={`ml-1 ${isTopChoice ? 'font-bold' : ''}`}
+                                style={{ color: isTopChoice ? '#15803D' : '#9CA3AF' }}
+                            >
+                                ({percentage}%)
+                            </span>
+                        </span>
+                    );
+                })}
+            </div>
+        </div>
     );
 };
 

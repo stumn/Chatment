@@ -1,8 +1,9 @@
 import useAppStore from '../../../store/spaces/appStore';
+import useRoomStore from '../../../store/spaces/roomStore';
 import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
-  const emitChatMessage = (nickname, message, userId, roomId = null) => {
+  const emitChatMessage = (nickname, message, userId, roomId = null, pollData = null) => {
     const { userInfo } = useAppStore.getState();
 
     const messageData = {
@@ -10,7 +11,8 @@ export const useChatEmitters = (socket, emitLog) => {
       message,
       userId,
       spaceId: userInfo.spaceId,
-      ...(roomId && { roomId }) // roomIdがある場合のみ追加
+      ...(roomId && { roomId }), // roomIdがある場合のみ追加
+      ...(pollData && { poll: pollData }) // アンケートデータがある場合のみ追加
     };
 
     socket.emit('chat-message', messageData);
@@ -18,7 +20,7 @@ export const useChatEmitters = (socket, emitLog) => {
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message, roomId, spaceId: userInfo.spaceId }
+      detail: { nickname, message, roomId, spaceId: userInfo.spaceId, isPoll: !!pollData }
     });
   };
 
@@ -56,9 +58,36 @@ export const useChatEmitters = (socket, emitLog) => {
     });
   };
 
+  const emitPollVote = (postId, optionIndex) => {
+    const { userInfo } = useAppStore.getState();
+    const { activeRoomId } = useRoomStore.getState();
+
+    if (!postId || optionIndex === undefined || !userInfo) {
+      return;
+    }
+
+    const voteData = {
+      postId,
+      optionIndex,
+      userId: userInfo.userId,
+      nickname: userInfo.nickname,
+      roomId: activeRoomId,
+      spaceId: userInfo.spaceId
+    };
+
+    socket.emit('poll-vote', voteData);
+
+    emitLog({
+      userId: validUserId(userInfo.userId),
+      action: 'poll-vote',
+      detail: { postId, optionIndex, nickname: userInfo.nickname }
+    });
+  };
+
   return {
     emitChatMessage,
     emitPositive,
-    emitNegative
+    emitNegative,
+    emitPollVote
   };
 };

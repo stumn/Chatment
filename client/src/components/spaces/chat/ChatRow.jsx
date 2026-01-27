@@ -1,9 +1,14 @@
 import { useState } from 'react';
+import Tooltip from '@mui/material/Tooltip';
 import useAppStore from '../../../store/spaces/appStore';
+import usePostStore from '../../../store/spaces/postStore';
 import { linkifyText } from '../../../utils/linkify';
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
+
+    // アンケートかどうかをチェック
+    const isPoll = cMsg.poll && cMsg.poll.question;
 
     // --- positive/negative人数 ---
     const positive = cMsg.positive || 0;
@@ -47,6 +52,8 @@ const ChatRow = ({ data, index, style }) => {
     // --- emitPositive/emitNegativeを取得 ---
     const addPositive = data.addPositive;
     const addNegative = data.addNegative;
+    const votePoll = data.votePoll; // アンケート投票関数を取得
+
     const handlePositive = () => {
         if (!hasVotedPositive && addPositive) {
             addPositive(cMsg.id);
@@ -57,6 +64,14 @@ const ChatRow = ({ data, index, style }) => {
         if (!hasVotedNegative && addNegative) {
             addNegative(cMsg.id);
             setHasVotedNegative(true);
+        }
+    };
+
+    // アンケート投票ハンドラー
+    const handleVote = (optionIndex) => {
+        if (votePoll && !usePostStore.getState().hasVoted(cMsg.id)) {
+            votePoll(cMsg.id, optionIndex);
+            usePostStore.getState().recordVote(cMsg.id, optionIndex);
         }
     };
 
@@ -85,48 +100,170 @@ const ChatRow = ({ data, index, style }) => {
                 <strong className="font-bold">{cMsg.nickname}</strong>
                 <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
-            <div
-                className="text-left ml-10 relative flex-1 overflow-hidden"
-                style={{ fontSize }}
-            >
-                <span
-                    className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8 relative"
-                    style={{
-                        fontSize,
-                        color: textColor,
-                        fontWeight: isHeading ? 'bold' : 'normal',
-                    }}
-                    title={cMsg.msg} // ホバーで全文表示
+
+            {/* アンケート表示 */}
+            {isPoll ? (
+                <PollDisplay poll={cMsg.poll} postId={cMsg.id} onVote={handleVote} />
+            ) : (
+                /* 通常のメッセージ表示 */
+                <div
+                    className="text-left ml-10 relative flex-1 overflow-hidden"
+                    style={{ fontSize }}
                 >
-                    {linkifyText(cMsg.msg)}
-                    {/* 右端にフェードアウトグラデーション */}
-                    <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
-                </span>
-                {/* positive/negativeボタン（見出し行以外で表示、コンパクトモード時はホバー時のみ表示） */}
-                {!isHeading && (
-                    <div
-                        className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
-                        style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
+                    <span
+                        className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8 relative"
+                        style={{
+                            fontSize,
+                            color: textColor,
+                            fontWeight: isHeading ? 'bold' : 'normal',
+                        }}
+                        title={cMsg.msg} // ホバーで全文表示
                     >
-                        <button
-                            contentEditable={false}
-                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                            onClick={handlePositive}
-                            disabled={hasVotedPositive}
-                            title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                        {linkifyText(cMsg.msg)}
+                        {/* 右端にフェードアウトグラデーション */}
+                        <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
+                    </span>
+                    {/* positive/negativeボタン（見出し行以外で表示、コンパクトモード時はホバー時のみ表示） */}
+                    {!isHeading && (
+                        <div
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
+                            style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
                         >
-                            ⬆
-                        </button>
-                        <button
-                            contentEditable={false}
-                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                            onClick={handleNegative}
-                            disabled={hasVotedNegative}
-                            title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
-                        >
-                            ⬇
-                        </button>
-                    </div>
+                            <button
+                                contentEditable={false}
+                                className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                                onClick={handlePositive}
+                                disabled={hasVotedPositive}
+                                title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                            >
+                                ⬆
+                            </button>
+                            <button
+                                contentEditable={false}
+                                className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                                onClick={handleNegative}
+                                disabled={hasVotedNegative}
+                                title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
+                            >
+                                ⬇
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// チャット2行分のアンケート表示コンポーネント
+const PollDisplay = ({ poll, postId, onVote }) => {
+    const hasVoted = usePostStore((state) => state.hasVoted(postId));
+    const isColorfulMode = useAppStore((state) => state.isColorfulMode);
+    const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.voteCount || opt.votes?.length || 0), 0) || 0;
+
+    // ユニバーサルデザイン対応：明度差と色相差を保ちつつ、柔らかく目に優しい配色
+    const colorfulColors = ['bg-sky-500', 'bg-amber-500', 'bg-violet-500', 'bg-emerald-500', 'bg-pink-500', 'bg-teal-500'];
+    // カラーモードオフ時のグレー配色（投票後）
+    const grayVotedColors = ['bg-gray-500', 'bg-gray-400', 'bg-gray-600', 'bg-gray-500', 'bg-gray-400', 'bg-gray-600'];
+    // 投票前のグレー配色（明暗で区別、濃いめのトーンで視認性確保）
+    const grayColors = ['bg-gray-600', 'bg-gray-500', 'bg-gray-700', 'bg-gray-600', 'bg-gray-500', 'bg-gray-700'];
+
+    // カラーモードに応じて色を選択
+    const colors = isColorfulMode ? colorfulColors : grayVotedColors;
+
+    return (
+        <div className="ml-10 mr-4">
+            {/* 質問タイトル（1行目） */}
+            <div className="flex items-center gap-2 text-[15px] font-semibold text-gray-700 mb-1">
+                <span className="truncate">{poll.question}</span>
+                {poll.isAnonymous && <span className="text-sm text-indigo-500">🔒</span>}
+                <span className="text-sm text-gray-400">({totalVotes}票)</span>
+            </div>
+
+            {/* スタック棒グラフ（2行目） */}
+            <div className="h-5 bg-gray-100 rounded-full overflow-hidden flex relative">
+                {totalVotes === 0 ? (
+                    // 投票前：グレーの明暗で選択肢を等幅表示
+                    poll.options?.map((opt, idx) => {
+                        const widthPercent = 100 / poll.options.length;
+                        const grayClass = grayColors[idx % grayColors.length];
+
+                        return (
+                            <Tooltip
+                                key={idx}
+                                title={opt.label}
+                                arrow
+                                placement="top"
+                                enterDelay={300}
+                                leaveDelay={100}
+                                componentsProps={{
+                                    tooltip: {
+                                        sx: { fontSize: '0.85em' }
+                                    }
+                                }}
+                            >
+                                <button
+                                    onClick={() => onVote(idx)}
+                                    disabled={hasVoted}
+                                    className={`h-full ${grayClass} transition-all duration-500 ease-out flex items-center justify-center text-white text-[10px] font-bold border-r border-white/30 last:border-0 cursor-pointer hover:brightness-110`}
+                                    style={{ width: `${widthPercent}%` }}
+                                >
+                                    <span className="truncate px-1">{opt.label}</span>
+                                </button>
+                            </Tooltip>
+                        );
+                    })
+                ) : (
+                    // 投票後：カラフルな色で割合に応じた幅で表示
+                    poll.options?.map((opt, idx) => {
+                        const voteCount = opt.voteCount || opt.votes?.length || 0;
+                        const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
+                        const colorClass = colors[idx % colors.length];
+
+                        // 0%でも最小幅2%を確保して表示（投票可能にするため）
+                        const displayWidth = Math.max(percentage, 2);
+
+                        const tooltipContent = (
+                            <>
+                                {opt.label}<br />
+                                {voteCount}票 ({Math.round(percentage)}%)
+                            </>
+                        );
+
+                        return (
+                            <Tooltip
+                                key={idx}
+                                title={tooltipContent}
+                                arrow
+                                placement="top"
+                                enterDelay={300}
+                                leaveDelay={100}
+                                componentsProps={{
+                                    tooltip: {
+                                        sx: {
+                                            whiteSpace: 'pre-line',
+                                            fontSize: '0.85em'
+                                        }
+                                    }
+                                }}
+                            >
+                                <button
+                                    onClick={() => onVote(idx)}
+                                    disabled={hasVoted}
+                                    className={`h-full ${colorClass} transition-all duration-500 ease-out flex items-center justify-center text-white text-[10px] font-bold border-r border-white/30 last:border-0 ${hasVoted ? 'cursor-not-allowed opacity-90' : 'cursor-pointer hover:brightness-110'
+                                        } ${percentage === 0 ? 'opacity-40' : ''}`}
+                                    style={{ width: `${displayWidth}%` }}
+                                >
+                                    {/* 幅が狭い場合は割合のみ、広い場合は選択肢名も表示 */}
+                                    {percentage > 15 ? (
+                                        <span className="truncate px-1">{opt.label} {Math.round(percentage)}%</span>
+                                    ) : percentage > 8 ? (
+                                        <span>{Math.round(percentage)}%</span>
+                                    ) : null}
+                                </button>
+                            </Tooltip>
+                        );
+                    })
                 )}
             </div>
         </div>
