@@ -19,7 +19,7 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
 
-  socket.on('chat-message', async ({ nickname, message, userId, roomId, spaceId }) => {
+  socket.on('chat-message', async ({ nickname, message, userId, roomId, spaceId, poll }) => {
     try {
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
@@ -31,11 +31,16 @@ function setupChatHandlers(socket, io) {
         userId,
         displayOrder,
         spaceId, // スペースIDを追加
-        ...(roomId && { roomId })
+        ...(roomId && { roomId }),
+        ...(poll && { poll: poll }) // アンケートデータがある場合のみ追加
       };
+
+      console.log('server/messageData:', messageData);
 
       // DBにデータ保存
       const p = await SaveChatMessage(messageData);
+
+      console.log('保存されたチャットメッセージ:', p);
 
       // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
       const responseData = { ...p, roomId };
@@ -47,7 +52,7 @@ function setupChatHandlers(socket, io) {
       await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
 
       // ログ記録
-      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId }, spaceId });
+      saveLog({ userId, action: 'chat-message', detail: { nickname, message, displayOrder, roomId, isPoll: !!poll }, spaceId });
 
     } catch (e) { console.error(e); }
   });

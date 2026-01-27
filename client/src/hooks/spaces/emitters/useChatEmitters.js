@@ -2,7 +2,7 @@ import useAppStore from '../../../store/spaces/appStore';
 import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
-  const emitChatMessage = (nickname, message, userId, roomId = null) => {
+  const emitChatMessage = (nickname, message, userId, roomId = null, pollData = null) => {
     const { userInfo } = useAppStore.getState();
 
     const messageData = {
@@ -10,15 +10,17 @@ export const useChatEmitters = (socket, emitLog) => {
       message,
       userId,
       spaceId: userInfo.spaceId,
-      ...(roomId && { roomId }) // roomIdがある場合のみ追加
+      ...(roomId && { roomId }), // roomIdがある場合のみ追加
+      ...(pollData && { poll: pollData }) // アンケートデータがある場合のみ追加
     };
 
+    console.log('Emitting chat message:', messageData);
     socket.emit('chat-message', messageData);
 
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message, roomId, spaceId: userInfo.spaceId }
+      detail: { nickname, message, roomId, spaceId: userInfo.spaceId, isPoll: !!pollData }
     });
   };
 
@@ -56,9 +58,30 @@ export const useChatEmitters = (socket, emitLog) => {
     });
   };
 
+  const emitPollVote = (postId, optionIndex) => {
+    const { userInfo } = useAppStore.getState();
+    if (!postId || optionIndex === undefined || !userInfo) return;
+
+    socket.emit('poll-vote', {
+      postId,
+      optionIndex,
+      userId: userInfo._id || userInfo.id,
+      nickname: userInfo.nickname,
+      roomId: userInfo.roomId,
+      spaceId: userInfo.spaceId
+    });
+
+    emitLog({
+      userId: validUserId(userInfo._id),
+      action: 'poll-vote',
+      detail: { postId, optionIndex, nickname: userInfo.nickname }
+    });
+  };
+
   return {
     emitChatMessage,
     emitPositive,
-    emitNegative
+    emitNegative,
+    emitPollVote
   };
 };

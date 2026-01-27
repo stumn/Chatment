@@ -13,6 +13,8 @@ export const createEventHandlerMap = (handlers) => {
     handleChatMessage,
     handlePositive,
     handleNegative,
+    handlePollUpdate,
+    handlePollError,
 
     // Doc handlers
     handleDocAdd,
@@ -48,6 +50,8 @@ export const createEventHandlerMap = (handlers) => {
     'chat-message': handleChatMessage,
     'positive': handlePositive,
     'negative': handleNegative,
+    'poll-update': handlePollUpdate,
+    'poll-error': handlePollError,
     // Doc系のイベント
     'doc-add': handleDocAdd,
     'doc-error': handleDocError,

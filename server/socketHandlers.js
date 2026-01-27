@@ -7,6 +7,7 @@ const { setupDocHandlers } = require('./handlers/docHandlers');
 const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupRoomHandlers } = require('./handlers/roomHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
+const { setupPollHandlers } = require('./handlers/pollHandlers');
 const { removeHeightMemory, unlockAllBySocketId } = require('./socketUtils');
 
 // グローバル変数
@@ -37,6 +38,7 @@ function initializeSocketHandlers(io) {
     setupRoomHandlers(socket, io, rooms, userRooms, userSockets);
     setupLockHandlers(socket, io, lockedRows);
     setupLogHandlers(socket, io);
+    setupPollHandlers(socket, io);
 
     // 切断時の処理
     socket.on('disconnect', () => {

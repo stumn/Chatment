@@ -4,7 +4,7 @@ const { handleErrors } = require('../utils');
 const { organizeLogs } = require('./userOperations');
 
 // --- データベースにレコードを保存 ---
-async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, source = 'document', spaceId = 1) {
+async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, source = 'document', spaceId = 1, poll = null) {
     try {
         // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
         let validUserId = userId;
@@ -20,12 +20,14 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
             spaceId, // スペースIDを追加
             source, // ソース情報を追加
             ...(validUserId && { userId: validUserId }),
-            ...(roomId && { roomId })
+            ...(roomId && { roomId }),
+            ...(poll && { poll }) // アンケートデータを追加
         };
 
         // 新規投稿をデータベースに保存
         const newPost = await Post.create(npData);
-        
+        console.log('New post saved:', newPost);
+
         return newPost;
 
     } catch (error) {
@@ -34,9 +36,10 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
 }
 
 // --- チャットメッセージ受送信 ---
-async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, roomId = null, spaceId = 1 }) {
+async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, spaceId = 1, roomId = null, poll = null }) {
     try {
-        const record = await saveRecord(nickname, message, userId, displayOrder, roomId, 'chat', spaceId); // ソースをchatに指定、スペースIDを渡す
+        console.log('server/saveChatMessage: ', poll);
+        const record = await saveRecord(nickname, message, userId, displayOrder, roomId, 'chat', spaceId, poll); // アンケートデータを渡す
         return organizeLogs(record);
     } catch (error) {
         handleErrors(error, 'チャット受送信中にエラーが発生しました');
@@ -78,7 +81,7 @@ async function updatePostData(payload) {
 
     // 更新処理を実行
     const updatedPost = await Post.findByIdAndUpdate(payload.id, updateObj, { new: true });
-    
+
     return updatedPost;
 }
 

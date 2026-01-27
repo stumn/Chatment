@@ -151,6 +151,19 @@ const postSchema = new mongoose.Schema({
     previousData: {
         nickname: String,
         createdAt: Date
+    },
+
+    // --- アンケート機能 ---
+    poll: {
+        question: String,
+        options: [{
+            label: String,
+            votes: [{
+                userId: String,
+                nickname: String
+            }]
+        }],
+        isAnonymous: { type: Boolean, default: false }
     }
 }, options);
 

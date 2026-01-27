@@ -195,6 +195,28 @@ const usePostStore = create((set, get) => ({
         return { changeStates: newChangeStates };
     }),
 
+    // ----- アンケート投票管理 -----
+    userVotes: new Map(), // postId -> optionIndex のマップ
+
+    // ユーザーの投票を記録
+    recordVote: (postId, optionIndex) => set((state) => {
+        const newUserVotes = new Map(state.userVotes);
+        newUserVotes.set(postId, optionIndex);
+        return { userVotes: newUserVotes };
+    }),
+
+    // ユーザーが特定の投稿に投票済みかチェック
+    hasVoted: (postId) => {
+        const state = usePostStore.getState();
+        return state.userVotes.has(postId);
+    },
+
+    // ユーザーの投票を取得
+    getUserVote: (postId) => {
+        const state = usePostStore.getState();
+        return state.userVotes.get(postId);
+    },
+
 }));
 
 export default usePostStore;

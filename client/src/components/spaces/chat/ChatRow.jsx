@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import useAppStore from '../../../store/spaces/appStore';
+import usePostStore from '../../../store/spaces/postStore';
 import { linkifyText } from '../../../utils/linkify';
 
 const ChatRow = ({ data, index, style }) => {
     const cMsg = data.chatMessages[index];
+
+    // アンケートかどうかをチェック
+    const isPoll = cMsg.poll && cMsg.poll.question;
 
     // --- positive/negative人数 ---
     const positive = cMsg.positive || 0;
@@ -47,6 +51,8 @@ const ChatRow = ({ data, index, style }) => {
     // --- emitPositive/emitNegativeを取得 ---
     const addPositive = data.addPositive;
     const addNegative = data.addNegative;
+    const votePoll = data.votePoll; // アンケート投票関数を取得
+
     const handlePositive = () => {
         if (!hasVotedPositive && addPositive) {
             addPositive(cMsg.id);
@@ -57,6 +63,14 @@ const ChatRow = ({ data, index, style }) => {
         if (!hasVotedNegative && addNegative) {
             addNegative(cMsg.id);
             setHasVotedNegative(true);
+        }
+    };
+
+    // アンケート投票ハンドラー
+    const handleVote = (optionIndex) => {
+        if (votePoll && !usePostStore.getState().hasVoted(cMsg.id)) {
+            votePoll(cMsg.id, optionIndex);
+            usePostStore.getState().recordVote(cMsg.id, optionIndex);
         }
     };
 
@@ -85,49 +99,97 @@ const ChatRow = ({ data, index, style }) => {
                 <strong className="font-bold">{cMsg.nickname}</strong>
                 <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
-            <div
-                className="text-left ml-10 relative flex-1 overflow-hidden"
-                style={{ fontSize }}
-            >
-                <span
-                    className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8 relative"
-                    style={{
-                        fontSize,
-                        color: textColor,
-                        fontWeight: isHeading ? 'bold' : 'normal',
-                    }}
-                    title={cMsg.msg} // ホバーで全文表示
+
+            {/* アンケート表示 */}
+            {isPoll ? (
+                <PollDisplay poll={cMsg.poll} postId={cMsg.id} onVote={handleVote} />
+            ) : (
+                /* 通常のメッセージ表示 */
+                <div
+                    className="text-left ml-10 relative flex-1 overflow-hidden"
+                    style={{ fontSize }}
                 >
-                    {linkifyText(cMsg.msg)}
-                    {/* 右端にフェードアウトグラデーション */}
-                    <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
-                </span>
-                {/* positive/negativeボタン（見出し行以外で表示、コンパクトモード時はホバー時のみ表示） */}
-                {!isHeading && (
-                    <div
-                        className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
-                        style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
+                    <span
+                        className="block outline-none border-none bg-transparent overflow-hidden whitespace-nowrap pr-8 relative"
+                        style={{
+                            fontSize,
+                            color: textColor,
+                            fontWeight: isHeading ? 'bold' : 'normal',
+                        }}
+                        title={cMsg.msg} // ホバーで全文表示
                     >
-                        <button
-                            contentEditable={false}
-                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                            onClick={handlePositive}
-                            disabled={hasVotedPositive}
-                            title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                        {linkifyText(cMsg.msg)}
+                        {/* 右端にフェードアウトグラデーション */}
+                        <div className="absolute right-0 top-0 bottom-0 w-48 bg-gradient-to-r from-transparent via-white/50 to-white pointer-events-none" />
+                    </span>
+                    {/* positive/negativeボタン（見出し行以外で表示、コンパクトモード時はホバー時のみ表示） */}
+                    {!isHeading && (
+                        <div
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 transition-opacity duration-200 h-full"
+                            style={{ opacity: isCompactMode ? (isHovered ? 1 : 0) : 1 }}
                         >
-                            ⬆
-                        </button>
+                            <button
+                                contentEditable={false}
+                                className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${positiveButtonClass} ${!hasVotedPositive ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                                onClick={handlePositive}
+                                disabled={hasVotedPositive}
+                                title={`ポジティブ: ${positive}${hasVotedPositive ? ' (投票済み)' : ''}`}
+                            >
+                                ⬆
+                            </button>
+                            <button
+                                contentEditable={false}
+                                className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
+                                onClick={handleNegative}
+                                disabled={hasVotedNegative}
+                                title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
+                            >
+                                ⬇
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// 65px高さのシンプルなアンケート表示コンポーネント
+const PollDisplay = ({ poll, postId, onVote }) => {
+    const hasVoted = usePostStore((state) => state.hasVoted(postId));
+    const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.voteCount || opt.votes?.length || 0), 0) || 0;
+
+    return (
+        <div className="ml-10 mr-4 flex items-center gap-2" style={{ height: '40px' }}>
+            {/* 質問タイトル */}
+            <div className="flex items-center gap-1 text-sm font-semibold text-gray-700 shrink-0">
+                <span>📊</span>
+                <span className="max-w-[200px] truncate">{poll.question}</span>
+                {poll.isAnonymous && <span className="text-xs text-indigo-500">🔒</span>}
+                <span className="text-xs text-gray-400">({totalVotes}票)</span>
+            </div>
+
+            {/* 選択肢ボタン（横スクロール可能） */}
+            <div className="flex gap-1 overflow-x-auto flex-1">
+                {poll.options?.map((opt, idx) => {
+                    const voteCount = opt.voteCount || opt.votes?.length || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+
+                    return (
                         <button
-                            contentEditable={false}
-                            className={`px-1 bg-white rounded-full shadow-md border transition-all duration-200 ${negativeButtonClass} ${!hasVotedNegative ? 'cursor-pointer hover:bg-gray-200 hover:scale-110' : 'cursor-not-allowed opacity-50'}`}
-                            onClick={handleNegative}
-                            disabled={hasVotedNegative}
-                            title={`ネガティブ: ${negative}${hasVotedNegative ? ' (投票済み)' : ''}`}
+                            key={idx}
+                            onClick={() => onVote(idx)}
+                            disabled={hasVoted}
+                            className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${hasVoted
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 cursor-pointer'
+                                }`}
+                            title={`${opt.label}: ${voteCount}票 (${percentage}%)`}
                         >
-                            ⬇
+                            {opt.label} {voteCount > 0 && `(${voteCount})`}
                         </button>
-                    </div>
-                )}
+                    );
+                })}
             </div>
         </div>
     );

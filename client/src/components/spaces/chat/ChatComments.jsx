@@ -68,7 +68,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
     }, [filteredChatMessages, isChatMaximized]);
 
     const {
-        chat: { send, addPositive, addNegative },
+        chat: { send, addPositive, addNegative, votePoll },
         socket: { id: socketId }
     } = chatFunctions;
 

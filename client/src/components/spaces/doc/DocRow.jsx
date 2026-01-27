@@ -100,6 +100,9 @@ const DocRow = ({ data, index, style }) => {
     // 見出し行判定（#で始まる行）
     const isHeading = message?.msg && message.msg.trim().startsWith('#');
 
+    // アンケート判定
+    const isPoll = message?.poll && message.poll.question;
+
     // リアクションによるハイライトスタイルの判定
     const getReactionHighlight = () => {
 
@@ -248,7 +251,10 @@ const DocRow = ({ data, index, style }) => {
                             spellCheck={true}
                             style={getContentStyle()} // 見出しスタイルとハイライトを統合
                         >
-                            {isEditing ? (
+                            {isPoll ? (
+                                // アンケート結果の表示
+                                <PollResult poll={message.poll} />
+                            ) : isEditing ? (
                                 // 編集中は通常のテキストを表示
                                 (message?.msg || '').split('\n').map((line, i, arr) => (
                                     <React.Fragment key={i}>
@@ -314,6 +320,37 @@ const DocRow = ({ data, index, style }) => {
                 );
             }}
         </Draggable>
+    );
+};
+
+// アンケート結果表示コンポーネント（結果閲覧重視）
+const PollResult = ({ poll }) => {
+    const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.voteCount || opt.votes?.length || 0), 0) || 0;
+
+    return (
+        <div className="flex items-center gap-3 text-sm">
+            <span className="font-bold text-gray-700">📊 {poll.question}</span>
+            {poll.isAnonymous && <span className="text-xs text-indigo-500">🔒匿名</span>}
+            <span className="text-xs text-gray-400">({totalVotes}票)</span>
+            <span className="text-gray-400">|</span>
+            {poll.options?.map((opt, idx) => {
+                const voteCount = opt.voteCount || opt.votes?.length || 0;
+                const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                const voters = opt.voters || (opt.votes?.map(v => v.nickname).filter(n => n)) || [];
+
+                return (
+                    <span
+                        key={idx}
+                        className="text-xs"
+                        title={!poll.isAnonymous && voters.length > 0 ? voters.join(', ') : ''}
+                    >
+                        <span className="font-medium text-gray-700">{opt.label}</span>
+                        <span className="text-blue-600 ml-1">{voteCount}票</span>
+                        <span className="text-gray-400 ml-1">({percentage}%)</span>
+                    </span>
+                );
+            })}
+        </div>
     );
 };
 

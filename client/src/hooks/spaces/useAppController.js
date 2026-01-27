@@ -23,6 +23,7 @@ export const useAppController = () => {
         emitChatMessage,
         emitPositive,
         emitNegative,
+        emitPollVote,
         emitDemandLock,
         emitUnlockRow,
         heightArray,
@@ -278,9 +279,24 @@ export const useAppController = () => {
      * @param {string} roomId - ルームID
      * @returns {Object} { success: boolean, error?: string }
      */
-    const sendChatMessage = useCallback((handleName, message, roomId) => {
+    const sendChatMessage = useCallback((handleName, message, roomId, pollData = null) => {
         try {
-            // バリデーション
+            // アンケートモードの場合はバリデーションをスキップ
+            if (pollData) {
+                console.log('Sending poll data:', pollData);
+
+                emitChatMessage(handleName, '', userInfo?._id, roomId, pollData);
+
+                emitLog({
+                    userId: userInfo?._id,
+                    action: 'chat-send-poll',
+                    detail: { handleName, question: pollData.question, optionCount: pollData.options.length, roomId }
+                });
+
+                return { success: true };
+            }
+
+            // 通常メッセージのバリデーション
             if (!message?.trim()) {
                 return { success: false, error: 'メッセージが空です。文字を入力してください。' };
             }
@@ -438,7 +454,8 @@ export const useAppController = () => {
         chat: {
             send: sendChatMessage,
             addPositive,
-            addNegative
+            addNegative,
+            votePoll: emitPollVote
         },
 
         // Socket情報
@@ -455,7 +472,7 @@ export const useAppController = () => {
     }), [
         addDocument, editDocument, deleteDocument, reorderDocument,
         requestLock, unlockRow, changeIndent, sendChatMessage, addPositive,
-        addNegative, socketId, heightArray, socketFunctions,
+        addNegative, emitPollVote, socketId, heightArray, socketFunctions,
         userInfo
     ]);
 
