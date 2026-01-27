@@ -26,7 +26,6 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
 
         // 新規投稿をデータベースに保存
         const newPost = await Post.create(npData);
-        console.log('New post saved:', newPost);
 
         return newPost;
 

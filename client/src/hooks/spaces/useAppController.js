@@ -43,21 +43,19 @@ export const useAppController = () => {
      */
     const addDocument = useCallback((payload) => {
         try {
-            const data = {
+            emitDocAdd({
                 ...payload,
                 nickname: userInfo?.nickname || 'Unknown',
                 status: userInfo?.status,
                 ageGroup: userInfo?.ageGroup,
                 timestamp: new Date().toISOString()
-            };
-
-            emitDocAdd(data);
+            });
 
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
                 action: 'document-add',
-                detail: { insertAfterId: payload.insertAfterId }
+                detail: { insertAfterDocumentId: payload.insertAfterId }
             });
         } catch (error) {
             console.error('Failed to add document:', error);
@@ -87,7 +85,7 @@ export const useAppController = () => {
                     userId: userInfo?._id,
                     userNickname: userInfo?.nickname,
                     action: 'document-edit-empty-validation',
-                    detail: { id, originalMsg, attemptedMsg: newMsg }
+                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg }
                 });
                 return {
                     success: false,
@@ -104,7 +102,7 @@ export const useAppController = () => {
                     userId: userInfo?._id,
                     userNickname: userInfo?.nickname,
                     action: 'document-edit-length-validation-error',
-                    detail: { id, originalMsg, attemptedMsg: newMsg, length: newMsg.length }
+                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg, length: newMsg.length }
                 });
                 return { success: false, error: '文字数が140文字を超えています。短くしてください。' };
             }
@@ -117,7 +115,7 @@ export const useAppController = () => {
                     userId: userInfo?._id,
                     userNickname: userInfo?.nickname,
                     action: 'document-edit-lines-validation-error',
-                    detail: { id, originalMsg, attemptedMsg: newMsg, lineCount: lines.length }
+                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg, lineCount: lines.length }
                 });
                 return { success: false, error: '改行数が5行を超えています。短くしてください。' };
             }
@@ -137,7 +135,7 @@ export const useAppController = () => {
                     userId: userInfo?._id,
                     userNickname: userInfo?.nickname,
                     action: 'document-edit-invalid-chars-validation-error',
-                    detail: { id, originalMsg, attemptedMsg: newMsg }
+                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg }
                 });
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
@@ -159,7 +157,7 @@ export const useAppController = () => {
                     userNickname: userInfo?.nickname,
                     action: 'document-edit-heading',
                     detail: {
-                        id,
+                        documentId: id,
                         originalMsg,
                         validatedMsg,
                         originalLength: originalMsg?.length,
@@ -185,7 +183,7 @@ export const useAppController = () => {
                     userNickname: userInfo?.nickname,
                     action: 'document-edit',
                     detail: {
-                        id,
+                        documentId: id,
                         originalMsg,
                         validatedMsg,
                         originalLength: originalMsg?.length,
@@ -230,7 +228,7 @@ export const useAppController = () => {
                 userNickname: userInfo?.nickname,
                 action: 'document-delete',
                 detail: {
-                    id,
+                    documentId: id,
                     deletedContent,
                     contentLength: deletedContent.length,
                     reason,
@@ -251,6 +249,10 @@ export const useAppController = () => {
      */
     const reorderDocument = useCallback((data) => {
         try {
+            // 編集前の情報を取得
+            const posts = usePostStore.getState().posts;
+            const oldOrder = posts.map(p => ({ id: p.id, displayOrder: p.displayOrder }));
+
             emitDocReorder({
                 ...data,
                 nickname: userInfo?.nickname + `(${userInfo?.status}+${userInfo?.ageGroup})` || 'Unknown',
@@ -261,7 +263,10 @@ export const useAppController = () => {
             emitLog({
                 userId: userInfo?._id,
                 action: 'document-reorder',
-                detail: data
+                detail: {
+                    ...data,
+                    oldOrder: oldOrder
+                }
             });
         } catch (error) {
             console.error('Failed to reorder document:', error);
@@ -387,7 +392,9 @@ export const useAppController = () => {
                 userId: userId || userInfo?._id,
                 timestamp: new Date().toISOString()
             });
+
             return { success: true };
+
         } catch (error) {
             console.error('Failed to request lock:', error);
             return { success: false, error: error.message };
@@ -407,6 +414,7 @@ export const useAppController = () => {
                 nickname: userInfo?.nickname,
                 timestamp: new Date().toISOString()
             });
+
         } catch (error) {
             console.error('Failed to unlock row:', error);
         }
@@ -421,6 +429,11 @@ export const useAppController = () => {
      */
     const changeIndent = useCallback((postId, newIndentLevel) => {
         try {
+            // 編集前の情報を取得
+            const posts = usePostStore.getState().posts;
+            const targetPost = posts.find(p => p.id === postId);
+            const oldIndentLevel = targetPost?.indentLevel;
+
             console.log(postId, newIndentLevel);
             emitIndentChange(postId, newIndentLevel);
 
@@ -428,7 +441,11 @@ export const useAppController = () => {
             emitLog({
                 userId: userInfo?._id,
                 action: 'indent-change',
-                detail: { postId, newIndentLevel }
+                detail: {
+                    documentId: postId,
+                    newIndentLevel,
+                    oldIndentLevel
+                }
             });
         } catch (error) {
             console.error('Failed to change indent:', error);

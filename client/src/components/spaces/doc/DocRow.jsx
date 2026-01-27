@@ -176,6 +176,13 @@ const DocRow = ({ data, index, style }) => {
             if (documentFunctions.document.changeIndent) {
                 console.log(documentFunctions.document.changeIndent);
                 documentFunctions.document.changeIndent(message.id, newIndent);
+
+                // インデント変更後にリストの高さを再計算
+                if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
+                    setTimeout(() => {
+                        listRef.current.resetAfterIndex(0, true);
+                    }, 0);
+                }
             }
         };
     }
@@ -198,7 +205,7 @@ const DocRow = ({ data, index, style }) => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`doc-comment-item${snapshot.isDragging ? ' is-dragging' : ''}${lockedByOthers ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
+                        className={`doc-comment-item group${snapshot.isDragging ? ' is-dragging' : ''}${lockedByOthers ? ' locked' : ''}${isCompactMode ? ' compact-mode' : ''} indent-level-${currentIndent}`}
                         style={style ? { ...provided.draggableProps.style, ...style } : provided.draggableProps.style}
                     // ロック管理用のdata属性
                     >

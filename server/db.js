@@ -177,9 +177,10 @@ const Post = mongoose.model("Post", postSchema);
 // 📝Log スキーマ / モデル
 const logSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userName: String,
     action: String, // 操作種別
     detail: Object, // 操作内容
-    timestamp: { type: Date, default: Date.now }
+    spaceId: String, // スペースID
 }, options);
 
 const Log = mongoose.model("Log", logSchema);

@@ -25,8 +25,14 @@ function setupReactionHandlers(socket, io) {
         // ブロードキャスト
         io.emit(reactionType, broadcastData);
 
-        // ログ記録
-        saveLog({ userId: reactionResult.userId, action: reactionType, detail: { postId, userSocketId, nickname } });
+        // ログ記録 - リアクション
+        saveLog({
+          userId: reactionResult.userId,
+          userNickname: nickname,
+          action: reactionType,
+          detail: { postId, userSocketId, nickname },
+          spaceId: reactionResult.spaceId
+        });
 
       } catch (e) { console.error(e); }
     });

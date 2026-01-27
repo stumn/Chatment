@@ -57,8 +57,14 @@ function setupDocHandlers(socket, io, lockedRows) {
       // 新規行追加を全クライアントにブロードキャスト
       io.emit('doc-add', data);
 
-      // ログ記録
-      saveLog({ userId: newPost.userId, action: 'doc-add', detail: data, spaceId: payload.spaceId });
+      // ログ記録 - ドキュメント空行追加
+      saveLog({
+        userId: newPost.userId,
+        userNickname: newPost.nickname,
+        action: 'doc-add',
+        detail: data,
+        spaceId: payload.spaceId
+      });
 
     } catch (e) { console.error(e); }
   });
@@ -90,8 +96,14 @@ function setupDocHandlers(socket, io, lockedRows) {
       // 編集完了時にロック解除
       unlockRowByPostId(lockedRows, io, payload.id);
 
-      // ログ記録
-      saveLog({ userId: null, action: 'doc-edit', detail: payload, spaceId: payload.spaceId });
+      // ログ記録 - ドキュメント編集 payload の中身？
+      saveLog({
+        userId: null,
+        userNickname: payload.nickname,
+        action: 'doc-edit',
+        detail: payload,
+        spaceId: payload.spaceId
+      });
 
     } catch (e) { console.error(e); }
   });
@@ -130,8 +142,14 @@ function setupDocHandlers(socket, io, lockedRows) {
       // 並び替え完了時にロック解除
       unlockRowByPostId(lockedRows, io, movedPostId);
 
-      // ログ記録
-      saveLog({ userId: null, userNickname: nickname, action: 'doc-reorder', detail: payload, spaceId });
+      // ログ記録 - ドキュメント行並び替え
+      saveLog({
+        userId: null,
+        userNickname: nickname,
+        action: 'doc-reorder',
+        detail: payload,
+        spaceId: spaceId
+      });
 
     } catch (e) { console.error(e); }
   });
@@ -147,8 +165,14 @@ function setupDocHandlers(socket, io, lockedRows) {
 
         io.emit('doc-delete', { id: payload.id });
 
-        // ログ記録
-        saveLog({ userId: null, action: 'doc-delete', detail: payload });
+        // ログ記録 - ドキュメント行削除 IDや名前が取れない？payload?
+        saveLog({
+          userId: null,
+          userNickname: null,
+          action: 'doc-delete',
+          detail: payload,
+          spaceId: payload.spaceId
+        });
       }
 
     } catch (e) { console.error(e); }
@@ -180,8 +204,14 @@ function setupDocHandlers(socket, io, lockedRows) {
           indentLevel: updatedPost.indentLevel
         });
 
-        // ログ記録
-        saveLog({ userId: null, userNickname: nickname, action: 'doc-indent-change', detail: payload, spaceId });
+        // ログ記録 - ドキュメント行インデント変更 IDが取れない？payload?
+        saveLog({
+          userId: null,
+          userNickname: nickname,
+          action: 'doc-indent-change',
+          detail: payload,
+          spaceId
+        });
       }
 
     } catch (e) { console.error(e); }

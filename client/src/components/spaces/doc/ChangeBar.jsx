@@ -23,7 +23,7 @@ const ChangeBar = ({
      */
     const getChangeBarClasses = () => {
         const baseClasses = 'w-3 h-full min-h-5 mx-1 rounded-sm transition-all duration-200 cursor-pointer hover:shadow-md';
-        
+
         if (!changeState) return `${baseClasses} bg-transparent`;
 
         switch (changeState.type) {
@@ -84,15 +84,15 @@ const ChangeBar = ({
             leaveDelay={100}
             componentsProps={{
                 tooltip: {
-                    sx: { 
-                        whiteSpace: 'pre-line', 
-                        fontSize: '0.85em' 
+                    sx: {
+                        whiteSpace: 'pre-line',
+                        fontSize: '0.85em'
                     }
                 }
             }}
         >
             <div
-                className={`${getChangeBarClasses()}${isFadingOut ? ' opacity-0 transition-opacity duration-[2000ms] ease-out' : ' opacity-100'} hover:!opacity-100`}
+                className={`${getChangeBarClasses()}${isFadingOut ? ' opacity-0 transition-opacity duration-[2000ms] ease-out' : ' opacity-100'} hover:!opacity-100 change-bar-fixed`}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             />

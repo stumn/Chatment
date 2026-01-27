@@ -219,6 +219,11 @@ const usePostStore = create((set, get) => ({
 
 }));
 
+// グローバルアクセス用（ログ記録など非React環境での使用）
+if (typeof window !== 'undefined') {
+    window.__postStore = usePostStore;
+}
+
 export default usePostStore;
 
 // 新規作成時の変更状態を追加するヘルパー関数

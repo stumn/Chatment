@@ -10,7 +10,8 @@
     align-items: center;
     padding-top: 4px;
     padding-bottom: 4px;
-    padding-left: 4px;
+    padding-left: 20px;
+    /* ChangeBarのスペースを確保 */
     padding-right: 16px;
     box-sizing: border-box;
     background-color: white;
@@ -216,6 +217,15 @@
     opacity: 1;
 }
 
+/* ChangeBarを常に左端に固定（インデントの影響を受けない） */
+.change-bar-fixed {
+    position: absolute;
+    left: 4px;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+}
+
 .change-bar.fade-out {
     opacity: 0;
     transition: opacity 2s ease-out;
@@ -258,15 +268,18 @@
 
 /* インデントレベルに応じたスタイル */
 .doc-comment-item.indent-level-0 {
-    padding-left: 4px !important;
+    padding-left: 20px !important;
+    /* ChangeBarのスペース */
 }
 
 .doc-comment-item.indent-level-1 {
-    padding-left: 28px !important;
+    padding-left: 44px !important;
+    /* ChangeBarのスペース + インデント1段階 */
 }
 
 .doc-comment-item.indent-level-2 {
-    padding-left: 52px !important;
+    padding-left: 68px !important;
+    /* ChangeBarのスペース + インデント2段階 */
 }
 
 /* インデントボタンのスタイル */
@@ -274,6 +287,8 @@
     display: flex;
     gap: 4px;
     margin-right: 8px;
+    margin-left: 4px;
+    /* ChangeBarとの間隔を確保 */
     align-items: center;
 }
 

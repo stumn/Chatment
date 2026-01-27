@@ -34,7 +34,10 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
     const { userInfo, myHeight } = useAppStore();
 
     const listWidth = Math.floor(useSizeStore((state) => state.width) * 0.8);
-    const charsPerLine = Math.floor(listWidth / 13);
+
+    // 日本語全角文字基準での文字数計算（実測で39文字が1行に入る）
+    // 日本語フォント15pxで1文字約16pxとして計算
+    const charsPerLine = Math.max(Math.floor(listWidth / 16), 1);
 
     // 定期的に古い変更状態をクリア（10分経過したもの）
     useEffect(() => {
@@ -44,6 +47,27 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
 
         return () => clearInterval(interval);
     }, [clearOldChangeStates]);
+
+    // docMessagesが変更されたら高さを再計算（並び替え、インデント変更、編集などに対応）
+    useEffect(() => {
+        if (listRef.current) {
+            // 少し遅延させて、DOMが更新された後に再計算
+            const timer = setTimeout(() => {
+                listRef.current.resetAfterIndex(0, true);
+            }, 0);
+            return () => clearTimeout(timer);
+        }
+    }, [docMessages]);
+
+    // listWidthが変更されたら高さを再計算（初期ロード時やリサイズ時に対応）
+    useEffect(() => {
+        if (listRef.current && listWidth > 0) {
+            const timer = setTimeout(() => {
+                listRef.current.resetAfterIndex(0, true);
+            }, 0);
+            return () => clearTimeout(timer);
+        }
+    }, [listWidth]);
 
     // 各行の高さを計算（改行や長文も考慮）
     const getItemSize = (index) => {
@@ -67,8 +91,6 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
         const msg = message.msg;
         const itemLines = msg.split('\n').length;
         // 1行ごとの文字数で折り返し行数を推定
-        const charCount = msg.length;
-        const charsPerLine = Math.floor(listWidth / 13);
         const estimatedLines = Math.max(
             itemLines,
             ...msg.split('\n').map(line => Math.ceil(line.length / charsPerLine) || 1)

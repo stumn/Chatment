@@ -1,4 +1,5 @@
 import React from 'react';
+import PostMeta from '../shared/ui/PostMeta';
 
 /**
  * 1つの投稿を表示するコンポーネント
@@ -65,41 +66,10 @@ const RegularPost = ({ post, reactionDiff }) => {
         <div className="group relative my-0.5 rounded transition-all duration-150 ease-in-out cursor-default"
             style={getReactionStyle()}>
             <PostMeta post={post} />
-            <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: `${indentLevel * 1}em` }}>
-                <span className="text-gray-400 text-sm leading-snug select-none" style={{ marginRight: '0.25em' }}>・</span>
-                <PostContent post={post} />
+            <div className="text-gray-800 text-sm leading-snug whitespace-pre-wrap break-words mr-12"
+                style={{ paddingLeft: `${indentLevel * 1}em` }}>
+                <span className="text-gray-400">・</span>{post.msg || '(空のメッセージ)'}
             </div>
-        </div>
-    );
-};
-
-/**
- * 投稿メタ情報（ホバー時表示）
- */
-const PostMeta = ({ post }) => {
-    return (
-        <div className="
-            absolute top-1 left-2 z-10
-            bg-black/80 text-white text-xs px-1.5 py-0.5 rounded
-            opacity-0 invisible group-hover:opacity-100 group-hover:visible
-            transition-all duration-150 pointer-events-none
-        ">
-            <div>{post.nickname || 'Unknown'}さん</div>
-            <div>{post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}</div>
-        </div>
-    );
-};
-
-/**
- * 投稿内容表示
- */
-const PostContent = ({ post }) => {
-    return (
-        <div className="
-            text-gray-800 text-sm leading-snug whitespace-pre-wrap break-words
-            mr-12
-        ">
-            {post.msg || '(空のメッセージ)'}
         </div>
     );
 };

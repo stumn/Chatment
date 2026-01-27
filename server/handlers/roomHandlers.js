@@ -12,14 +12,32 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
     try {
       // ルームの存在確認
       if (rooms.size === 0) {
-        saveLog({ userId, action: 'room-join-error', detail: { error: 'No rooms available', nickname }, spaceId: userInfo?.spaceId });
+
+        // ログ記録 - ルーム参加エラー
+        saveLog({
+          userId,
+          userNickname: nickname,
+          action: 'room-join-error',
+          detail: { error: 'No rooms available', nickname },
+          spaceId: userInfo?.spaceId
+        });
+
         socket.emit('room-error', { error: 'No rooms available', message: '利用可能なルームがありません' });
         return;
       }
 
       // roomIdがない場合
       if (!rooms.has(roomId)) {
-        saveLog({ userId, action: 'room-join-error', detail: { error: 'Room not found', roomId, nickname }, spaceId: userInfo?.spaceId });
+
+        // ログ記録 - ルーム参加エラー
+        saveLog({
+          userId,
+          userNickname: nickname,
+          action: 'room-join-error',
+          detail: { error: 'Room not found', roomId, nickname },
+          spaceId: userInfo?.spaceId
+        });
+
         socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
         return;
       }
@@ -86,7 +104,14 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         }
       });
 
-      saveLog({ userId, action: 'join-room', detail: { roomId, nickname, participantCount: room.participants.size } });
+      // ログ記録 - ルーム参加
+      saveLog({
+        userId,
+        userNickname: nickname,
+        action: 'join-room',
+        detail: { roomId, nickname, participantCount: room.participants.size },
+        spaceId: userInfo?.spaceId
+      });
 
     } catch (error) {
       console.error('Error in join-room:', error);
@@ -134,7 +159,14 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         }
       });
 
-      saveLog({ userId, action: 'leave-room', detail: { roomId, nickname, participantCount: room.participants.size } });
+      // ログ記録 - ルーム退出
+      saveLog({
+        userId,
+        userNickname: nickname,
+        action: 'leave-room',
+        detail: { roomId, nickname, participantCount: room.participants.size },
+        spaceId: userInfo?.spaceId
+      });
 
     } catch (error) {
       console.error('Error in leave-room:', error);
@@ -204,7 +236,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         spaceInfo: spaceInfo
       });
 
-      // ログDB記録
+      // ログ記録 - ルーム一覧取得
       saveLog({
         userId: socket.userId,
         userNickname: socket.nickname,
@@ -227,17 +259,11 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       }
 
       // spaceIdはroomIdから自動抽出されるので、第2引数は不要
-      /**
-       * getRoomHistory(roomId)
-       * @param {string} roomId - The ID of the room whose history is to be fetched.
-       * @returns {Promise<Array>} - Resolves to an array of message objects for the room.
-       * Note: spaceId is automatically extracted from roomId inside the function, so no second argument is needed.
-       */
       const messages = await getRoomHistory(roomId);
 
       socket.emit('room-history', { roomId, messages });
 
-      // ログDB記録
+      // ログ記録 - ルーム履歴取得
       const spaceId = roomId.match(/space(\d+)-/)?.[1];
       saveLog({
         userId: socket.userId,
