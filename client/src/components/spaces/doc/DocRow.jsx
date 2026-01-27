@@ -327,29 +327,50 @@ const DocRow = ({ data, index, style }) => {
 const PollResult = ({ poll }) => {
     const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt.voteCount || opt.votes?.length || 0), 0) || 0;
 
-    return (
-        <div className="flex items-center gap-3 text-sm">
-            <span className="font-bold text-gray-700">📊 {poll.question}</span>
-            {poll.isAnonymous && <span className="text-xs text-indigo-500">🔒匿名</span>}
-            <span className="text-xs text-gray-400">({totalVotes}票)</span>
-            <span className="text-gray-400">|</span>
-            {poll.options?.map((opt, idx) => {
-                const voteCount = opt.voteCount || opt.votes?.length || 0;
-                const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
-                const voters = opt.voters || (opt.votes?.map(v => v.nickname).filter(n => n)) || [];
+    // 最大得票数を計算
+    const maxVotes = Math.max(...(poll.options?.map(opt => opt.voteCount || opt.votes?.length || 0) || [0]));
 
-                return (
-                    <span
-                        key={idx}
-                        className="text-xs"
-                        title={!poll.isAnonymous && voters.length > 0 ? voters.join(', ') : ''}
-                    >
-                        <span className="font-medium text-gray-700">{opt.label}</span>
-                        <span className="text-blue-600 ml-1">{voteCount}票</span>
-                        <span className="text-gray-400 ml-1">({percentage}%)</span>
-                    </span>
-                );
-            })}
+    return (
+        <div className="flex flex-col gap-2">
+            {/* 質問行 */}
+            <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-700">{poll.question}</span>
+                {poll.isAnonymous && <span className="text-xs text-indigo-500">🔒匿名</span>}
+                <span className="text-xs text-gray-400">({totalVotes}票)</span>
+            </div>
+
+            {/* 選択肢行（必要に応じて折り返し） */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {poll.options?.map((opt, idx) => {
+                    const voteCount = opt.voteCount || opt.votes?.length || 0;
+                    const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                    const voters = opt.voters || (opt.votes?.map(v => v.nickname).filter(n => n)) || [];
+
+                    // 最多得票の選択肢は太字に
+                    const isTopChoice = voteCount > 0 && voteCount === maxVotes;
+
+                    return (
+                        <span
+                            key={idx}
+                            className="text-xs whitespace-nowrap"
+                            title={!poll.isAnonymous && voters.length > 0 ? voters.join(', ') : ''}
+                        >
+                            <span
+                                className={`${isTopChoice ? 'font-bold' : 'font-medium'}`}
+                                style={{ color: isTopChoice ? '#15803D' : '#374151' }}
+                            >
+                                {opt.label}
+                            </span>
+                            <span
+                                className={`ml-1 ${isTopChoice ? 'font-bold' : ''}`}
+                                style={{ color: isTopChoice ? '#15803D' : '#9CA3AF' }}
+                            >
+                                ({percentage}%)
+                            </span>
+                        </span>
+                    );
+                })}
+            </div>
         </div>
     );
 };

@@ -48,9 +48,23 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
     // 各行の高さを計算（改行や長文も考慮）
     const getItemSize = (index) => {
         const lineHeight = 28;
-        if (!docMessages[index] || !docMessages[index].msg) return lineHeight + 16;
+        const message = docMessages[index];
+
+        if (!message) return lineHeight + 16;
+
+        // アンケートの場合の高さ計算
+        if (message.poll && message.poll.question) {
+            const baseHeight = 28; // 質問行の高さ
+            const optionHeight = 24; // 選択肢行の高さ
+            const padding = 16; // 上下のパディング
+            return baseHeight + optionHeight + padding;
+        }
+
+        // 通常のメッセージの場合
+        if (!message.msg) return lineHeight + 16;
+
         // 改行数をカウント
-        const msg = docMessages[index].msg;
+        const msg = message.msg;
         const itemLines = msg.split('\n').length;
         // 1行ごとの文字数で折り返し行数を推定
         const charCount = msg.length;
