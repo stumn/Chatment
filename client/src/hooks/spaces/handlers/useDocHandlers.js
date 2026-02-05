@@ -9,7 +9,7 @@ export const useDocHandlers = (emitLog) => {
 
   const handleDocAdd = (payload) => {
     // 新規作成として変更状態を記録
-    addMessage(payload, true, payload.roomId);
+    addMessage(payload, true);
   };
 
   const handleDocEdit = (payload) => {

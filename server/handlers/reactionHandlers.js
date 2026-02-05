@@ -22,8 +22,13 @@ function setupReactionHandlers(socket, io) {
             ? { id: reactionResult.id, positive: reactionResult.reaction, userHasVotedPositive: reactionResult.userHasReacted }
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
-        // ブロードキャスト
-        io.emit(reactionType, broadcastData);
+        // スペース内にブロードキャスト
+        const spaceId = reactionResult.spaceId || socket.spaceId;
+        if (spaceId) {
+          io.to(String(spaceId)).emit(reactionType, broadcastData);
+        } else {
+          io.emit(reactionType, broadcastData);
+        }
 
         // ログ記録 - リアクション
         saveLog({

@@ -107,8 +107,7 @@ function organizeLogs(post, mySocketId = null) {
         nickname: post.nickname,
         msg: post.msg,
         userId: post.userId,
-        // spaceId
-        // roomId
+        spaceId: post.spaceId,
         source: post.source || 'unknown',
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,

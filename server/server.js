@@ -49,40 +49,23 @@ app.get('*', (req, res, next) => {
 });
 
 // Socket.IOハンドラー
-const { initializeSocketHandlers, rooms } = require('./socketHandlers');
+const { initializeSocketHandlers } = require('./socketHandlers');
 const {
-  initializeDefaultRooms,
-  getActiveRooms,
   initializeDefaultSpace,
   migrateExistingDataToSpace
 } = require('./dbOperation');
 
 initializeSocketHandlers(io);
 
-// サーバー起動時にデフォルトスペース・ルームを初期化（DB経由）
-const initializeRoomsFromDatabase = async () => {
-  try {
-    const dbRooms = await getActiveRooms();
-
-    rooms.clear(); // 既存のメモリデータをクリア
-
-    dbRooms.forEach(room => {
-      rooms.set(room.id, {
-        id: room.id,
-        name: room.name,
-        participants: new Set(), // 参加者は新規でスタート
-        createdAt: room.createdAt,
-        dbRoom: room
-      });
-    });
-  } catch (error) {
-    console.error('❌ [server] ルーム初期化失敗:', error);
-  }
-};
-
 // サーバー起動
 const startServer = async () => {
-  await initializeRoomsFromDatabase();
+  // デフォルトスペースの初期化（DB経由）
+  try {
+    await initializeDefaultSpace();
+    console.log('✅ [server] デフォルトスペース初期化完了');
+  } catch (error) {
+    console.error('❌ [server] スペース初期化失敗:', error);
+  }
 
   server.listen(PORT, () => {
     console.log('listening on PORT:' + PORT);

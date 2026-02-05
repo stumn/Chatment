@@ -2,15 +2,14 @@ import useAppStore from '../../../store/spaces/appStore';
 import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
-  const emitChatMessage = (nickname, message, userId, roomId = null) => {
+  const emitChatMessage = (nickname, message, userId) => {
     const { userInfo } = useAppStore.getState();
 
     const messageData = {
       nickname,
       message,
       userId,
-      spaceId: userInfo.spaceId,
-      ...(roomId && { roomId }) // roomIdがある場合のみ追加
+      spaceId: userInfo.spaceId
     };
 
     socket.emit('chat-message', messageData);
@@ -18,7 +17,7 @@ export const useChatEmitters = (socket, emitLog) => {
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message, roomId, spaceId: userInfo.spaceId }
+      detail: { nickname, message, spaceId: userInfo.spaceId }
     });
   };
 

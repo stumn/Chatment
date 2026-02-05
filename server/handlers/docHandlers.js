@@ -14,11 +14,15 @@ const {
   unlockRowByPostId,
 } = require('../socketUtils');
 
+// スペースルーム名を取得
+const getSpaceRoom = (spaceId) => String(spaceId);
+
 // --- ドキュメントハンドラーのセットアップ ---
 function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-add', async (payload) => {
     try {
+      const { spaceId } = payload;
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
       let prevDisplayOrder = payload.prevDisplayOrder;
@@ -34,14 +38,14 @@ function setupDocHandlers(socket, io, lockedRows) {
       }
 
       // 現在の行の並び順を取得(TODO: DB関連の処理が多いので、docOperationへの移行を検討)
-      const posts = await getPostsByDisplayOrder(payload.spaceId);
+      const posts = await getPostsByDisplayOrder(spaceId);
 
       // DB保存
       const newPost = await addDocRow({
         nickname: payload.nickname,
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
-        spaceId: payload.spaceId, // spaceIdを追加
+        spaceId: spaceId, // spaceIdを追加
         indentLevel: payload.indentLevel || 0, // インデントレベルを追加
       });
 
@@ -54,8 +58,8 @@ function setupDocHandlers(socket, io, lockedRows) {
         indentLevel: newPost.indentLevel || 0
       };
 
-      // 新規行追加を全クライアントにブロードキャスト
-      io.emit('doc-add', data);
+      // 新規行追加をスペース内の全クライアントにブロードキャスト
+      io.to(getSpaceRoom(spaceId)).emit('doc-add', data);
 
       // ログ記録 - ドキュメント空行追加
       saveLog({
@@ -63,7 +67,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         userNickname: newPost.nickname,
         action: 'doc-add',
         detail: data,
-        spaceId: payload.spaceId
+        spaceId: spaceId
       });
 
     } catch (e) { console.error(e); }
@@ -71,6 +75,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-edit', async (payload) => {
     try {
+      const { spaceId } = payload;
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
@@ -90,11 +95,11 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DBに編集を保存
       const updatedPost = await updatePostData(payload);
 
-      // updatedAtをpayloadに追加してemit
-      io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+      // updatedAtをpayloadに追加してスペース内にブロードキャスト
+      io.to(getSpaceRoom(spaceId)).emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
 
       // 編集完了時にロック解除
-      unlockRowByPostId(lockedRows, io, payload.id);
+      unlockRowByPostId(lockedRows, io, payload.id, spaceId);
 
       // ログ記録 - ドキュメント編集 payload の中身？
       saveLog({
@@ -127,11 +132,11 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DB更新
       await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-      // 全クライアントに並び替えをブロードキャスト（スペース別）
+      // スペース内の全クライアントに並び替えをブロードキャスト
       const posts = await getPostsByDisplayOrder(spaceId);
 
       // 並び替え情報に実行者の情報を含めて送信
-      io.emit('doc-reorder', {
+      io.to(getSpaceRoom(spaceId)).emit('doc-reorder', {
         posts: posts,
         reorderInfo: {
           movedPostId: movedPostId,
@@ -140,7 +145,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       });
 
       // 並び替え完了時にロック解除
-      unlockRowByPostId(lockedRows, io, movedPostId);
+      unlockRowByPostId(lockedRows, io, movedPostId, spaceId);
 
       // ログ記録 - ドキュメント行並び替え
       saveLog({
@@ -157,13 +162,15 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-delete', async (payload) => {
     try {
 
+      const { spaceId } = payload;
+
       // 行削除処理
       const deleted = await deleteDocRow(payload.id);
 
-      // 削除結果を全クライアントにブロードキャスト
+      // 削除結果をスペース内の全クライアントにブロードキャスト
       if (deleted) {
 
-        io.emit('doc-delete', { id: payload.id });
+        io.to(getSpaceRoom(spaceId)).emit('doc-delete', { id: payload.id });
 
         // ログ記録 - ドキュメント行削除 IDや名前が取れない？payload?
         saveLog({
@@ -198,8 +205,8 @@ function setupDocHandlers(socket, io, lockedRows) {
       console.log(updatedPost);
 
       if (updatedPost) {
-        // 全クライアントにインデント変更をブロードキャスト
-        io.emit('doc-indent-change', {
+        // スペース内の全クライアントにインデント変更をブロードキャスト
+        io.to(getSpaceRoom(spaceId)).emit('doc-indent-change', {
           postId,
           indentLevel: updatedPost.indentLevel
         });

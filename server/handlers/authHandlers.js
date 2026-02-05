@@ -38,19 +38,27 @@ async function handleLogin(socket, userInfo) {
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
 
+    // 既存のハンドラーを解除（スペース切り替え時の重複防止）
+    socket.removeAllListeners('fetch-history');
+    socket.removeAllListeners('fetch-docs');
+
     // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
     socket.on('fetch-history', async () => {
       try {
-        const messages = await getPastLogs(spaceId);
-        socket.emit('history', messages);
+        // socket.spaceIdを使用して最新のスペースIDを参照
+        const currentSpaceId = socket.spaceId;
+        const messages = await getPastLogs(currentSpaceId);
+        socket.emit('history', { messages, spaceId: currentSpaceId });
       } catch (e) { console.error(e); }
     });
 
     // ドキュメント用取得ハンドラー（スペース別のドキュメント）
     socket.on('fetch-docs', async () => {
       try {
-        const docs = await getPostsByDisplayOrder(spaceId);
-        socket.emit('docs', docs);
+        // socket.spaceIdを使用して最新のスペースIDを参照
+        const currentSpaceId = socket.spaceId;
+        const docs = await getPostsByDisplayOrder(currentSpaceId);
+        socket.emit('docs', { docs, spaceId: currentSpaceId });
       } catch (e) { console.error(e); }
     });
 

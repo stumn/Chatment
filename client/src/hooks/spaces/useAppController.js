@@ -280,10 +280,9 @@ export const useAppController = () => {
      * チャットメッセージを送信
      * @param {string} handleName - 表示名
      * @param {string} message - メッセージ内容
-     * @param {string} roomId - ルームID
      * @returns {Object} { success: boolean, error?: string }
      */
-    const sendChatMessage = useCallback((handleName, message, roomId) => {
+    const sendChatMessage = useCallback((handleName, message) => {
         try {
             // バリデーション
             if (!message?.trim()) {
@@ -318,13 +317,13 @@ export const useAppController = () => {
                 return { success: false, error: '有効な文字が含まれていません。' };
             }
 
-            emitChatMessage(handleName, validatedMessage, userInfo?._id, roomId);
+            emitChatMessage(handleName, validatedMessage, userInfo?._id);
 
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
                 action: 'chat-send',
-                detail: { handleName, messageLength: validatedMessage.length, roomId }
+                detail: { handleName, messageLength: validatedMessage.length }
             });
 
             return { success: true };

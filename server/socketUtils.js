@@ -54,22 +54,29 @@ function removeHeightMemory(heightMemory, id) {
     return heightMemory.map(item => ({ height: item.height, spaceId: item.spaceId }));
 }
 
+// スペースルーム名を取得
+const getSpaceRoom = (spaceId) => String(spaceId);
+
 // ロック管理関連の関数
-function unlockRowByPostId(lockedRows, io, postId) {
+function unlockRowByPostId(lockedRows, io, postId, spaceId = null) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
         // rowElementIdにpostIdが含まれているかチェック
         if (rowElementId.includes(postId)) {
             lockedRows.delete(rowElementId);
 
-            // 全クライアントにロック解除をブロードキャスト
-            io.emit('row-unlocked', { id: rowElementId, postId });
+            // spaceIdが指定されている場合はスペース内にブロードキャスト、それ以外は全体に
+            if (spaceId) {
+                io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: rowElementId, postId });
+            } else {
+                io.emit('row-unlocked', { id: rowElementId, postId });
+            }
             break;
         }
     }
 }
 
 // 特定のsocketIdが保持している全てのロックを解放
-function unlockAllBySocketId(lockedRows, io, socketId) {
+function unlockAllBySocketId(lockedRows, io, socketId, spaceId = null) {
     const unlockedRows = [];
 
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
@@ -79,9 +86,13 @@ function unlockAllBySocketId(lockedRows, io, socketId) {
         }
     }
 
-    // 解放された行を全クライアントに通知
+    // 解放された行をブロードキャスト
     unlockedRows.forEach(row => {
-        io.emit('row-unlocked', row);
+        if (spaceId) {
+            io.to(getSpaceRoom(spaceId)).emit('row-unlocked', row);
+        } else {
+            io.emit('row-unlocked', row);
+        }
     });
 
     return unlockedRows.length;

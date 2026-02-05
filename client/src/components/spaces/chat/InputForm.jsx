@@ -9,7 +9,6 @@ import { Stack, Alert } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 
 import useSizeStore from '../../../store/sizeStore';
-import useRoomStore from '../../../store/spaces/roomStore';
 
 const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', appController }) => {
   const [message, setMessage] = useState('');
@@ -17,10 +16,6 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
 
   // --- ハンドルネーム選択用のstateを追加 ---
   const [handleName, setHandleName] = useState(nickname);
-
-  // ルーム情報を取得
-  const { activeRoomId, rooms } = useRoomStore();
-  const currentRoom = rooms.find(room => room.id === activeRoomId);
 
   const { chat: { send: sendChatMessage } } = appController;
 
@@ -32,15 +27,8 @@ const InputForm = ({ nickname = '', status = '', ageGroup = '', userId = '', app
     e.preventDefault();
     setError(''); // エラーをクリア
 
-    // activeRoomIdがnullの場合はエラーを表示
-    if (!activeRoomId && !rooms[0]) {
-      // setError('ルームに参加していません。しばらくお待ちください。');
-      console.error('ルームに参加していません。しばらくお待ちください。');
-      // return;
-    }
-
     // バリデーション付きでメッセージ送信
-    const result = sendChatMessage(handleName, message, activeRoomId);
+    const result = sendChatMessage(handleName, message);
 
     result.success
       ? setMessage('')
