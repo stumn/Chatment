@@ -7,7 +7,7 @@ const ChatRow = React.lazy(() => import('./ChatRow'));
 
 import usePostStore from '../../../store/spaces/postStore';
 
-const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) => {
+const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
     const posts = usePostStore((state) => state.posts);
 
@@ -34,8 +34,8 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
             else { return !msg.msg.trim().startsWith('#'); }
         });
 
-        // 最大化モードの場合は全件表示、通常モードは制限付き
-        const displayMessages = isChatMaximized ? filtered : filtered.slice(-Math.ceil(lines.num));
+        // 最大化モードまたはチャットスクロールモードの場合は全件表示、通常モードは制限付き
+        const displayMessages = (isChatMaximized || isChatScrollMode) ? filtered : filtered.slice(-Math.ceil(lines.num));
 
         // timeプロパティを生成して付与
         return displayMessages.map(msg => ({
@@ -47,7 +47,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
                     : ''
         }));
 
-    }, [posts, lines.num, isChatMaximized]);
+    }, [posts, lines.num, isChatMaximized, isChatScrollMode]);
 
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
@@ -55,17 +55,23 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
         if (listRef.current) {
-            if (isChatMaximized) {
-                // react-windowの場合
+            if (isChatMaximized || isChatScrollMode) {
+                // react-windowの場合またはチャットスクロールモードの場合
                 if (filteredChatMessages.length > 0) {
-                    listRef.current.scrollToItem(filteredChatMessages.length - 1, "end");
+                    if (isChatMaximized) {
+                        // react-windowの場合
+                        listRef.current.scrollToItem(filteredChatMessages.length - 1, "end");
+                    } else {
+                        // チャットスクロールモードの通常表示の場合
+                        listRef.current.scrollTop = listRef.current.scrollHeight;
+                    }
                 }
             } else {
                 // 通常モードの場合
                 listRef.current.scrollTop = listRef.current.scrollHeight;
             }
         }
-    }, [filteredChatMessages, isChatMaximized]);
+    }, [filteredChatMessages, isChatMaximized, isChatScrollMode]);
 
     const {
         chat: { send, addPositive, addNegative },
@@ -107,6 +113,31 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized }) =
                 >
                     {renderRow}
                 </List>
+            </React.Suspense>
+        );
+    }
+
+    // チャットスクロールモード：すべてのメッセージをスクロール表示
+    if (isChatScrollMode) {
+        return (
+            <React.Suspense fallback={<div>Loading...</div>}>
+                <div
+                    ref={listRef}
+                    className="flex flex-col w-full text-left"
+                    style={{
+                        height: bottomHeight,
+                        overflowY: 'auto',
+                    }}
+                >
+                    {filteredChatMessages.map((msg, idx) => (
+                        <ChatRow
+                            key={msg.id || idx}
+                            data={itemData}
+                            index={idx}
+                            style={{}}
+                        />
+                    ))}
+                </div>
             </React.Suspense>
         );
     }

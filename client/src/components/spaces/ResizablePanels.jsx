@@ -19,6 +19,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
     const { userInfo } = useAppStore();
+    const isChatScrollMode = useAppStore((state) => state.isChatScrollMode);
 
     // ルーム情報を取得
     const { activeRoomId, rooms } = useRoomStore();
@@ -173,7 +174,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='chat-container'
                 className="flex-grow bg-[#fefefe]"
                 style={{ height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} isChatScrollMode={isChatScrollMode} />
             </div>
         </div>
     );

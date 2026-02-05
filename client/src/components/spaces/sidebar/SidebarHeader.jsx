@@ -16,6 +16,8 @@ import useAppStore from '../../../store/spaces/appStore';
  * @param {Function} props.toggleColorfulMode - カラフルモード切り替え関数
  * @param {boolean} props.isCompactMode - コンパクトモードの状態
  * @param {Function} props.toggleCompactMode - コンパクトモード切り替え関数
+ * @param {boolean} props.isChatScrollMode - チャットスクロールモードの状態
+ * @param {Function} props.toggleChatScrollMode - チャットスクロールモード切り替え関数
  */
 const SidebarHeader = ({
     onToggle,
@@ -24,7 +26,9 @@ const SidebarHeader = ({
     isColorfulMode,
     toggleColorfulMode,
     isCompactMode,
-    toggleCompactMode
+    toggleCompactMode,
+    isChatScrollMode,
+    toggleChatScrollMode
 }) => {
     // ストアからスペース名を取得
     const spaceName = useAppStore((state) => state.spaceName);
@@ -83,6 +87,25 @@ const SidebarHeader = ({
                                 />
                             }
                             label="コンパクト表示"
+                            labelPlacement="start"
+                            sx={{
+                                margin: 0,
+                                '& .MuiFormControlLabel-label': {
+                                    fontSize: '12px',
+                                    color: '#6b7280'
+                                }
+                            }}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={isChatScrollMode}
+                                    onChange={toggleChatScrollMode}
+                                    size="small"
+                                    color="primary"
+                                />
+                            }
+                            label="チャットスクロール"
                             labelPlacement="start"
                             sx={{
                                 margin: 0,

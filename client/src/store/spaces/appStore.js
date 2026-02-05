@@ -23,6 +23,9 @@ const useAppStore = create((set) => ({
   // コンパクトモード（true: ホバー時のみボタン表示、false: 常時表示）
   isCompactMode: false,
 
+  // チャットスクロールモード（true: 通常モードでもすべてのメッセージをスクロール表示、false: 制限された行数のみ表示）
+  isChatScrollMode: false,
+
   // 目次の開閉状態
   isTocOpen: true,
 
@@ -42,6 +45,9 @@ const useAppStore = create((set) => ({
 
   // アクション: コンパクトモードを切り替える
   toggleCompactMode: () => set((state) => ({ isCompactMode: !state.isCompactMode })),
+
+  // アクション: チャットスクロールモードを切り替える
+  toggleChatScrollMode: () => set((state) => ({ isChatScrollMode: !state.isChatScrollMode })),
 
   // アクション: 目次の開閉を切り替える
   toggleToc: () => set((state) => ({ isTocOpen: !state.isTocOpen })),

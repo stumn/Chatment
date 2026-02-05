@@ -18,6 +18,8 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToI
     const toggleColorfulMode = useAppStore((state) => state.toggleColorfulMode);
     const isCompactMode = useAppStore((state) => state.isCompactMode);
     const toggleCompactMode = useAppStore((state) => state.toggleCompactMode);
+    const isChatScrollMode = useAppStore((state) => state.isChatScrollMode);
+    const toggleChatScrollMode = useAppStore((state) => state.toggleChatScrollMode);
     const userInfo = propsUserInfo || useAppStore((state) => state.userInfo);
 
     // ルーム関連の状態（サブルーム廃止により簡略化）
@@ -105,6 +107,8 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToI
                 toggleColorfulMode={toggleColorfulMode}
                 isCompactMode={isCompactMode}
                 toggleCompactMode={toggleCompactMode}
+                isChatScrollMode={isChatScrollMode}
+                toggleChatScrollMode={toggleChatScrollMode}
             />
 
             <SidebarContent
