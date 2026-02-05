@@ -6,10 +6,16 @@ import { FixedSizeList as List } from 'react-window';
 const ChatRow = React.lazy(() => import('./ChatRow'));
 
 import usePostStore from '../../../store/spaces/postStore';
+import useAppStore from '../../../store/spaces/appStore';
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
     const posts = usePostStore((state) => state.posts);
+
+    // フィルター状態を取得
+    const selectedHeadingId = useAppStore((state) => state.selectedHeadingId);
+    const indentFilter = useAppStore((state) => state.indentFilter);
+    const minLikesFilter = useAppStore((state) => state.minLikesFilter);
 
     const chatMessages = useMemo(() => {
 
@@ -21,7 +27,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
         });
 
         // ★空白行を除外 + ソース情報でフィルタリング
-        const filtered = sorted.filter(msg => {
+        let filtered = sorted.filter(msg => {
             // 基本的な空白行除外
             if (!msg || !msg.msg || msg.msg.trim() === "") return false;
 
@@ -33,6 +39,42 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
             else if (msg.source === 'document') { return !msg.msg.trim().startsWith('#'); }
             else { return !msg.msg.trim().startsWith('#'); }
         });
+
+        // 見出しフィルターを適用（displayOrderベースで範囲を絞る）
+        if (selectedHeadingId) {
+            // displayOrderでソートされた全投稿から見出しを探す
+            const sortedByOrder = [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
+            const selectedIndex = sortedByOrder.findIndex(p => p.id === selectedHeadingId);
+
+            if (selectedIndex !== -1) {
+                const selectedPost = sortedByOrder[selectedIndex];
+                // 次の見出しを探す
+                const nextHeadingIndex = sortedByOrder.findIndex((p, idx) =>
+                    idx > selectedIndex && p.msg && p.msg.trim().startsWith('#')
+                );
+
+                // displayOrderの範囲を決定
+                const minOrder = selectedPost.displayOrder;
+                const maxOrder = nextHeadingIndex !== -1
+                    ? sortedByOrder[nextHeadingIndex].displayOrder
+                    : Infinity;
+
+                // その範囲内のメッセージのみを残す
+                filtered = filtered.filter(msg =>
+                    msg.displayOrder >= minOrder && msg.displayOrder < maxOrder
+                );
+            }
+        }
+
+        // インデントフィルターを適用（指定された値以下のインデントレベルを表示）
+        if (indentFilter !== null) {
+            filtered = filtered.filter(msg => (msg.indentLevel || 0) <= indentFilter);
+        }
+
+        // いいね数フィルターを適用
+        if (minLikesFilter !== null && minLikesFilter > 0) {
+            filtered = filtered.filter(msg => (msg.positive || 0) >= minLikesFilter);
+        }
 
         // 最大化モードまたはチャットスクロールモードの場合は全件表示、通常モードは制限付き
         const displayMessages = (isChatMaximized || isChatScrollMode) ? filtered : filtered.slice(-Math.ceil(lines.num));
@@ -47,7 +89,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                     : ''
         }));
 
-    }, [posts, lines.num, isChatMaximized, isChatScrollMode]);
+    }, [posts, lines.num, isChatMaximized, isChatScrollMode, selectedHeadingId, indentFilter, minLikesFilter]);
 
     // idがundefinedなものを除外し、重複idも除外
     const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);

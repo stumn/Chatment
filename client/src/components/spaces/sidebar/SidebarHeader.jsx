@@ -34,7 +34,7 @@ const SidebarHeader = ({
     const spaceName = useAppStore((state) => state.spaceName);
 
     return (
-        <div className="flex flex-col px-6 pt-6 pb-0 flex-shrink-0 bg-gray-100 border-b border-gray-200">
+        <div className="flex flex-col px-6 pt-6 pb-0 flex-shrink-0 bg-gray-100">
             <button
                 onClick={onToggle}
                 className="self-start !w-12 !h-12 min-w-12 min-h-12 aspect-square !rounded-full !bg-white border border-gray-200 cursor-pointer shadow-lg transition-all duration-200 flex items-center justify-center mb-4 hover:!bg-gray-50 hover:scale-105"
@@ -49,13 +49,14 @@ const SidebarHeader = ({
             <div className="flex flex-col items-start gap-2 mb-4 sidebar-text">
                 {/* スペース名表示 */}
                 {spaceId && (
-                    <div className="text-xs text-gray-600 font-bold mb-1">
+                    <div className="text-base text-gray-600 font-bold mb-1">
                         {spaceName || spaceId}
                     </div>
                 )}
-                <span className="text-lg text-gray-800">
+                <span className="text-sm text-gray-800">
                     {userInfo?.nickname ? `${userInfo.nickname} (${userInfo.ageGroup} ${userInfo.status})さん` : 'ゲスト'}
                 </span>
+                <div style={{ height: '1rem' }} />
                 <div className="flex items-center text-sm text-gray-600">
                     <FormGroup>
                         <FormControlLabel
