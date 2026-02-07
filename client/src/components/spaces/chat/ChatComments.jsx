@@ -8,6 +8,25 @@ const ChatRow = React.lazy(() => import('./ChatRow'));
 import usePostStore from '../../../store/spaces/postStore';
 import useAppStore from '../../../store/spaces/appStore';
 
+// 見出しが見つからない場合のメッセージの高さ
+const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 70;
+
+// 見出しが見つからない場合のメッセージコンポーネント
+const HeadingNotFoundMessage = () => (
+    <div style={{
+        padding: '16px',
+        margin: '16px',
+        backgroundColor: '#FEF3C7',
+        border: '1px solid #F59E0B',
+        borderRadius: '8px',
+        color: '#92400E',
+        textAlign: 'center',
+        fontSize: '14px'
+    }}>
+        選択された見出しが存在しません。見出しが削除された可能性があります。
+    </div>
+);
+
 const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
     const posts = usePostStore((state) => state.posts);
@@ -16,9 +35,6 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     const selectedHeadingId = useAppStore((state) => state.selectedHeadingId);
     const indentFilter = useAppStore((state) => state.indentFilter);
     const minLikesFilter = useAppStore((state) => state.minLikesFilter);
-
-    // 選択された見出しが見つからない場合のフラグを管理
-    const [headingNotFound, setHeadingNotFound] = React.useState(false);
 
     const chatMessages = useMemo(() => {
         // 見出しが見つからない状態をリセット
@@ -103,12 +119,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     }, [posts, lines.num, isChatMaximized, isChatScrollMode, selectedHeadingId, indentFilter, minLikesFilter]);
 
     // idがundefinedなものを除外し、重複idも除外
-    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
-
-    // 見出しが見つからない状態を更新
-    useEffect(() => {
-        setHeadingNotFound(chatMessages.headingNotFound);
-    }, [chatMessages.headingNotFound]);
+    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === m.id) === idx);
 
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
@@ -155,30 +166,14 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     );
     // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
 
-    // 見出しが見つからない場合のメッセージコンポーネント
-    const HeadingNotFoundMessage = () => (
-        <div style={{
-            padding: '16px',
-            margin: '16px',
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #F59E0B',
-            borderRadius: '8px',
-            color: '#92400E',
-            textAlign: 'center',
-            fontSize: '14px'
-        }}>
-            選択された見出しが存在しません。見出しが削除された可能性があります。
-        </div>
-    );
-
     // 最大化モード：react-windowを使用
     if (isChatMaximized) {
         return (
             <React.Suspense fallback={<div>Loading...</div>}>
-                {headingNotFound && <HeadingNotFoundMessage />}
+                {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 <List
                     ref={listRef}
-                    height={headingNotFound ? bottomHeight - 70 : bottomHeight}
+                    height={chatMessages.headingNotFound ? bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT : bottomHeight}
                     itemCount={filteredChatMessages.length}
                     itemSize={65} // 固定高さ65px
                     width="100%"
@@ -204,7 +199,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                         overflowY: 'auto',
                     }}
                 >
-                    {headingNotFound && <HeadingNotFoundMessage />}
+                    {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                     {filteredChatMessages.map((msg, idx) => (
                         <ChatRow
                             key={msg.id || idx}
@@ -229,7 +224,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                     overflowY: 'hidden',
                 }}
             >
-                {headingNotFound && <HeadingNotFoundMessage />}
+                {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 {filteredChatMessages.map((msg, idx) => (
                     <ChatRow
                         key={msg.id || idx}
