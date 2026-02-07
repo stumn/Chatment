@@ -17,7 +17,12 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     const indentFilter = useAppStore((state) => state.indentFilter);
     const minLikesFilter = useAppStore((state) => state.minLikesFilter);
 
+    // 選択された見出しが見つからない場合のフラグを管理
+    const [headingNotFound, setHeadingNotFound] = React.useState(false);
+
     const chatMessages = useMemo(() => {
+        // 見出しが見つからない状態をリセット
+        let isHeadingMissing = false;
 
         // createdAt または updatedAt でソート resizable de useState update vs create の差をマークしておく
         const sorted = [...posts].sort((a, b) => {
@@ -63,6 +68,9 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                 filtered = filtered.filter(msg =>
                     msg.displayOrder >= minOrder && msg.displayOrder < maxOrder
                 );
+            } else {
+                // 選択された見出しが見つからない場合
+                isHeadingMissing = true;
             }
         }
 
@@ -80,19 +88,27 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
         const displayMessages = (isChatMaximized || isChatScrollMode) ? filtered : filtered.slice(-Math.ceil(lines.num));
 
         // timeプロパティを生成して付与
-        return displayMessages.map(msg => ({
-            ...msg,
-            time: msg.updatedAt
-                ? new Date(msg.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : msg.createdAt
-                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : ''
-        }));
+        return {
+            messages: displayMessages.map(msg => ({
+                ...msg,
+                time: msg.updatedAt
+                    ? new Date(msg.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : msg.createdAt
+                        ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : ''
+            })),
+            headingNotFound: isHeadingMissing
+        };
 
     }, [posts, lines.num, isChatMaximized, isChatScrollMode, selectedHeadingId, indentFilter, minLikesFilter]);
 
     // idがundefinedなものを除外し、重複idも除外
-    const filteredChatMessages = chatMessages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
+    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
+
+    // 見出しが見つからない状態を更新
+    useEffect(() => {
+        setHeadingNotFound(chatMessages.headingNotFound);
+    }, [chatMessages.headingNotFound]);
 
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
@@ -139,13 +155,30 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     );
     // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
 
+    // 見出しが見つからない場合のメッセージコンポーネント
+    const HeadingNotFoundMessage = () => (
+        <div style={{
+            padding: '16px',
+            margin: '16px',
+            backgroundColor: '#FEF3C7',
+            border: '1px solid #F59E0B',
+            borderRadius: '8px',
+            color: '#92400E',
+            textAlign: 'center',
+            fontSize: '14px'
+        }}>
+            選択された見出しが存在しません。見出しが削除された可能性があります。
+        </div>
+    );
+
     // 最大化モード：react-windowを使用
     if (isChatMaximized) {
         return (
             <React.Suspense fallback={<div>Loading...</div>}>
+                {headingNotFound && <HeadingNotFoundMessage />}
                 <List
                     ref={listRef}
-                    height={bottomHeight}
+                    height={headingNotFound ? bottomHeight - 70 : bottomHeight}
                     itemCount={filteredChatMessages.length}
                     itemSize={65} // 固定高さ65px
                     width="100%"
@@ -171,6 +204,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                         overflowY: 'auto',
                     }}
                 >
+                    {headingNotFound && <HeadingNotFoundMessage />}
                     {filteredChatMessages.map((msg, idx) => (
                         <ChatRow
                             key={msg.id || idx}
@@ -195,6 +229,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                     overflowY: 'hidden',
                 }}
             >
+                {headingNotFound && <HeadingNotFoundMessage />}
                 {filteredChatMessages.map((msg, idx) => (
                     <ChatRow
                         key={msg.id || idx}
