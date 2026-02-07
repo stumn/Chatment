@@ -21,6 +21,7 @@ const HEADING_NOT_FOUND_MESSAGE_STYLE = {
 };
 
 // 見出しが見つからない場合のメッセージの高さ（padding + margin + 推定コンテンツ高さ）
+// 推定コンテンツ高さ20pxは、14pxフォントサイズの日本語1行テキスト + line-height余白
 const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 32 + 32 + 20; // 16px*2 padding + 16px*2 margin + ~20px content
 
 // 見出しが見つからない場合のメッセージコンポーネント
@@ -29,6 +30,7 @@ const HeadingNotFoundMessage = React.memo(() => (
         選択された見出しが存在しません。見出しが削除された可能性があります。
     </div>
 ));
+HeadingNotFoundMessage.displayName = 'HeadingNotFoundMessage';
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
@@ -176,7 +178,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                 {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 <List
                     ref={listRef}
-                    height={chatMessages.headingNotFound ? bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT : bottomHeight}
+                    height={chatMessages.headingNotFound ? Math.max(0, bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT) : bottomHeight}
                     itemCount={filteredChatMessages.length}
                     itemSize={65} // 固定高さ65px
                     width="100%"
