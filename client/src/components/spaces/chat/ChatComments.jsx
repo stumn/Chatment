@@ -8,9 +8,6 @@ const ChatRow = React.lazy(() => import('./ChatRow'));
 import usePostStore from '../../../store/spaces/postStore';
 import useAppStore from '../../../store/spaces/appStore';
 
-// 見出しが見つからない場合のメッセージの高さ
-const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 70;
-
 // 見出しが見つからない場合のメッセージのスタイル
 const HEADING_NOT_FOUND_MESSAGE_STYLE = {
     padding: '16px',
@@ -23,12 +20,15 @@ const HEADING_NOT_FOUND_MESSAGE_STYLE = {
     fontSize: '14px'
 };
 
+// 見出しが見つからない場合のメッセージの高さ（padding + margin + 推定コンテンツ高さ）
+const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 32 + 32 + 20; // 16px*2 padding + 16px*2 margin + ~20px content
+
 // 見出しが見つからない場合のメッセージコンポーネント
-const HeadingNotFoundMessage = () => (
+const HeadingNotFoundMessage = React.memo(() => (
     <div style={HEADING_NOT_FOUND_MESSAGE_STYLE}>
         選択された見出しが存在しません。見出しが削除された可能性があります。
     </div>
-);
+));
 
 const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
