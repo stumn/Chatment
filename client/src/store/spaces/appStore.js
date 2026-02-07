@@ -31,7 +31,7 @@ const useAppStore = create((set) => ({
 
   // フィルター設定
   selectedHeadingId: null, // 選択された見出しのID（nullの場合は全て表示）
-  indentFilter: null, // インデントフィルター（nullの場合はフィルターなし、数値の場合はそのインデントレベルのみ表示）
+  indentFilter: null, // インデントフィルター（nullの場合はフィルターなし、数値の場合はそのインデントレベル以下を表示）
   minLikesFilter: null, // 最小いいね数フィルター（nullの場合はフィルターなし）
 
   // アクション: ユーザー情報を設定する
