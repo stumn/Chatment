@@ -123,8 +123,9 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
 
     }, [posts, lines.num, isChatMaximized, isChatScrollMode, selectedHeadingId, indentFilter, minLikesFilter]);
 
-    // idがundefinedなものを除外し、重複idも除外
-    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
+    // idがundefinedなものを除外し、重複idも除外（O(n)の効率的な実装）
+    const seen = new Set();
+    const filteredChatMessages = chatMessages.messages.filter(msg => msg?.id && !seen.has(msg.id) && seen.add(msg.id));
 
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
@@ -171,6 +172,11 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     );
     // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
 
+    // リストの高さを計算（見出しが見つからない場合はメッセージ分を引く）
+    const listHeight = chatMessages.headingNotFound 
+        ? Math.max(0, bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT) 
+        : bottomHeight;
+
     // 最大化モード：react-windowを使用
     if (isChatMaximized) {
         return (
@@ -178,7 +184,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                 {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 <List
                     ref={listRef}
-                    height={chatMessages.headingNotFound ? Math.max(0, bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT) : bottomHeight}
+                    height={listHeight}
                     itemCount={filteredChatMessages.length}
                     itemSize={65} // 固定高さ65px
                     width="100%"
