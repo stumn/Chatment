@@ -11,18 +11,21 @@ import useAppStore from '../../../store/spaces/appStore';
 // 見出しが見つからない場合のメッセージの高さ
 const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 70;
 
+// 見出しが見つからない場合のメッセージのスタイル
+const HEADING_NOT_FOUND_MESSAGE_STYLE = {
+    padding: '16px',
+    margin: '16px',
+    backgroundColor: '#FEF3C7',
+    border: '1px solid #F59E0B',
+    borderRadius: '8px',
+    color: '#92400E',
+    textAlign: 'center',
+    fontSize: '14px'
+};
+
 // 見出しが見つからない場合のメッセージコンポーネント
 const HeadingNotFoundMessage = () => (
-    <div style={{
-        padding: '16px',
-        margin: '16px',
-        backgroundColor: '#FEF3C7',
-        border: '1px solid #F59E0B',
-        borderRadius: '8px',
-        color: '#92400E',
-        textAlign: 'center',
-        fontSize: '14px'
-    }}>
+    <div style={HEADING_NOT_FOUND_MESSAGE_STYLE}>
         選択された見出しが存在しません。見出しが削除された可能性があります。
     </div>
 );
@@ -119,7 +122,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     }, [posts, lines.num, isChatMaximized, isChatScrollMode, selectedHeadingId, indentFilter, minLikesFilter]);
 
     // idがundefinedなものを除外し、重複idも除外
-    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === m.id) === idx);
+    const filteredChatMessages = chatMessages.messages.filter((msg, idx, arr) => msg && msg.id !== undefined && arr.findIndex(m => m.id === msg.id) === idx);
 
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
