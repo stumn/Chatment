@@ -1,3 +1,5 @@
+const { getSpaceRoom } = require('../socketUtils');
+
 function setupLockHandlers(socket, io, lockedRows) {
   // ロックタイムアウトの設定（5分 = 300000ms）
   const LOCK_TIMEOUT = 5 * 60 * 1000;
@@ -5,8 +7,16 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('demand-lock', async (data) => {
     try {
       console.log('demand-lock received:', data);
+      // セキュリティのためsocket.spaceIdのみを使用（クライアント提供データを信頼しない）
+      const spaceId = socket.spaceId;
 
-      if (data.rowElementId && data.nickname) {
+      if (spaceId == null) {
+        console.error('demand-lock: spaceId is not set');
+        socket.emit('Lock-not-allowed', { id: data.rowElementId, message: 'spaceId is not set' });
+        return;
+      }
+
+      if (data.rowElementId) {
         if (lockedRows.has(data.rowElementId)) {
           const existingLock = lockedRows.get(data.rowElementId);
           const lockAge = Date.now() - existingLock.timestamp;
@@ -15,8 +25,8 @@ function setupLockHandlers(socket, io, lockedRows) {
           if (lockAge > LOCK_TIMEOUT) {
             console.warn(`⏰ Lock timeout: ${data.rowElementId} (locked by ${existingLock.nickname} for ${Math.floor(lockAge / 1000)}s)`);
             lockedRows.delete(data.rowElementId);
-            // 古いロックを解除通知
-            io.emit('row-unlocked', { id: data.rowElementId, postId: existingLock.postId });
+            // 古いロックを解除通知（スペース内）
+            io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: existingLock.postId });
             // ロック取得を続行
           } else {
             console.log('Row is already locked:', data.rowElementId);
@@ -28,18 +38,20 @@ function setupLockHandlers(socket, io, lockedRows) {
         // rowElementIdからpostIdを抽出（形式: dc-index-displayOrder-postId）
         const postId = data.rowElementId.split('-').pop();
 
-        // ロックを許可
+        // ロックを許可（socket情報を使用、クライアント提供データを信頼しない）
         lockedRows.set(data.rowElementId, {
-          nickname: data.nickname,
-          userId: data.userId,
+          nickname: socket.nickname,
+          userId: socket.userId,
           socketId: socket.id,
           postId: postId,
+          spaceId: spaceId,
           timestamp: Date.now()
         });
-        console.log('Row locked:', data.rowElementId, 'by', data.nickname);
+        console.log('Row locked:', data.rowElementId, 'by', socket.nickname);
 
-        socket.emit('Lock-permitted', { id: data.rowElementId, nickname: data.nickname });
-        socket.broadcast.emit('row-locked', { id: data.rowElementId, nickname: data.nickname });
+        socket.emit('Lock-permitted', { id: data.rowElementId, nickname: socket.nickname });
+        // スペース内の他のクライアントにロック通知
+        socket.to(getSpaceRoom(spaceId)).emit('row-locked', { id: data.rowElementId, nickname: socket.nickname });
       }
     } catch (e) { console.error('Error in demand-lock:', e); }
   });
@@ -47,26 +59,46 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('unlock-row', (data) => {
     try {
       console.log('unlock-row received:', data);
+      // クライアント提供データを信頼しない
+      const spaceId = socket.spaceId;
+
+      if (spaceId == null) {
+        console.error('unlock-row: spaceId is not set');
+        return;
+      }
 
       if (data.rowElementId && lockedRows.has(data.rowElementId)) {
         const lockInfo = lockedRows.get(data.rowElementId);
+
+        // ロックが同じスペースに属しているか検証（スペース隔離）
+        if (String(lockInfo.spaceId) !== String(spaceId)) {
+          console.error(`⚠️ unlock-row: lock ${data.rowElementId} does not belong to space ${spaceId}`);
+          return;
+        }
+
         console.log('Unlocking row:', data.rowElementId, 'previously locked by:', lockInfo.nickname);
 
         lockedRows.delete(data.rowElementId);
-        io.emit('row-unlocked', { id: data.rowElementId, postId: data.postId });
+        // lockInfoから取得したpostIdを使用（クライアント提供データを信頼しない）
+        io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: lockInfo.postId });
       } else if (data.rowElementId && !lockedRows.has(data.rowElementId)) {
         console.warn('Unlock attempted for non-locked row:', data.rowElementId);
       }
     } catch (e) { console.error('Error in unlock-row:', e); }
   });
 
-  // デバッグ用: 現在のロック状態を取得
+  // デバッグ用: 現在のロック状態を取得（スペース内のみ）
   socket.on('get-lock-status', () => {
     try {
-      const lockStatus = Array.from(lockedRows.entries()).map(([rowElementId, lockInfo]) => ({
-        rowElementId,
-        ...lockInfo
-      }));
+      const spaceId = socket.spaceId;
+
+      // 自分のスペース内のロックのみをフィルタリング
+      const lockStatus = Array.from(lockedRows.entries())
+        .filter(([_, lockInfo]) => String(lockInfo.spaceId) === String(spaceId))
+        .map(([rowElementId, lockInfo]) => ({
+          rowElementId,
+          ...lockInfo
+        }));
       socket.emit('lock-status', { locks: lockStatus, count: lockStatus.length });
     } catch (e) { console.error('Error in get-lock-status:', e); }
   });

@@ -1,9 +1,11 @@
 const {
   getPostsByDisplayOrder,
   SaveChatMessage,
-  updateRoomStats,
+  updateSpaceStats,
   saveLog
 } = require('../dbOperation');
+
+const { getSpaceRoom } = require('../socketUtils');
 
 // --- displayOrderの最後尾を取得（ヘルパー）（スペース別） ---
 async function getLastDisplayOrder(spaceId = null) {
@@ -19,39 +21,48 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
 
-  socket.on('chat-message', async ({ nickname, message, userId, roomId, spaceId }) => {
+  socket.on('chat-message', async ({ displayName, message }) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
+      const nickname = socket.nickname; // 本来のニックネーム
+      const userId = socket.userId;
+      const spaceId = socket.spaceId;
+
+      // spaceIdのバリデーション
+      if (spaceId == null) {
+        console.error('chat-message: spaceId is not set');
+        socket.emit('chat-error', { message: 'スペースに参加してください' });
+        return;
+      }
+
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
 
-      // チャットメッセージデータ（ルーム情報とスペース情報も含める）
+      // チャットメッセージデータ
       const messageData = {
-        nickname,
+        nickname, // 本来のニックネーム（記録用）
+        displayName, // 選択された表示名（表示用）
         message,
         userId,
         displayOrder,
-        spaceId, // スペースIDを追加
-        ...(roomId && { roomId })
+        spaceId
       };
 
       // DBにデータ保存
       const p = await SaveChatMessage(messageData);
 
-      // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
-      const responseData = { ...p, roomId };
+      // Socket.IOのルーム機能により、スペース内の全参加者に送信
+      io.to(getSpaceRoom(spaceId)).emit('chat-message', p);
 
-      // メッセージをルームに送信
-      io.to(roomId).emit('chat-message', responseData);
-
-      // ルーム統計をデータベースで更新
-      await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
+      // スペース統計をデータベースで更新
+      await updateSpaceStats(spaceId, { $inc: { totalMessageCount: 1 } });
 
       // ログ記録 - チャットメッセージ
       saveLog({
         userId,
-        userNickname: nickname,
+        userNickname: nickname, // 本来のニックネーム
         action: 'chat-message',
-        detail: { nickname, message, displayOrder, roomId },
+        detail: { nickname, displayName, message, displayOrder },
         spaceId
       });
 

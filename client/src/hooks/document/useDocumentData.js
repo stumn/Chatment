@@ -29,9 +29,9 @@ export const useDocumentData = () => {
     useEffect(() => {
 
         // spaceIdのバリデーション
-        if (!currentSpaceId || isNaN(currentSpaceId)) {
+        if (isNaN(currentSpaceId) || currentSpaceId < 0) {
             const errorMsg = `無効なスペースID: "${spaceId}"\n\n` +
-                `正の整数を指定してください。\n` +
+                `0以上の整数を指定してください。\n` +
                 `例: /document/1/0`;
             console.error('Invalid spaceId:', { provided: spaceId, parsed: currentSpaceId });
             setError(errorMsg);
@@ -63,7 +63,7 @@ export const useDocumentData = () => {
     // === スペース情報取得 ===
     useEffect(() => {
         const fetchSpaceData = async () => {
-            if (!currentSpaceId || isNaN(currentSpaceId)) return;
+            if (isNaN(currentSpaceId) || currentSpaceId < 0) return;
 
             try {
                 const response = await fetch(`/api/spaces/${currentSpaceId}`);

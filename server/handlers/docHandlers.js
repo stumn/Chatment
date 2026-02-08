@@ -12,6 +12,7 @@ const {
   calculateDisplayOrder,
   detectInsertPosition,
   unlockRowByPostId,
+  getSpaceRoom
 } = require('../socketUtils');
 
 // --- ドキュメントハンドラーのセットアップ ---
@@ -19,6 +20,19 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-add', async (payload) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // 本来のニックネーム
+      const displayName = payload.displayName || nickname; // 表示名
+
+      if (spaceId == null) {
+        console.error('doc-add: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_ADD',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
       let prevDisplayOrder = payload.prevDisplayOrder;
@@ -34,28 +48,30 @@ function setupDocHandlers(socket, io, lockedRows) {
       }
 
       // 現在の行の並び順を取得(TODO: DB関連の処理が多いので、docOperationへの移行を検討)
-      const posts = await getPostsByDisplayOrder(payload.spaceId);
+      const posts = await getPostsByDisplayOrder(spaceId);
 
       // DB保存
       const newPost = await addDocRow({
-        nickname: payload.nickname,
+        nickname, // 本来のニックネーム（記録用）
+        displayName, // 選択された表示名（表示用）
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
-        spaceId: payload.spaceId, // spaceIdを追加
-        indentLevel: payload.indentLevel || 0, // インデントレベルを追加
+        spaceId: spaceId,
+        indentLevel: payload.indentLevel || 0,
       });
 
       // 新規行追加の結果を整形
       const data = {
         id: newPost.id,
         nickname: newPost.nickname,
+        displayName: newPost.displayName,
         msg: newPost.msg,
         displayOrder: newPost.displayOrder,
         indentLevel: newPost.indentLevel || 0
       };
 
-      // 新規行追加を全クライアントにブロードキャスト
-      io.emit('doc-add', data);
+      // 新規行追加をスペース内の全クライアントにブロードキャスト
+      io.to(getSpaceRoom(spaceId)).emit('doc-add', data);
 
       // ログ記録 - ドキュメント空行追加
       saveLog({
@@ -63,7 +79,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         userNickname: newPost.nickname,
         action: 'doc-add',
         detail: data,
-        spaceId: payload.spaceId
+        spaceId: spaceId
       });
 
     } catch (e) { console.error(e); }
@@ -71,6 +87,19 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-edit', async (payload) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // 本来のニックネーム
+      const displayName = payload.displayName || nickname; // 表示名
+
+      if (spaceId == null) {
+        console.error('doc-edit: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_EDIT',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
@@ -87,26 +116,28 @@ function setupDocHandlers(socket, io, lockedRows) {
       // 文章内容の変更が無い場合には、編集したとみなさない
       // (これらのチェックはクライアント側でも行うが、念のためサーバー側でも実施)
 
-      // DBに編集を保存
-      const updatedPost = await updatePostData(payload);
+      // DBに編集を保存（displayNameも含める）
+      const updatedPost = await updatePostData({ ...payload, displayName });
 
-      // updatedAtとindentLevelをpayloadに追加してemit
-      io.emit('doc-edit', {
+      // updatedAt、nickname、displayNameをpayloadに追加してスペース内にブロードキャスト
+      io.to(getSpaceRoom(spaceId)).emit('doc-edit', {
         ...payload,
+        nickname,
+        displayName,
         updatedAt: updatedPost.updatedAt,
         indentLevel: updatedPost.indentLevel
       });
 
       // 編集完了時にロック解除
-      unlockRowByPostId(lockedRows, io, payload.id);
+      unlockRowByPostId(lockedRows, io, payload.id, spaceId);
 
-      // ログ記録 - ドキュメント編集 payload の中身？
+      // ログ記録 - ドキュメント編集
       saveLog({
-        userId: null,
-        userNickname: payload.nickname,
+        userId: socket.userId,
+        userNickname: nickname, // 本来のニックネーム
         action: 'doc-edit',
-        detail: payload,
-        spaceId: payload.spaceId
+        detail: { ...payload, nickname, displayName },
+        spaceId: spaceId
       });
 
     } catch (e) { console.error(e); }
@@ -114,15 +145,20 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-reorder', async (payload) => {
     try {
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // socketから取得（偽装防止）
+
+      if (spaceId == null) {
+        console.error('doc-reorder: spaceId is not set');
+        return;
+      }
 
       // 受信データをデストラクション
       const {
-        nickname,
         movedPostId,
         movedPostDisplayOrder,
         prev,
-        next,
-        spaceId
+        next
       } = payload;
 
       // prevとnext から新しいdisplayOrderを計算
@@ -131,11 +167,11 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DB更新
       await updateDisplayOrder(movedPostId, newDisplayOrder);
 
-      // 全クライアントに並び替えをブロードキャスト（スペース別）
+      // スペース内の全クライアントに並び替えをブロードキャスト
       const posts = await getPostsByDisplayOrder(spaceId);
 
       // 並び替え情報に実行者の情報を含めて送信
-      io.emit('doc-reorder', {
+      io.to(getSpaceRoom(spaceId)).emit('doc-reorder', {
         posts: posts,
         reorderInfo: {
           movedPostId: movedPostId,
@@ -144,7 +180,7 @@ function setupDocHandlers(socket, io, lockedRows) {
       });
 
       // 並び替え完了時にロック解除
-      unlockRowByPostId(lockedRows, io, movedPostId);
+      unlockRowByPostId(lockedRows, io, movedPostId, spaceId);
 
       // ログ記録 - ドキュメント行並び替え
       saveLog({
@@ -160,14 +196,20 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-delete', async (payload) => {
     try {
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+
+      if (spaceId == null) {
+        console.error('doc-delete: spaceId is not set');
+        return;
+      }
 
       // 行削除処理
       const deleted = await deleteDocRow(payload.id);
 
-      // 削除結果を全クライアントにブロードキャスト
+      // 削除結果をスペース内の全クライアントにブロードキャスト
       if (deleted) {
 
-        io.emit('doc-delete', { id: payload.id });
+        io.to(getSpaceRoom(spaceId)).emit('doc-delete', { id: payload.id });
 
         // ログ記録 - ドキュメント行削除 IDや名前が取れない？payload?
         saveLog({
@@ -175,7 +217,7 @@ function setupDocHandlers(socket, io, lockedRows) {
           userNickname: null,
           action: 'doc-delete',
           detail: payload,
-          spaceId: payload.spaceId
+          spaceId: spaceId
         });
       }
 
@@ -185,7 +227,18 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-indent-change', async (payload) => {
     try {
       console.log(payload);
-      const { postId, newIndentLevel, nickname, spaceId } = payload;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // socketから取得（偽装防止）
+      const { postId, newIndentLevel } = payload;
+
+      if (spaceId == null) {
+        console.error('doc-indent-change: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_INDENT_CHANGE',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // バリデーション
       if (!postId || newIndentLevel === undefined) {
@@ -202,8 +255,8 @@ function setupDocHandlers(socket, io, lockedRows) {
       console.log(updatedPost);
 
       if (updatedPost) {
-        // 全クライアントにインデント変更をブロードキャスト
-        io.emit('doc-indent-change', {
+        // スペース内の全クライアントにインデント変更をブロードキャスト
+        io.to(getSpaceRoom(spaceId)).emit('doc-indent-change', {
           postId,
           indentLevel: updatedPost.indentLevel
         });

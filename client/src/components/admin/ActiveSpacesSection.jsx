@@ -98,11 +98,6 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
   };
 
   const handleFinishSpace = () => {
-    if (space.id === 0) {
-      alert('デフォルトスペースは終了できません。');
-      return;
-    }
-
     const confirmed = window.confirm(
       `スペース「${space.name}」を終了しますか？\n\n終了後は再び開始することはできませんが、ドキュメントの閲覧は可能です。`
     );

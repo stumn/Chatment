@@ -54,34 +54,48 @@ function removeHeightMemory(heightMemory, id) {
     return heightMemory.map(item => ({ height: item.height, spaceId: item.spaceId }));
 }
 
+// スペースルーム名を取得
+const getSpaceRoom = (spaceId) => String(spaceId);
+
 // ロック管理関連の関数
-function unlockRowByPostId(lockedRows, io, postId) {
+function unlockRowByPostId(lockedRows, io, postId, spaceId = null) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
         // rowElementIdにpostIdが含まれているかチェック
         if (rowElementId.includes(postId)) {
             lockedRows.delete(rowElementId);
 
-            // 全クライアントにロック解除をブロードキャスト
-            io.emit('row-unlocked', { id: rowElementId, postId });
+            // lockInfo内のspaceIdを使用（引数のspaceIdは互換性のため残す）
+            const targetSpaceId = lockInfo.spaceId ?? spaceId;
+            if (targetSpaceId != null) {
+                io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: rowElementId, postId });
+            } else {
+                console.error('⚠️ unlockRowByPostId: spaceId is required for space isolation');
+            }
             break;
         }
     }
 }
 
 // 特定のsocketIdが保持している全てのロックを解放
-function unlockAllBySocketId(lockedRows, io, socketId) {
+function unlockAllBySocketId(lockedRows, io, socketId, spaceId = null) {
     const unlockedRows = [];
 
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
         if (lockInfo.socketId === socketId) {
             lockedRows.delete(rowElementId);
-            unlockedRows.push({ id: rowElementId, postId: lockInfo.postId });
+            // lockInfo内のspaceIdを保持して後で使用
+            unlockedRows.push({ id: rowElementId, postId: lockInfo.postId, spaceId: lockInfo.spaceId });
         }
     }
 
-    // 解放された行を全クライアントに通知
+    // 解放された行をブロードキャスト（各ロックのspaceIdを使用）
     unlockedRows.forEach(row => {
-        io.emit('row-unlocked', row);
+        const targetSpaceId = row.spaceId ?? spaceId;
+        if (targetSpaceId != null) {
+            io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: row.id, postId: row.postId });
+        } else {
+            console.error('⚠️ unlockAllBySocketId: spaceId is required for space isolation');
+        }
     });
 
     return unlockedRows.length;
@@ -93,5 +107,6 @@ module.exports = {
     addHeightMemory,
     removeHeightMemory,
     unlockRowByPostId,
-    unlockAllBySocketId
+    unlockAllBySocketId,
+    getSpaceRoom
 };

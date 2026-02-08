@@ -6,13 +6,20 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocAdd = (payload) => {
     const { userInfo } = useAppStore.getState();
 
-    socket.emit('doc-add', payload);
+    // displayNameのみを送信（nickname, userId, spaceIdはサーバー側のsocketから取得）
+    const { nickname, userId, spaceId, ...rest } = payload;
+    const cleanPayload = {
+      ...rest,
+      displayName: payload.displayName || userInfo?.nickname
+    };
+
+    socket.emit('doc-add', cleanPayload);
 
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-add',
-      detail: payload
+      detail: cleanPayload
     });
   };
 
@@ -77,18 +84,19 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocEdit = (payload) => {
     const { userInfo } = useAppStore.getState();
 
-    // spaceIdを追加
-    const payloadWithSpace = {
-      ...payload,
-      spaceId: userInfo.spaceId
+    // displayNameのみを送信（nickname, userId, spaceIdはサーバー側のsocketから取得）
+    const { nickname, userId, spaceId, ...rest } = payload;
+    const cleanPayload = {
+      ...rest,
+      displayName: payload.displayName || userInfo?.nickname
     };
 
-    socket.emit('doc-edit', payloadWithSpace);
+    socket.emit('doc-edit', cleanPayload);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-edit',
-      detail: payloadWithSpace
+      detail: cleanPayload
     });
   };
 
