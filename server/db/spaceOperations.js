@@ -243,7 +243,7 @@ async function updateSpaceStats(spaceId) {
         await Space.findOneAndUpdate(
             { id: spaceId },
             { $set: updateData },
-            { new: true }
+            { new: true, timestamps: false }
         );
 
         console.log(`📊 [spaceOperation] スペース統計更新: ${spaceId}`, updateData);

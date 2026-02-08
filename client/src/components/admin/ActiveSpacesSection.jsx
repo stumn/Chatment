@@ -56,49 +56,49 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
   // 統計情報をツールチップテキストに整形
   const getStatsTooltip = () => {
     if (!space.userStats) return '';
-    
+
     const stats = space.userStats;
     let tooltip = `詳細統計:\n`;
     tooltip += `- 投稿者数: ${space.participantCount || 0}人\n`;
     tooltip += `- 登録ユーザー: ${stats.totalUsers || 0}人\n`;
-    
+
     if (stats.avgLoginCount) {
       tooltip += `- 平均ログイン: ${stats.avgLoginCount.toFixed(1)}回\n`;
     }
-    
+
     if (stats.statusAgeDistribution && stats.statusAgeDistribution.length > 0) {
       tooltip += `\n属性・年齢層分布:\n`;
       stats.statusAgeDistribution.forEach(item => {
         tooltip += `  ${item._id.status || '不明'} / ${item._id.ageGroup || '不明'}: ${item.count}人\n`;
       });
     }
-    
+
     return tooltip;
   };
 
   // 時間情報をツールチップテキストに整形
   const getTimeTooltip = () => {
     let tooltip = `詳細な時間情報:\n`;
-    
+
     if (space.createdAt) {
       const created = new Date(space.createdAt);
       tooltip += `- 作成日時: ${created.toLocaleString('ja-JP')}\n`;
     }
-    
+
     if (space.updatedAt) {
       const updated = new Date(space.updatedAt);
       tooltip += `- 最終更新: ${updated.toLocaleString('ja-JP')}\n`;
     }
-    
+
     if (space.lastActivity) {
       const lastAct = new Date(space.lastActivity);
       tooltip += `- 最後の投稿: ${lastAct.toLocaleString('ja-JP')}\n`;
     }
-    
+
     if (space.totalMessageCount !== undefined) {
       tooltip += `- 総投稿数: ${space.totalMessageCount}件`;
     }
-    
+
     return tooltip;
   };
 
@@ -171,8 +171,8 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
       </td>
 
       <td className="px-3 py-2 !whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[100px] text-left">
-        <div 
-          className="flex flex-col cursor-help" 
+        <div
+          className="flex flex-col cursor-help"
           title={getStatsTooltip()}
         >
           <span className="font-medium">{space.participantCount || 0} 人</span>
@@ -189,7 +189,7 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
           className="cursor-help"
           title={getTimeTooltip()}
         >
-          {formatUpdatedAt(space.updatedAt)}
+          {formatUpdatedAt(space.lastActivity)}
         </div>
       </td>
 
