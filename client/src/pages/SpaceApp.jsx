@@ -112,6 +112,14 @@ function SpaceApp() {
             <div className="font-system bg-white px-8 py-6 rounded-lg shadow-md max-w-4xl mx-auto my-6"
                 style={{ width: `${width}px` }}>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Chatment スペース管理</h2>
+                
+                {/* データベースから取得した真正な統計情報を表示 */}
+                <div className="mb-4 text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                    <span>💡 表示されている統計情報は、DBから取得した最新のデータです。</span>
+                    <br/>
+                    <span>ユーザー数や日時にカーソルを合わせると、詳細な統計情報が表示されます。</span>
+                    
+                </div>
 
                 {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
                 <SpaceMessageModal

@@ -246,10 +246,6 @@ module.exports = {
     saveUser,
     getPastLogs,
     processXlogs,
-    organizeCreatedAt,
     organizeLogs,
-    getUserLoginHistory,
-    getActiveUsers,
-    getUserSpaceHistory,
     getSpaceUserStats
 };
