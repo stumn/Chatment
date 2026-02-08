@@ -23,7 +23,7 @@ function initializeSocketHandlers(io) {
     // ログインハンドラー
     socket.on('login', async (userInfo) => {
       await handleLogin(socket, userInfo);
-      
+
       // ログイン後にuserSocketsにソケットを追加（userIdが設定されている場合のみ）
       if (socket.userId) {
         userSockets.set(socket.userId, socket);
