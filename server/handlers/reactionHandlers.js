@@ -26,7 +26,7 @@ function setupReactionHandlers(socket, io) {
 
         // スペース内にブロードキャスト
         const spaceId = reactionResult.spaceId || socket.spaceId;
-        if (spaceId) {
+        if (spaceId != null) {
           io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
         } else {
           io.emit(reactionType, broadcastData);

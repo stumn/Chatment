@@ -30,10 +30,10 @@ function initializeSocketHandlers(io) {
       }
 
       // スペースに参加（Socket.IOルーム機能を使用）
-      const spaceId = userInfo.spaceId;
-      if (spaceId) {
+      // handleLoginで設定されたsocket.spaceIdを信頼
+      const spaceId = socket.spaceId;
+      if (spaceId != null) {
         socket.join(getSpaceRoom(spaceId));
-        socket.spaceId = spaceId;
 
         // スペース参加者を管理（userIdが設定されている場合のみ）
         if (socket.userId) {
@@ -65,7 +65,7 @@ function initializeSocketHandlers(io) {
       const heightArray = removeHeightMemory(heightMemory, socket.id);
 
       // スペース内の参加者の高さのみをフィルタリングしてブロードキャスト
-      if (spaceId) {
+      if (spaceId != null) {
         const spaceHeightArray = heightArray.filter(item => item.spaceId === spaceId);
         io.to(getSpaceRoom(spaceId)).emit('heightChange', spaceHeightArray);
       }
