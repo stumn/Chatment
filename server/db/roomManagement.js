@@ -48,7 +48,7 @@ async function updateRoomStats(roomId, updates = {}) {
         const updatedRoom = await Room.findOneAndUpdate(
             { id: roomId },
             { $set: updateData },
-            { new: true, lean: true }
+            { new: true, lean: true, timestamps: false }
         );
 
         return updatedRoom;
