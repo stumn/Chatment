@@ -118,9 +118,9 @@ export default function useSocket() {
 
     // クリーンアップ
     return () => {
-      // ループでイベントリスナーを解除
-      Object.keys(eventHandlers).forEach(event => {
-        socket.off(event);
+      // ループでイベントリスナーを解除（このフックで登録したハンドラーのみを解除）
+      Object.entries(eventHandlers).forEach(([event, handler]) => {
+        socket.off(event, handler);
       });
       isListenersRegisteredRef.current = false;
     };
