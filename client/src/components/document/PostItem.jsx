@@ -1,4 +1,3 @@
-import React from 'react';
 import PostMeta from '../shared/ui/PostMeta';
 
 /**
