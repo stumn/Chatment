@@ -21,7 +21,7 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-add', async (payload) => {
     try {
       // socket保存情報を使用（セキュリティと効率性の向上）
-      const spaceId = payload.spaceId ?? socket.spaceId;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
       const nickname = socket.nickname; // 本来のニックネーム
       const displayName = payload.displayName || nickname; // 表示名
 
@@ -88,7 +88,7 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-edit', async (payload) => {
     try {
       // socket保存情報を使用（セキュリティと効率性の向上）
-      const spaceId = payload.spaceId ?? socket.spaceId;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
       const nickname = socket.nickname; // 本来のニックネーム
       const displayName = payload.displayName || nickname; // 表示名
 
@@ -145,7 +145,8 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-reorder', async (payload) => {
     try {
-      const spaceId = payload.spaceId ?? socket.spaceId;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // socketから取得（偽装防止）
 
       if (spaceId == null) {
         console.error('doc-reorder: spaceId is not set');
@@ -154,7 +155,6 @@ function setupDocHandlers(socket, io, lockedRows) {
 
       // 受信データをデストラクション
       const {
-        nickname,
         movedPostId,
         movedPostDisplayOrder,
         prev,
@@ -196,7 +196,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-delete', async (payload) => {
     try {
-      const spaceId = payload.spaceId ?? socket.spaceId;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
 
       if (spaceId == null) {
         console.error('doc-delete: spaceId is not set');
@@ -227,8 +227,9 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-indent-change', async (payload) => {
     try {
       console.log(payload);
-      const spaceId = payload.spaceId ?? socket.spaceId;
-      const { postId, newIndentLevel, nickname } = payload;
+      const spaceId = socket.spaceId; // クライアント提供データを信頼しない
+      const nickname = socket.nickname; // socketから取得（偽装防止）
+      const { postId, newIndentLevel } = payload;
 
       if (spaceId == null) {
         console.error('doc-indent-change: spaceId is not set');

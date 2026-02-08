@@ -7,7 +7,8 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('demand-lock', async (data) => {
     try {
       console.log('demand-lock received:', data);
-      const spaceId = data.spaceId ?? socket.spaceId;
+      // セキュリティのためsocket.spaceIdのみを使用（クライアント提供データを信頼しない）
+      const spaceId = socket.spaceId;
 
       if (spaceId == null) {
         console.error('demand-lock: spaceId is not set');

@@ -12,8 +12,18 @@ function setupReactionHandlers(socket, io) {
 
   reactionTypes.forEach(reactionType => {
 
-    socket.on(reactionType, async ({ postId, userSocketId, nickname }) => {
+    socket.on(reactionType, async ({ postId }) => {
       try {
+        // socket情報を使用（偽装防止）
+        const userSocketId = socket.id;
+        const nickname = socket.nickname;
+        const spaceId = socket.spaceId;
+
+        // spaceIdのバリデーション
+        if (spaceId == null) {
+          console.error(`${reactionType}: spaceId is not set`);
+          return;
+        }
 
         // リアクション処理
         const reactionResult = await processPostReaction(postId, userSocketId, nickname, reactionType);
@@ -24,19 +34,20 @@ function setupReactionHandlers(socket, io) {
           return;
         }
 
+        // 投稿が同じスペースに属しているかを検証（スペース隔離）
+        if (reactionResult.spaceId !== spaceId) {
+          console.error(`⚠️ ${reactionType}: post ${postId} does not belong to space ${spaceId}`);
+          return;
+        }
+
         // ブロードキャスト用データの作成
         const broadcastData =
           reactionType === 'positive'
             ? { id: reactionResult.id, positive: reactionResult.reaction, userHasVotedPositive: reactionResult.userHasReacted }
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
-        // スペース内にブロードキャスト（spaceIdは必須）
-        const spaceId = reactionResult.spaceId ?? socket.spaceId;
-        if (spaceId != null) {
-          io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
-        } else {
-          console.error('⚠️ Reaction handler: spaceId is required for space isolation');
-        }
+        // スペース内にブロードキャスト
+        io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
 
         // ログ記録 - リアクション
         saveLog({

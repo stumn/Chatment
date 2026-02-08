@@ -84,14 +84,21 @@ function initializeSocketHandlers(io) {
       // スペースから退出
       if (spaceId != null && spaceParticipants.has(spaceId)) {
         spaceParticipants.get(spaceId).delete(socket.userId);
+        const participantCount = spaceParticipants.get(spaceId).size;
 
         // スペース内の他の参加者に退出を通知
         io.to(getSpaceRoom(spaceId)).emit('user-left', {
           spaceId: spaceId,
           userId: socket.userId,
           nickname: socket.nickname,
-          participantCount: spaceParticipants.get(spaceId).size
+          participantCount: participantCount
         });
+
+        // 最後の参加者が退出した場合はメモリから削除（メモリリーク防止）
+        if (participantCount === 0) {
+          spaceParticipants.delete(spaceId);
+          console.log(`🗑️ [server] スペース ${spaceId} の参加者リストを削除（空）`);
+        }
 
         console.log(`👋 [server] ${socket.nickname || socket.id} がスペース ${spaceId} から退出`);
       }

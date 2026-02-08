@@ -22,17 +22,29 @@ router.get('/posts', async (req, res) => {
     // クエリパラメータからspaceIdを取得
     const { spaceId } = req.query;
 
-    // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
-    const posts = await getPostsByDisplayOrder(spaceId != null ? parseInt(spaceId) : null);
+    // spaceIdのバリデーション（NaN防止）
+    let parsedSpaceId = null;
+    if (spaceId != null) {
+      parsedSpaceId = parseInt(spaceId);
+      if (!Number.isInteger(parsedSpaceId) || isNaN(parsedSpaceId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid spaceId parameter'
+        });
+      }
+    }
 
-    console.log(`Posts API: Retrieved ${posts.length} posts${spaceId != null ? ` for space ${spaceId}` : ''}`);
+    // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
+    const posts = await getPostsByDisplayOrder(parsedSpaceId);
+
+    console.log(`Posts API: Retrieved ${posts.length} posts${parsedSpaceId != null ? ` for space ${parsedSpaceId}` : ''}`);
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
       posts: posts,
       count: posts.length,
-      spaceId: spaceId ?? null
+      spaceId: parsedSpaceId
     });
   } catch (error) {
     console.error('Posts API error:', error);

@@ -28,6 +28,13 @@ function setupChatHandlers(socket, io) {
       const userId = socket.userId;
       const spaceId = socket.spaceId;
 
+      // spaceIdのバリデーション
+      if (spaceId == null) {
+        console.error('chat-message: spaceId is not set');
+        socket.emit('chat-error', { message: 'スペースに参加してください' });
+        return;
+      }
+
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
 
