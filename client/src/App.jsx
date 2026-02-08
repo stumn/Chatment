@@ -1,7 +1,8 @@
 // File: client/src/App.jsx
+
 // スペースID必須のチャットアプリケーション
-// /spaces/:spaceId でChatApp、/document/:spaceId/:docId で統一ドキュメント表示
-// / は /admin にリダイレクト
+// /spaces/:spaceId でChatApp、
+// /document/:spaceId/:docId で統一ドキュメント表示
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
