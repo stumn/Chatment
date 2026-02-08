@@ -3,7 +3,6 @@
 import React, { useMemo } from 'react';
 import usePostStore from '../../store/spaces/postStore';
 import useAppStore from '../../store/spaces/appStore';
-import useSocket from '../../hooks/shared/useSocket';
 import SidebarClosed from './sidebar/SidebarClosed';
 import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';

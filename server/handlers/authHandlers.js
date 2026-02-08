@@ -12,7 +12,7 @@ async function handleLogin(socket, userInfo) {
   try {
 
     // nickname, status, ageGroup, spaceIdが必須
-    if (!nickname || !status || !ageGroup || !spaceId) {
+    if (!nickname || !status || !ageGroup || spaceId == null) {
       const errorMsg = 'ログイン情報が不完全です。nickname, status, ageGroup, spaceIdが必要です。';
       console.error(errorMsg, userInfo);
       socket.emit('login_error', {
@@ -21,7 +21,7 @@ async function handleLogin(socket, userInfo) {
           nickname: !nickname,
           status: !status,
           ageGroup: !ageGroup,
-          spaceId: !spaceId
+          spaceId: spaceId == null
         }
       });
       return;
@@ -63,7 +63,7 @@ function setupHistoryHandlers(socket) {
     try {
       // socket.spaceIdを使用して最新のスペースIDを参照
       const currentSpaceId = socket.spaceId;
-      if (!currentSpaceId) {
+      if (currentSpaceId == null) {
         console.warn('⚠️ fetch-history: spaceIdが未設定です');
         socket.emit('history', { messages: [], spaceId: null });
         return;
@@ -78,7 +78,7 @@ function setupHistoryHandlers(socket) {
     try {
       // socket.spaceIdを使用して最新のスペースIDを参照
       const currentSpaceId = socket.spaceId;
-      if (!currentSpaceId) {
+      if (currentSpaceId == null) {
         console.warn('⚠️ fetch-docs: spaceIdが未設定です');
         socket.emit('docs', { docs: [], spaceId: null });
         return;

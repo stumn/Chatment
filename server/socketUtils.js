@@ -64,9 +64,10 @@ function unlockRowByPostId(lockedRows, io, postId, spaceId = null) {
         if (rowElementId.includes(postId)) {
             lockedRows.delete(rowElementId);
 
-            // spaceIdが必須（スペースレベルの分離を維持）
-            if (spaceId != null) {
-                io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: rowElementId, postId });
+            // lockInfo内のspaceIdを使用（引数のspaceIdは互換性のため残す）
+            const targetSpaceId = lockInfo.spaceId ?? spaceId;
+            if (targetSpaceId != null) {
+                io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: rowElementId, postId });
             } else {
                 console.error('⚠️ unlockRowByPostId: spaceId is required for space isolation');
             }
@@ -82,14 +83,16 @@ function unlockAllBySocketId(lockedRows, io, socketId, spaceId = null) {
     for (const [rowElementId, lockInfo] of lockedRows.entries()) {
         if (lockInfo.socketId === socketId) {
             lockedRows.delete(rowElementId);
-            unlockedRows.push({ id: rowElementId, postId: lockInfo.postId });
+            // lockInfo内のspaceIdを保持して後で使用
+            unlockedRows.push({ id: rowElementId, postId: lockInfo.postId, spaceId: lockInfo.spaceId });
         }
     }
 
-    // 解放された行をブロードキャスト（spaceIdが必須）
+    // 解放された行をブロードキャスト（各ロックのspaceIdを使用）
     unlockedRows.forEach(row => {
-        if (spaceId != null) {
-            io.to(getSpaceRoom(spaceId)).emit('row-unlocked', row);
+        const targetSpaceId = row.spaceId ?? spaceId;
+        if (targetSpaceId != null) {
+            io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: row.id, postId: row.postId });
         } else {
             console.error('⚠️ unlockAllBySocketId: spaceId is required for space isolation');
         }

@@ -168,27 +168,6 @@ router.put('/spaces/:spaceId', async (req, res) => {
   }
 });
 
-// スペース別ルーム一覧取得
-router.get('/spaces/:spaceId/rooms', async (req, res) => {
-  try {
-    const spaceId = parseInt(req.params.spaceId); // 整数に変換
-    const rooms = await getRoomsBySpace(spaceId);
-
-    res.json({
-      success: true,
-      spaceId: spaceId,
-      rooms: rooms,
-      count: rooms.length
-    });
-  } catch (error) {
-    console.error('Space rooms API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
 // スペース別投稿取得
 router.get('/spaces/:spaceId/posts', async (req, res) => {
   try {

@@ -14,7 +14,7 @@ function setupUIHandlers(socket, io, heightMemory) {
       const spaceHeightArray = heightArray.filter(item => item.spaceId === spaceId);
       io.to(getSpaceRoom(spaceId)).emit('heightChange', spaceHeightArray);
     } else {
-      io.emit('heightChange', heightArray);
+      console.error('⚠️ heightChange handler: spaceId is required for space isolation');
     }
 
   });

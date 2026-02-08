@@ -82,7 +82,7 @@ function initializeSocketHandlers(io) {
       }
 
       // スペースから退出
-      if (spaceId && spaceParticipants.has(spaceId)) {
+      if (spaceId != null && spaceParticipants.has(spaceId)) {
         spaceParticipants.get(spaceId).delete(socket.userId);
 
         // スペース内の他の参加者に退出を通知

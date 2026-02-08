@@ -76,6 +76,8 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
 
     return {
         id: post.id,
+        userId: post.userId,
+        spaceId: post.spaceId,
         reaction: post[reactionType].length,
         userHasReacted: post[reactionType].some(p => p.userSocketId === userSocketId),
     };

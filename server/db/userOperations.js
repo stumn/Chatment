@@ -7,7 +7,7 @@ const { handleErrors } = require('../utils');
 async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
     try {
         // スペースIDが提供されていない場合はエラー
-        if (!spaceId) {
+        if (spaceId == null) {
             throw new Error('スペースIDが指定されていません');
         }
 
@@ -80,7 +80,7 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
 // --- ログイン時・過去ログをDBから取得（スペース別） ---
 async function getPastLogs(spaceId = null) {
     try {
-        if (!spaceId) {
+        if (spaceId == null) {
             throw new Error('スペースIDが指定されていません');
         }
 
@@ -105,6 +105,7 @@ function organizeLogs(post, mySocketId = null) {
 
     const data = {
         nickname: post.nickname,
+        displayName: post.displayName || post.nickname,
         msg: post.msg,
         userId: post.userId,
         spaceId: post.spaceId,

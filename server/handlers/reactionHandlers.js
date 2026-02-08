@@ -24,12 +24,12 @@ function setupReactionHandlers(socket, io) {
             ? { id: reactionResult.id, positive: reactionResult.reaction, userHasVotedPositive: reactionResult.userHasReacted }
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
-        // スペース内にブロードキャスト
+        // スペース内にブロードキャスト（spaceIdは必須）
         const spaceId = reactionResult.spaceId || socket.spaceId;
         if (spaceId != null) {
           io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
         } else {
-          io.emit(reactionType, broadcastData);
+          console.error('⚠️ Reaction handler: spaceId is required for space isolation');
         }
 
         // ログ記録 - リアクション
