@@ -294,6 +294,26 @@ const DocRow = ({ data, index, style }) => {
                             </div>
                         )}
 
+                        {/* リアクション数の表示（テキストとボタンの間に配置） */}
+                        {!isBlank && (message?.positive > 0 || message?.negative > 0) && (
+                            <div className="reaction-display" style={{
+                                display: 'inline-flex',
+                                gap: '4px',
+                                fontSize: '11px',
+                                color: '#666',
+                                marginLeft: '8px',
+                                marginRight: '4px',
+                                verticalAlign: 'middle'
+                            }}>
+                                {message.positive > 0 && (
+                                    <span style={{ color: '#2e7d32' }}>↑{message.positive}</span>
+                                )}
+                                {message.negative > 0 && (
+                                    <span style={{ color: '#c62828' }}>↓{message.negative}</span>
+                                )}
+                            </div>
+                        )}
+
                         {/* 他のユーザーがロック中は操作ボタンを非表示 */}
                         {!lockedByOthers && (
                             <ActionButtons

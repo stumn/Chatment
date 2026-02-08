@@ -1,4 +1,3 @@
-import React from 'react';
 import AddSpaceModal from './AddSpaceModal';
 import EditSpaceModal from './EditSpaceModal';
 /**

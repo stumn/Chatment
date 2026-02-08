@@ -90,8 +90,12 @@ function setupDocHandlers(socket, io, lockedRows) {
       // DBに編集を保存
       const updatedPost = await updatePostData(payload);
 
-      // updatedAtをpayloadに追加してemit
-      io.emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+      // updatedAtとindentLevelをpayloadに追加してemit
+      io.emit('doc-edit', {
+        ...payload,
+        updatedAt: updatedPost.updatedAt,
+        indentLevel: updatedPost.indentLevel
+      });
 
       // 編集完了時にロック解除
       unlockRowByPostId(lockedRows, io, payload.id);

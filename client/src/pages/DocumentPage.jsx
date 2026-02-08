@@ -1,4 +1,3 @@
-import React from 'react';
 import DocumentHeader from '../components/document/DocumentHeader.jsx';
 import DocumentContent from '../components/document/DocumentContent.jsx';
 import { useDocumentData } from '../hooks/document/useDocumentData.js';

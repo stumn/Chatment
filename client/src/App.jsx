@@ -1,9 +1,10 @@
 // File: client/src/App.jsx
-// スペースID必須のチャットアプリケーション
-// /spaces/:spaceId でChatApp、/document/:spaceId/:docId で統一ドキュメント表示
-// / は /admin にリダイレクト
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// スペースID必須のチャットアプリケーション
+// /spaces/:spaceId でChatApp、
+// /document/:spaceId/:docId で統一ドキュメント表示
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 
 // 遅延読み込みでコンポーネントを分割
@@ -32,8 +33,6 @@ function App() {
           {/* ドキュメント表示 - 統一エンドポイント（スペースID + ドキュメントID） */}
           <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
 
-          {/* ルートアクセスは管理画面にリダイレクト */}
-          {/* <Route path="/" element={<Navigate to="/admin" replace />} /> */}
         </Routes>
       </Suspense>
     </Router>

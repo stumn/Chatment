@@ -1,6 +1,5 @@
 // File: client/src/AfterLogin.jsx
 
-import { useState, useCallback } from 'react';
 import ResizablePanels from './ResizablePanels'
 import InputForm from './chat/InputForm'
 import Telomere from './Telomere';
@@ -17,14 +16,6 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
 
     // サイドバーの状態管理
     const { isTocOpen, toggleToc } = useAppStore();
-
-    // スクロール関数を保持するための状態
-    const [scrollToItemById, setScrollToItemById] = useState(null);
-
-    // setScrollToItemByIdをメモ化して再生成を防ぐ
-    const handleScrollToItem = useCallback((scrollFunc) => {
-        setScrollToItemById(() => scrollFunc);
-    }, []);
 
     // after-login-containerの幅・高さを設定(sizeStore から取得)
     const CONTAINER_1_WIDTH = sizeStore((state) => state.width);
@@ -53,7 +44,7 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
                 transition: 'margin-left 0.3s ease' // スムーズな移動
             }}>
 
-            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} userInfo={userInfo} spaceId={spaceId} scrollToItemById={scrollToItemById} />
+            <Sidebar isOpen={isTocOpen} onToggle={toggleToc} userInfo={userInfo} spaceId={spaceId} />
 
             <div
                 id="resizable-container"
@@ -67,7 +58,7 @@ export default function AfterLogin({ heightArray, appController, userInfo, space
                     transition: 'width 0.3s ease' // スムーズな幅変更
                 }}>
 
-                <ResizablePanels appController={appController} spaceId={spaceId} onScrollToItem={handleScrollToItem} />
+                <ResizablePanels appController={appController} spaceId={spaceId} />
 
                 <Telomere heightArray={filteredHeightArray} CONTAINER_HEIGHT={CONTAINER_2_HEIGHT} />
 

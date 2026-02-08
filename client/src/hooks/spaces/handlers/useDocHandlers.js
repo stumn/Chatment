@@ -14,6 +14,11 @@ export const useDocHandlers = (emitLog) => {
 
   const handleDocEdit = (payload) => {
     updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
+
+    // 見出し行（#で始まる行）の場合、インデントレベルも更新
+    if (payload.indentLevel !== undefined) {
+      updateIndentLevel(payload.id, payload.indentLevel);
+    }
   };
 
   const handleDocReorder = (payload) => {
