@@ -66,7 +66,7 @@ function initializeSocketHandlers(io) {
 
       // スペース内の参加者の高さのみをフィルタリングしてブロードキャスト
       if (spaceId != null) {
-        const spaceHeightArray = heightArray.filter(item => item.spaceId === spaceId);
+        const spaceHeightArray = heightArray.filter(item => String(item.spaceId) === String(spaceId));
         io.to(getSpaceRoom(spaceId)).emit('heightChange', spaceHeightArray);
       }
 

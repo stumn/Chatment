@@ -16,7 +16,7 @@ function setupLockHandlers(socket, io, lockedRows) {
         return;
       }
 
-      if (data.rowElementId && data.nickname) {
+      if (data.rowElementId) {
         if (lockedRows.has(data.rowElementId)) {
           const existingLock = lockedRows.get(data.rowElementId);
           const lockAge = Date.now() - existingLock.timestamp;
@@ -38,20 +38,20 @@ function setupLockHandlers(socket, io, lockedRows) {
         // rowElementIdからpostIdを抽出（形式: dc-index-displayOrder-postId）
         const postId = data.rowElementId.split('-').pop();
 
-        // ロックを許可
+        // ロックを許可（socket情報を使用、クライアント提供データを信頼しない）
         lockedRows.set(data.rowElementId, {
-          nickname: data.nickname,
-          userId: data.userId,
+          nickname: socket.nickname,
+          userId: socket.userId,
           socketId: socket.id,
           postId: postId,
           spaceId: spaceId,
           timestamp: Date.now()
         });
-        console.log('Row locked:', data.rowElementId, 'by', data.nickname);
+        console.log('Row locked:', data.rowElementId, 'by', socket.nickname);
 
-        socket.emit('Lock-permitted', { id: data.rowElementId, nickname: data.nickname });
+        socket.emit('Lock-permitted', { id: data.rowElementId, nickname: socket.nickname });
         // スペース内の他のクライアントにロック通知
-        socket.to(getSpaceRoom(spaceId)).emit('row-locked', { id: data.rowElementId, nickname: data.nickname });
+        socket.to(getSpaceRoom(spaceId)).emit('row-locked', { id: data.rowElementId, nickname: socket.nickname });
       }
     } catch (e) { console.error('Error in demand-lock:', e); }
   });
@@ -87,13 +87,18 @@ function setupLockHandlers(socket, io, lockedRows) {
     } catch (e) { console.error('Error in unlock-row:', e); }
   });
 
-  // デバッグ用: 現在のロック状態を取得
+  // デバッグ用: 現在のロック状態を取得（スペース内のみ）
   socket.on('get-lock-status', () => {
     try {
-      const lockStatus = Array.from(lockedRows.entries()).map(([rowElementId, lockInfo]) => ({
-        rowElementId,
-        ...lockInfo
-      }));
+      const spaceId = socket.spaceId;
+
+      // 自分のスペース内のロックのみをフィルタリング
+      const lockStatus = Array.from(lockedRows.entries())
+        .filter(([_, lockInfo]) => String(lockInfo.spaceId) === String(spaceId))
+        .map(([rowElementId, lockInfo]) => ({
+          rowElementId,
+          ...lockInfo
+        }));
       socket.emit('lock-status', { locks: lockStatus, count: lockStatus.length });
     } catch (e) { console.error('Error in get-lock-status:', e); }
   });
