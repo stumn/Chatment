@@ -22,7 +22,10 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-add', async (payload) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
       const spaceId = payload.spaceId || socket.spaceId;
+      const nickname = socket.nickname; // 本来のニックネーム
+      const displayName = payload.displayName || nickname; // 表示名
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
       let prevDisplayOrder = payload.prevDisplayOrder;
@@ -42,17 +45,19 @@ function setupDocHandlers(socket, io, lockedRows) {
 
       // DB保存
       const newPost = await addDocRow({
-        nickname: payload.nickname,
+        nickname, // 本来のニックネーム（記録用）
+        displayName, // 選択された表示名（表示用）
         msg: payload.msg || '',
         displayOrder: detectInsertPosition(prevDisplayOrder, posts),
-        spaceId: spaceId, // spaceIdを追加
-        indentLevel: payload.indentLevel || 0, // インデントレベルを追加
+        spaceId: spaceId,
+        indentLevel: payload.indentLevel || 0,
       });
 
       // 新規行追加の結果を整形
       const data = {
         id: newPost.id,
         nickname: newPost.nickname,
+        displayName: newPost.displayName,
         msg: newPost.msg,
         displayOrder: newPost.displayOrder,
         indentLevel: newPost.indentLevel || 0
@@ -75,7 +80,10 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-edit', async (payload) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
       const spaceId = payload.spaceId || socket.spaceId;
+      const nickname = socket.nickname; // 本来のニックネーム
+      const displayName = payload.displayName || nickname; // 表示名
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
@@ -92,21 +100,26 @@ function setupDocHandlers(socket, io, lockedRows) {
       // 文章内容の変更が無い場合には、編集したとみなさない
       // (これらのチェックはクライアント側でも行うが、念のためサーバー側でも実施)
 
-      // DBに編集を保存
-      const updatedPost = await updatePostData(payload);
+      // DBに編集を保存（displayNameも含める）
+      const updatedPost = await updatePostData({ ...payload, displayName });
 
-      // updatedAtをpayloadに追加してスペース内にブロードキャスト
-      io.to(getSpaceRoom(spaceId)).emit('doc-edit', { ...payload, updatedAt: updatedPost.updatedAt });
+      // updatedAt、nickname、displayNameをpayloadに追加してスペース内にブロードキャスト
+      io.to(getSpaceRoom(spaceId)).emit('doc-edit', {
+        ...payload,
+        nickname,
+        displayName,
+        updatedAt: updatedPost.updatedAt
+      });
 
       // 編集完了時にロック解除
       unlockRowByPostId(lockedRows, io, payload.id, spaceId);
 
-      // ログ記録 - ドキュメント編集 payload の中身？
+      // ログ記録 - ドキュメント編集
       saveLog({
-        userId: null,
-        userNickname: payload.nickname,
+        userId: socket.userId,
+        userNickname: nickname, // 本来のニックネーム
         action: 'doc-edit',
-        detail: payload,
+        detail: { ...payload, nickname, displayName },
         spaceId: spaceId
       });
 

@@ -13,7 +13,9 @@ export const useDocHandlers = (emitLog) => {
   };
 
   const handleDocEdit = (payload) => {
-    updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
+    // displayNameを優先的に使用し、なければnicknameを使用
+    const displayName = payload.displayName || payload.nickname;
+    updatePost(payload.id, payload.newMsg, displayName, payload.updatedAt);
   };
 
   const handleDocReorder = (payload) => {

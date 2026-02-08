@@ -17,7 +17,7 @@ async function getPostsByDisplayOrder(spaceId = null) {
 }
 
 // --- 新規行追加 ---
-async function addDocRow({ nickname, msg = '', displayOrder, spaceId, indentLevel = 0 }) {
+async function addDocRow({ nickname, displayName, msg = '', displayOrder, spaceId, indentLevel = 0 }) {
     try {
         let order = displayOrder;
         if (!Number.isFinite(order)) {
@@ -27,6 +27,7 @@ async function addDocRow({ nickname, msg = '', displayOrder, spaceId, indentLeve
         const now = new Date();
         const newPost = await Post.create({
             nickname,
+            displayName, // 表示名を追加
             msg,
             displayOrder: order,
             spaceId, // spaceIdを追加

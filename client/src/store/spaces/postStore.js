@@ -33,7 +33,7 @@ const usePostStore = create((set, get) => ({
         }),
 
     // 更新
-    updatePost: (id, newMsg, nickname, updatedAt) =>
+    updatePost: (id, newMsg, displayName, updatedAt) =>
         set((state) => {
 
             // IDが指定されていない場合はエラー
@@ -46,7 +46,7 @@ const usePostStore = create((set, get) => ({
                 newChangeStates.set(id, {
                     type: 'modified',
                     timestamp: new Date(),
-                    userNickname: nickname || existingPost.nickname || 'Unknown'
+                    userNickname: displayName || existingPost.displayName || existingPost.nickname || 'Unknown'
                 });
             }
 
@@ -56,7 +56,7 @@ const usePostStore = create((set, get) => ({
                         ? {
                             ...m,
                             msg: newMsg !== undefined ? newMsg : m.msg,
-                            ...(nickname ? { nickname } : {}),
+                            ...(displayName ? { displayName } : {}),
                             ...(updatedAt ? { updatedAt } : {})
                         }
                         : m

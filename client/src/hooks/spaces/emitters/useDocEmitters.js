@@ -4,21 +4,22 @@ import { validUserId } from '../socketUtils/socketUtils';
 export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocAdd = (payload) => {
-    // const { userInfo } = useAppStore.getState();
+    const { userInfo } = useAppStore.getState();
 
-    // spaceIdを追加(不要説)　ここでuserInfoを取得するから、元のpayloadにuser情報を載せないという手もある
-    const payloadWithSpace = {
-      ...payload,
-      // spaceId: userInfo.spaceId
+    // displayNameのみを送信（nickname, userId, spaceIdはサーバー側のsocketから取得）
+    const { nickname, userId, spaceId, ...rest } = payload;
+    const cleanPayload = {
+      ...rest,
+      displayName: payload.displayName || userInfo?.nickname
     };
 
-    socket.emit('doc-add', payloadWithSpace);
+    socket.emit('doc-add', cleanPayload);
 
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-add',
-      detail: payloadWithSpace
+      detail: cleanPayload
     });
   };
 
@@ -83,18 +84,19 @@ export const useDocEmitters = (socket, emitLog) => {
   const emitDocEdit = (payload) => {
     const { userInfo } = useAppStore.getState();
 
-    // spaceIdを追加
-    const payloadWithSpace = {
-      ...payload,
-      spaceId: userInfo.spaceId
+    // displayNameのみを送信（nickname, userId, spaceIdはサーバー側のsocketから取得）
+    const { nickname, userId, spaceId, ...rest } = payload;
+    const cleanPayload = {
+      ...rest,
+      displayName: payload.displayName || userInfo?.nickname
     };
 
-    socket.emit('doc-edit', payloadWithSpace);
+    socket.emit('doc-edit', cleanPayload);
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-edit',
-      detail: payloadWithSpace
+      detail: cleanPayload
     });
   };
 

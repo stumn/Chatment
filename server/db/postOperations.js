@@ -68,7 +68,10 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
 //  --- Doc 行編集 ---
 async function updatePostData(payload) {
 
-    const updateObj = { msg: payload.newMsg };
+    const updateObj = {
+        msg: payload.newMsg,
+        ...(payload.displayName && { displayName: payload.displayName })
+    };
 
     // 受信したデータにニックネームがあれば更新
     if (payload.nickname) updateObj.nickname = payload.nickname;

@@ -14,7 +14,7 @@ const PostMeta = ({ post }) => {
             opacity-0 invisible group-hover:opacity-100 group-hover:visible
             transition-all duration-150 pointer-events-none
         ">
-            <div>{post.nickname || 'Unknown'}さん</div>
+            <div>{post.displayName || post.nickname || 'Unknown'}さん</div>
             <div>{post.createdAt ? new Date(post.createdAt).toLocaleString('ja-JP') : '時刻不明'}</div>
         </div>
     );
