@@ -51,8 +51,7 @@ app.get('*', (req, res, next) => {
 // Socket.IOハンドラー
 const { initializeSocketHandlers } = require('./socketHandlers');
 const {
-  initializeDefaultSpace,
-  migrateExistingDataToSpace
+  initializeDefaultSpace
 } = require('./dbOperation');
 
 initializeSocketHandlers(io);
