@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * 投稿メタ情報（ホバー時表示）
  * 

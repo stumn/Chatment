@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * 水平線コンポーネント
  * @param {Object} props - プロパティ

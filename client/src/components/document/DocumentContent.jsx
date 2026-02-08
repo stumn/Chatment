@@ -1,4 +1,3 @@
-import React from 'react';
 import PostsList from './PostsList.jsx';
 
 /**

@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * ドキュメント閲覧ボタンコンポーネント
  * 
