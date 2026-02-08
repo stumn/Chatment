@@ -1,5 +1,5 @@
 // ハンドラーモジュールのインポート
-const { handleLogin } = require('./handlers/authHandlers');
+const { handleLogin, setupHistoryHandlers } = require('./handlers/authHandlers');
 const { setupChatHandlers } = require('./handlers/chatHandlers');
 const { setupUIHandlers } = require('./handlers/uiHandlers');
 const { setupReactionHandlers } = require('./handlers/reactionHandlers');
@@ -47,7 +47,8 @@ function initializeSocketHandlers(io) {
       }
     });
 
-    // その他のイベントハンドラー
+    // その他のイベントハンドラー（connection時に一度だけ登録）
+    setupHistoryHandlers(socket); // 履歴取得ハンドラー
     setupChatHandlers(socket, io);
     setupUIHandlers(socket, io, heightMemory);
     setupReactionHandlers(socket, io);

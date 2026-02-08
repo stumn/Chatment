@@ -38,30 +38,6 @@ async function handleLogin(socket, userInfo) {
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
 
-    // 既存のハンドラーを解除（スペース切り替え時の重複防止）
-    socket.removeAllListeners('fetch-history');
-    socket.removeAllListeners('fetch-docs');
-
-    // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
-    socket.on('fetch-history', async () => {
-      try {
-        // socket.spaceIdを使用して最新のスペースIDを参照
-        const currentSpaceId = socket.spaceId;
-        const messages = await getPastLogs(currentSpaceId);
-        socket.emit('history', { messages, spaceId: currentSpaceId });
-      } catch (e) { console.error(e); }
-    });
-
-    // ドキュメント用取得ハンドラー（スペース別のドキュメント）
-    socket.on('fetch-docs', async () => {
-      try {
-        // socket.spaceIdを使用して最新のスペースIDを参照
-        const currentSpaceId = socket.spaceId;
-        const docs = await getPostsByDisplayOrder(currentSpaceId);
-        socket.emit('docs', { docs, spaceId: currentSpaceId });
-      } catch (e) { console.error(e); }
-    });
-
   } catch (e) {
     console.error('ログインエラー:', e);
 
@@ -80,6 +56,40 @@ async function handleLogin(socket, userInfo) {
   }
 }
 
+// --- 履歴取得ハンドラー（connection時に一度だけ登録） ---
+function setupHistoryHandlers(socket) {
+  // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
+  socket.on('fetch-history', async () => {
+    try {
+      // socket.spaceIdを使用して最新のスペースIDを参照
+      const currentSpaceId = socket.spaceId;
+      if (!currentSpaceId) {
+        console.warn('⚠️ fetch-history: spaceIdが未設定です');
+        socket.emit('history', { messages: [], spaceId: null });
+        return;
+      }
+      const messages = await getPastLogs(currentSpaceId);
+      socket.emit('history', { messages, spaceId: currentSpaceId });
+    } catch (e) { console.error('fetch-historyエラー:', e); }
+  });
+
+  // ドキュメント用取得ハンドラー（スペース別のドキュメント）
+  socket.on('fetch-docs', async () => {
+    try {
+      // socket.spaceIdを使用して最新のスペースIDを参照
+      const currentSpaceId = socket.spaceId;
+      if (!currentSpaceId) {
+        console.warn('⚠️ fetch-docs: spaceIdが未設定です');
+        socket.emit('docs', { docs: [], spaceId: null });
+        return;
+      }
+      const docs = await getPostsByDisplayOrder(currentSpaceId);
+      socket.emit('docs', { docs, spaceId: currentSpaceId });
+    } catch (e) { console.error('fetch-docsエラー:', e); }
+  });
+}
+
 module.exports = {
-  handleLogin
+  handleLogin,
+  setupHistoryHandlers
 };
