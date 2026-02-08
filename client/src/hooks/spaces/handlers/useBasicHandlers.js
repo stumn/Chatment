@@ -13,15 +13,15 @@ export const useBasicHandlers = (socket) => {
   };
 
   const handleHistory = (data) => {
-    // サーバーから送られたspaceIdと現在のspaceIdを比較
-    const { messages, spaceId: receivedSpaceId } = data;
-    const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
-
     // 配列形式（後方互換性）の場合
     if (Array.isArray(data)) {
       usePostStore.getState().setPosts(data);
       return;
     }
+
+    // オブジェクト形式の場合、サーバーから送られたspaceIdと現在のspaceIdを比較
+    const { messages, spaceId: receivedSpaceId } = data;
+    const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
 
     // currentSpaceIdがまだ未設定の場合、または一致する場合は更新
     if (currentSpaceId === undefined || !receivedSpaceId || receivedSpaceId === currentSpaceId) {
@@ -32,15 +32,15 @@ export const useBasicHandlers = (socket) => {
   };
 
   const handleDocsHistory = (data) => {
-    // サーバーから送られたspaceIdと現在のspaceIdを比較
-    const { docs, spaceId: receivedSpaceId } = data;
-    const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
-
     // 配列形式（後方互換性）の場合
     if (Array.isArray(data)) {
       usePostStore.getState().setPosts(data);
       return;
     }
+
+    // オブジェクト形式の場合、サーバーから送られたspaceIdと現在のspaceIdを比較
+    const { docs, spaceId: receivedSpaceId } = data;
+    const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
 
     // currentSpaceIdがまだ未設定の場合、または一致する場合は更新
     if (currentSpaceId === undefined || !receivedSpaceId || receivedSpaceId === currentSpaceId) {
