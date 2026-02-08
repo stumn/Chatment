@@ -8,30 +8,6 @@ const ChatRow = React.lazy(() => import('./ChatRow'));
 import usePostStore from '../../../store/spaces/postStore';
 import useAppStore from '../../../store/spaces/appStore';
 
-// 見出しが見つからない場合のメッセージのスタイル
-const HEADING_NOT_FOUND_MESSAGE_STYLE = {
-    padding: '16px',
-    margin: '16px',
-    backgroundColor: '#FEF3C7',
-    border: '1px solid #F59E0B',
-    borderRadius: '8px',
-    color: '#92400E',
-    textAlign: 'center',
-    fontSize: '14px'
-};
-
-// 見出しが見つからない場合のメッセージの高さ（padding + margin + 推定コンテンツ高さ）
-// 推定コンテンツ高さ20pxは、14pxフォントサイズの日本語1行テキスト + line-height余白
-const HEADING_NOT_FOUND_MESSAGE_HEIGHT = 32 + 32 + 20; // 16px*2 padding + 16px*2 margin + ~20px content
-
-// 見出しが見つからない場合のメッセージコンポーネント
-const HeadingNotFoundMessage = React.memo(() => (
-    <div style={HEADING_NOT_FOUND_MESSAGE_STYLE}>
-        選択された見出しが存在しません。見出しが削除された可能性があります。
-    </div>
-));
-HeadingNotFoundMessage.displayName = 'HeadingNotFoundMessage';
-
 const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isChatScrollMode }) => {
     const listRef = useRef(null);
     const posts = usePostStore((state) => state.posts);
@@ -127,6 +103,13 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     const seen = new Set();
     const filteredChatMessages = chatMessages.messages.filter(msg => msg?.id && !seen.has(msg.id) && seen.add(msg.id));
 
+    // 見出しが見つからない場合にアラートを表示
+    useEffect(() => {
+        if (chatMessages.headingNotFound) {
+            alert('選択された見出しが存在しません。見出しが削除された可能性があります。');
+        }
+    }, [chatMessages.headingNotFound]);
+
     // スクロールを最下部に（モード切替時も含む）
     useEffect(() => {
         if (listRef.current) {
@@ -172,19 +155,13 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     );
     // react-windowの場合、keyはListのitemKeyで管理されるため、ChatRowには不要
 
-    // リストの高さを計算（見出しが見つからない場合はメッセージ分を引く）
-    const listHeight = chatMessages.headingNotFound 
-        ? Math.max(0, bottomHeight - HEADING_NOT_FOUND_MESSAGE_HEIGHT) 
-        : bottomHeight;
-
     // 最大化モード：react-windowを使用
     if (isChatMaximized) {
         return (
             <React.Suspense fallback={<div>Loading...</div>}>
-                {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 <List
                     ref={listRef}
-                    height={listHeight}
+                    height={bottomHeight}
                     itemCount={filteredChatMessages.length}
                     itemSize={65} // 固定高さ65px
                     width="100%"
@@ -210,7 +187,6 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                         overflowY: 'auto',
                     }}
                 >
-                    {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                     {filteredChatMessages.map((msg, idx) => (
                         <ChatRow
                             key={msg.id || idx}
@@ -235,7 +211,6 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
                     overflowY: 'hidden',
                 }}
             >
-                {chatMessages.headingNotFound && <HeadingNotFoundMessage />}
                 {filteredChatMessages.map((msg, idx) => (
                     <ChatRow
                         key={msg.id || idx}
