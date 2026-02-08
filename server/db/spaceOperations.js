@@ -2,58 +2,28 @@
 const { Space, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
-const DEFAULT_SPACE_ID = 0; // デフォルトスペースは整数の0
-
-// --- デフォルトスペースを初期化 ---
-async function initializeDefaultSpace() {
+// --- スペースの存在確認（バリデーション用） ---
+async function validateSpaceExists(spaceId) {
     try {
-        // デフォルトスペースが存在するかチェック
-        const existingSpace = await Space.findOne({ id: DEFAULT_SPACE_ID });
-        if (existingSpace) {
-            return existingSpace;
+        if (spaceId === null || spaceId === undefined) {
+            return { valid: false, error: 'spaceIdが指定されていません' };
         }
 
-        // デフォルトスペースを作成
-        const defaultSpace = await Space.create({
-            id: DEFAULT_SPACE_ID,
-            name: 'デフォルトスペース',
-            settings: {
-                theme: 'default'
-            }
-        });
+        const space = await Space.findOne({ id: spaceId }).lean().exec();
+        
+        if (!space) {
+            return { valid: false, error: `スペースID ${spaceId} が見つかりません` };
+        }
 
-        return defaultSpace.toObject();
+        if (!space.isActive) {
+            return { valid: false, error: `スペースID ${spaceId} は非アクティブです`, space };
+        }
 
-    } catch (error) {
-        handleErrors(error, 'デフォルトスペース初期化中にエラーが発生しました');
-        return null;
-    }
-}
-
-// --- 既存データをデフォルトスペースに移行 ---
-async function migrateExistingDataToSpace() {
-    try {
-        console.log('🔄 [spaceOperation] 既存データの移行を開始...');
-
-        // デフォルトスペースを初期化
-        await initializeDefaultSpace();
-
-        // spaceIdが未設定の投稿を更新
-        const postsUpdated = await Post.updateMany(
-            { spaceId: { $exists: false } },
-            { $set: { spaceId: DEFAULT_SPACE_ID } }
-        );
-        console.log(`📝 [spaceOperation] ${postsUpdated.modifiedCount} 件の投稿を移行しました`);
-
-        // 3. デフォルトスペースの統計情報を更新
-        await updateSpaceStats(DEFAULT_SPACE_ID);
-
-        console.log('✅ [spaceOperation] 既存データの移行が完了しました');
-        return true;
+        return { valid: true, space };
 
     } catch (error) {
-        handleErrors(error, '既存データ移行中にエラーが発生しました');
-        return false;
+        handleErrors(error, `スペース存在確認中にエラーが発生しました: ${spaceId}`);
+        return { valid: false, error: error.message };
     }
 }
 
@@ -106,6 +76,17 @@ async function createSpace(spaceData) {
     try {
         const { id, name, settings = {} } = spaceData;
 
+        // 入力バリデーション
+        if (!id && id !== 0) {
+            throw new Error('スペースIDが指定されていません');
+        }
+        if (!Number.isInteger(id)) {
+            throw new Error('スペースIDは整数である必要があります');
+        }
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+            throw new Error('スペース名が不正です');
+        }
+
         // 重複チェック
         const existingSpace = await Space.findOne({ id });
         if (existingSpace) {
@@ -115,7 +96,7 @@ async function createSpace(spaceData) {
         // 新しいスペースを作成（サブルーム設定は廃止）
         const newSpace = await Space.create({
             id,
-            name,
+            name: name.trim(),
             settings: {
                 theme: settings.theme || 'default'
             }
@@ -248,10 +229,6 @@ async function getPostsBySpace(spaceId, limit = 100) {
 // --- スペースを非アクティブ化 ---
 async function deactivateSpace(spaceId) {
     try {
-        if (spaceId === DEFAULT_SPACE_ID) {
-            throw new Error('デフォルトスペースは非アクティブ化できません');
-        }
-
         const result = await Space.findOneAndUpdate(
             { id: spaceId },
             { $set: { isActive: false } },
@@ -274,10 +251,6 @@ async function deactivateSpace(spaceId) {
 // --- スペースを終了状態にする ---
 async function finishSpace(spaceId) {
     try {
-        if (spaceId === DEFAULT_SPACE_ID) {
-            throw new Error('デフォルトスペースは終了できません');
-        }
-
         const result = await Space.findOneAndUpdate(
             { id: spaceId },
             {
@@ -356,9 +329,7 @@ async function getAllSpaces() {
 }
 
 module.exports = {
-    DEFAULT_SPACE_ID,
-    initializeDefaultSpace,
-    migrateExistingDataToSpace,
+    validateSpaceExists,
     getActiveSpaces,
     getSpaceById,
     createSpace,

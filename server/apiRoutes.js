@@ -10,7 +10,6 @@ const {
   getPostsBySpace,
   deactivateSpace,
   updateSpaceStats,
-  migrateExistingDataToSpace,
   // 管理者機能
   finishSpace,
   getFinishedSpaces,
@@ -293,31 +292,6 @@ router.get('/admin/spaces', async (req, res) => {
     });
   } catch (error) {
     console.error('Get all spaces API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// データ移行エンドポイント（初回セットアップ用）
-router.post('/migrate-to-spaces', async (req, res) => {
-  try {
-    const result = await migrateExistingDataToSpace();
-
-    if (result) {
-      res.json({
-        success: true,
-        message: 'Data migration completed successfully'
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: 'Data migration failed'
-      });
-    }
-  } catch (error) {
-    console.error('Migration API error:', error);
     res.status(500).json({
       success: false,
       error: error.message

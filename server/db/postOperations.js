@@ -2,10 +2,16 @@
 const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs } = require('./userOperations');
+const { validateSpaceExists } = require('./spaceOperations');
 
 // --- データベースにレコードを保存 ---
-async function saveRecord(nickname, msg, userId, displayOrder, source = 'document', spaceId = 1, displayName = null) {
+async function saveRecord(nickname, msg, userId, displayOrder, source = 'document', spaceId, displayName = null) {
     try {
+        // spaceIdのバリデーション
+        if (spaceId === null || spaceId === undefined) {
+            throw new Error('spaceIdが指定されていません');
+        }
+
         // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
         let validUserId = userId;
         if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.match(/^[a-fA-F0-9]{24}$/)) {
@@ -34,8 +40,18 @@ async function saveRecord(nickname, msg, userId, displayOrder, source = 'documen
 }
 
 // --- チャットメッセージ受送信 ---
-async function SaveChatMessage({ nickname, displayName, message, userId, displayOrder = 0, spaceId = 1 }) {
+async function SaveChatMessage({ nickname, displayName, message, userId, displayOrder = 0, spaceId }) {
     try {
+        // spaceIdのバリデーション
+        if (spaceId === null || spaceId === undefined) {
+            throw new Error('spaceIdが指定されていません');
+        }
+
+        const validation = await validateSpaceExists(spaceId);
+        if (!validation.valid) {
+            throw new Error(validation.error || `スペースID ${spaceId} が無効です`);
+        }
+
         const record = await saveRecord(nickname, message, userId, displayOrder, 'chat', spaceId, displayName);
         return organizeLogs(record);
     } catch (error) {

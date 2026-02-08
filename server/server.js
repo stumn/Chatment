@@ -50,22 +50,10 @@ app.get('*', (req, res, next) => {
 
 // Socket.IOハンドラー
 const { initializeSocketHandlers } = require('./socketHandlers');
-const { initializeDefaultSpace} = require('./dbOperation');
 
 initializeSocketHandlers(io);
 
 // サーバー起動
-const startServer = async () => {
-  // デフォルトスペースの初期化（DB経由）
-  try {
-    await initializeDefaultSpace();
-    console.log('✅ [server] デフォルトスペース初期化完了');
-  } catch (error) {
-    console.error('❌ [server] スペース初期化失敗:', error);
-  }
-
-  server.listen(PORT, () => {
-    console.log('listening on PORT:' + PORT);
-  });
-};
-startServer();
+server.listen(PORT, () => {
+  console.log('listening on PORT:' + PORT);
+});
