@@ -22,7 +22,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-add', async (payload) => {
     try {
-      const { spaceId } = payload;
+      const spaceId = payload.spaceId || socket.spaceId;
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
       let prevDisplayOrder = payload.prevDisplayOrder;
@@ -75,7 +75,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-edit', async (payload) => {
     try {
-      const { spaceId } = payload;
+      const spaceId = payload.spaceId || socket.spaceId;
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
@@ -107,7 +107,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         userNickname: payload.nickname,
         action: 'doc-edit',
         detail: payload,
-        spaceId: payload.spaceId
+        spaceId: spaceId
       });
 
     } catch (e) { console.error(e); }
@@ -115,6 +115,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-reorder', async (payload) => {
     try {
+      const spaceId = payload.spaceId || socket.spaceId;
 
       // 受信データをデストラクション
       const {
@@ -122,8 +123,7 @@ function setupDocHandlers(socket, io, lockedRows) {
         movedPostId,
         movedPostDisplayOrder,
         prev,
-        next,
-        spaceId
+        next
       } = payload;
 
       // prevとnext から新しいdisplayOrderを計算
@@ -161,8 +161,7 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-delete', async (payload) => {
     try {
-
-      const { spaceId } = payload;
+      const spaceId = payload.spaceId || socket.spaceId;
 
       // 行削除処理
       const deleted = await deleteDocRow(payload.id);
@@ -178,7 +177,7 @@ function setupDocHandlers(socket, io, lockedRows) {
           userNickname: null,
           action: 'doc-delete',
           detail: payload,
-          spaceId: payload.spaceId
+          spaceId: spaceId
         });
       }
 
@@ -188,7 +187,8 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-indent-change', async (payload) => {
     try {
       console.log(payload);
-      const { postId, newIndentLevel, nickname, spaceId } = payload;
+      const spaceId = payload.spaceId || socket.spaceId;
+      const { postId, newIndentLevel, nickname } = payload;
 
       // バリデーション
       if (!postId || newIndentLevel === undefined) {
