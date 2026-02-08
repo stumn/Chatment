@@ -23,8 +23,16 @@ const useAppStore = create((set) => ({
   // コンパクトモード（true: ホバー時のみボタン表示、false: 常時表示）
   isCompactMode: false,
 
+  // チャットスクロールモード（true: 通常モードでもすべてのメッセージをスクロール表示、false: 制限された行数のみ表示）
+  isChatScrollMode: false,
+
   // 目次の開閉状態
   isTocOpen: true,
+
+  // フィルター設定
+  selectedHeadingId: null, // 選択された見出しのID（nullの場合は全て表示）
+  indentFilter: null, // インデントフィルター（nullの場合はフィルターなし、数値の場合はそのインデントレベル以下を表示）
+  minLikesFilter: null, // 最小いいね数フィルター（nullの場合はフィルターなし）
 
   // アクション: ユーザー情報を設定する
   setUserInfo: ({ nickname, status, ageGroup, userId, spaceId }) => set({
@@ -43,8 +51,20 @@ const useAppStore = create((set) => ({
   // アクション: コンパクトモードを切り替える
   toggleCompactMode: () => set((state) => ({ isCompactMode: !state.isCompactMode })),
 
+  // アクション: チャットスクロールモードを切り替える
+  toggleChatScrollMode: () => set((state) => ({ isChatScrollMode: !state.isChatScrollMode })),
+
   // アクション: 目次の開閉を切り替える
   toggleToc: () => set((state) => ({ isTocOpen: !state.isTocOpen })),
+
+  // アクション: 見出しフィルターを設定する
+  setHeadingFilter: (headingId) => set({ selectedHeadingId: headingId }),
+
+  // アクション: インデントフィルターを設定する
+  setIndentFilter: (indent) => set({ indentFilter: indent }),
+
+  // アクション: 最小いいね数フィルターを設定する
+  setMinLikesFilter: (minLikes) => set({ minLikesFilter: minLikes }),
 
 }));
 

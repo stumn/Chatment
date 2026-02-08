@@ -9,7 +9,7 @@ import useSizeStore from "../../store/sizeStore";
 import useAppStore from "../../store/spaces/appStore";
 import usePostStore from "../../store/spaces/postStore";
 
-export default function ResizablePanels({ appController, spaceId, onScrollToItem }) {
+export default function ResizablePanels({ appController, spaceId }) {
 
     // sizeStore から取得
     const CONTAINER_resizable_WIDTH = useSizeStore((state) => state.width);
@@ -18,6 +18,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
     // useAppStore から取得
     const { myHeight, setMyHeight } = useAppStore();
     const { userInfo } = useAppStore();
+    const isChatScrollMode = useAppStore((state) => state.isChatScrollMode);
 
     const { raw: { emitLog } } = appController;
 
@@ -140,7 +141,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='doc-container'
                 className="bg-[#fefefe]"
                 style={{ height: `${myHeight}px` }}>
-                <DocComments lines={lines} documentFunctions={documentFunctions} onScrollToItem={onScrollToItem} isDocMaximized={isDocMaximized} />
+                <DocComments lines={lines} documentFunctions={documentFunctions} isDocMaximized={isDocMaximized} />
             </div>
 
             <div
@@ -159,7 +160,7 @@ export default function ResizablePanels({ appController, spaceId, onScrollToItem
                 id='chat-container'
                 className="flex-grow bg-[#fefefe]"
                 style={{ height: `${bottomHeight}px` }}>
-                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} />
+                <ChatComments lines={lines} bottomHeight={bottomHeight} chatFunctions={chatFunctions} isChatMaximized={isChatMaximized} isChatScrollMode={isChatScrollMode} />
             </div>
         </div>
     );

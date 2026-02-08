@@ -1,7 +1,5 @@
 // URLをリンクに変換するユーティリティ関数
 
-import React from 'react';
-
 /**
  * テキスト内のURLを検出してReactエレメント（リンク）に変換する
  * @param {string} text - 変換するテキスト

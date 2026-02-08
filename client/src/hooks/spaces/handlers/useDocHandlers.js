@@ -16,6 +16,11 @@ export const useDocHandlers = (emitLog) => {
     // displayNameを優先的に使用し、なければnicknameを使用
     const displayName = payload.displayName || payload.nickname;
     updatePost(payload.id, payload.newMsg, displayName, payload.updatedAt);
+
+    // 見出し行（#で始まる行）の場合、インデントレベルも更新
+    if (payload.indentLevel !== undefined) {
+      updateIndentLevel(payload.id, payload.indentLevel);
+    }
   };
 
   const handleDocReorder = (payload) => {

@@ -1,7 +1,8 @@
 /* Doc.css */
 
 #docList {
-    overflow-x: hidden;
+    overflow-x: visible;
+    /* リアクションバッジを外に表示するために変更 */
     padding-top: 8px;
 }
 
@@ -20,6 +21,8 @@
     align-items: stretch;
     position: relative;
     /* エラーメッセージ位置調整のため */
+    overflow: visible;
+    /* リアクションバッジを外に表示するために追加 */
 }
 
 /* ホバー時の視覚的フィードバック */

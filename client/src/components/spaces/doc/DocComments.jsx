@@ -11,7 +11,7 @@ import useSizeStore from '../../../store/sizeStore';
 import useAppStore from '../../../store/spaces/appStore';
 import usePostStore from '../../../store/spaces/postStore';
 
-const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized }) => {
+const DocComments = ({ lines, documentFunctions, isDocMaximized }) => {
 
     const listRef = useRef(null);
 
@@ -21,12 +21,47 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
     // ドキュメントの投稿を取得(後ろからlines分は取り除く)
     const posts = usePostStore((state) => state.posts);
 
+    // フィルター状態を取得
+    const selectedHeadingId = useAppStore((state) => state.selectedHeadingId);
+    const indentFilter = useAppStore((state) => state.indentFilter);
+    const minLikesFilter = useAppStore((state) => state.minLikesFilter);
+
     const docMessages = useMemo(() => {
         // 最大化モードの場合は全件表示、通常モードはチャット分を除外
         let docPosts = isDocMaximized ? [...posts] : posts.slice(0, -lines.num);
         docPosts = [...docPosts].sort((a, b) => a.displayOrder - b.displayOrder);
+
+        // 見出しフィルターを適用
+        if (selectedHeadingId) {
+            // 選択された見出しのインデックスを探す
+            const selectedIndex = docPosts.findIndex(p => p.id === selectedHeadingId);
+            if (selectedIndex !== -1) {
+                // 次の見出しのインデックスを探す
+                const nextHeadingIndex = docPosts.findIndex((p, idx) =>
+                    idx > selectedIndex && p.msg && p.msg.trim().startsWith('#')
+                );
+
+                // 選択された見出しから次の見出しまで（または最後まで）を抽出
+                if (nextHeadingIndex !== -1) {
+                    docPosts = docPosts.slice(selectedIndex, nextHeadingIndex);
+                } else {
+                    docPosts = docPosts.slice(selectedIndex);
+                }
+            }
+        }
+
+        // インデントフィルターを適用（指定された値以下のインデントレベルを表示）
+        if (indentFilter !== null) {
+            docPosts = docPosts.filter(p => (p.indentLevel || 0) <= indentFilter);
+        }
+
+        // いいね数フィルターを適用
+        if (minLikesFilter !== null && minLikesFilter > 0) {
+            docPosts = docPosts.filter(p => (p.positive || 0) >= minLikesFilter);
+        }
+
         return docPosts;
-    }, [posts, lines.num, isDocMaximized]);
+    }, [posts, lines.num, isDocMaximized, selectedHeadingId, indentFilter, minLikesFilter]);
 
     // documentFunctionsから必要な関数を取得
     const { document: { reorder }, chat: sendChatMessage } = documentFunctions;
@@ -147,27 +182,6 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
         , [docMessages]);
 
     const docCount = filteredDocMessages.length;
-
-    // スクロール関数を親コンポーネントに公開
-    useEffect(() => {
-        if (!onScrollToItem) return;
-
-        const scrollToItemById = (postId) => {
-            if (!listRef.current) {
-                console.warn('List ref is not ready yet');
-                return;
-            }
-
-            const targetIndex = filteredDocMessages.findIndex(msg => msg.id === postId);
-            if (targetIndex !== -1) {
-                listRef.current.scrollToItem(targetIndex, "center");
-            } else {
-                console.warn(`Post ${postId} not found in filteredDocMessages`);
-            }
-        };
-
-        onScrollToItem(scrollToItemById);
-    }, [filteredDocMessages, onScrollToItem]);
 
     // Listに渡すitemData
     const itemData = useMemo(() => ({

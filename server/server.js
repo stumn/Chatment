@@ -50,9 +50,7 @@ app.get('*', (req, res, next) => {
 
 // Socket.IOハンドラー
 const { initializeSocketHandlers } = require('./socketHandlers');
-const {
-  initializeDefaultSpace
-} = require('./dbOperation');
+const { initializeDefaultSpace} = require('./dbOperation');
 
 initializeSocketHandlers(io);
 

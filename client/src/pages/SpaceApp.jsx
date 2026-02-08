@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import FinishedSpacesSection from '../components/admin/FinishedSpacesSection';
 import ActiveSpacesSection from '../components/admin/ActiveSpacesSection';
 import SpaceMessageModal from '../components/admin/SpaceMessageModal';

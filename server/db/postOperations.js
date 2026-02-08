@@ -76,6 +76,11 @@ async function updatePostData(payload) {
     // 受信したデータにニックネームがあれば更新
     if (payload.nickname) updateObj.nickname = payload.nickname;
 
+    // 見出し行（#で始まる行）の場合、インデントレベルを0に設定
+    if (payload.newMsg && payload.newMsg.startsWith('#')) {
+        updateObj.indentLevel = 0;
+    }
+
     // 更新日時を設定
     updateObj.updatedAt = new Date();
 
