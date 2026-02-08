@@ -132,7 +132,7 @@ const logSchema = new mongoose.Schema({
     userName: String,
     action: String, // 操作種別
     detail: Object, // 操作内容
-    spaceId: String, // スペースID
+    spaceId: Number, // スペースID
 }, options);
 
 const Log = mongoose.model("Log", logSchema);
