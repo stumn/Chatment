@@ -59,7 +59,8 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('unlock-row', (data) => {
     try {
       console.log('unlock-row received:', data);
-      const spaceId = data.spaceId ?? socket.spaceId;
+      // クライアント提供データを信頼しない
+      const spaceId = socket.spaceId;
 
       if (spaceId == null) {
         console.error('unlock-row: spaceId is not set');
@@ -68,10 +69,18 @@ function setupLockHandlers(socket, io, lockedRows) {
 
       if (data.rowElementId && lockedRows.has(data.rowElementId)) {
         const lockInfo = lockedRows.get(data.rowElementId);
+
+        // ロックが同じスペースに属しているか検証（スペース隔離）
+        if (String(lockInfo.spaceId) !== String(spaceId)) {
+          console.error(`⚠️ unlock-row: lock ${data.rowElementId} does not belong to space ${spaceId}`);
+          return;
+        }
+
         console.log('Unlocking row:', data.rowElementId, 'previously locked by:', lockInfo.nickname);
 
         lockedRows.delete(data.rowElementId);
-        io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: data.postId });
+        // lockInfoから取得したpostIdを使用（クライアント提供データを信頼しない）
+        io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: lockInfo.postId });
       } else if (data.rowElementId && !lockedRows.has(data.rowElementId)) {
         console.warn('Unlock attempted for non-locked row:', data.rowElementId);
       }

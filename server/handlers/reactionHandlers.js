@@ -35,7 +35,8 @@ function setupReactionHandlers(socket, io) {
         }
 
         // 投稿が同じスペースに属しているかを検証（スペース隔離）
-        if (reactionResult.spaceId !== spaceId) {
+        // 型を正規化して比較（DBからはNumber、socketからはString/Numberの可能性）
+        if (String(reactionResult.spaceId) !== String(spaceId)) {
           console.error(`⚠️ ${reactionType}: post ${postId} does not belong to space ${spaceId}`);
           return;
         }
