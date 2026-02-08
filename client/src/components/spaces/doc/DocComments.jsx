@@ -11,7 +11,7 @@ import useSizeStore from '../../../store/sizeStore';
 import useAppStore from '../../../store/spaces/appStore';
 import usePostStore from '../../../store/spaces/postStore';
 
-const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized }) => {
+const DocComments = ({ lines, documentFunctions, isDocMaximized }) => {
 
     const listRef = useRef(null);
 
@@ -182,27 +182,6 @@ const DocComments = ({ lines, documentFunctions, onScrollToItem, isDocMaximized 
         , [docMessages]);
 
     const docCount = filteredDocMessages.length;
-
-    // スクロール関数を親コンポーネントに公開
-    useEffect(() => {
-        if (!onScrollToItem) return;
-
-        const scrollToItemById = (postId) => {
-            if (!listRef.current) {
-                console.warn('List ref is not ready yet');
-                return;
-            }
-
-            const targetIndex = filteredDocMessages.findIndex(msg => msg.id === postId);
-            if (targetIndex !== -1) {
-                listRef.current.scrollToItem(targetIndex, "center");
-            } else {
-                console.warn(`Post ${postId} not found in filteredDocMessages`);
-            }
-        };
-
-        onScrollToItem(scrollToItemById);
-    }, [filteredDocMessages, onScrollToItem]);
 
     // Listに渡すitemData
     const itemData = useMemo(() => ({

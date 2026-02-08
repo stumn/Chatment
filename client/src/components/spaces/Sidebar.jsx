@@ -1,16 +1,15 @@
 // File: client/src/Sidebar.jsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import usePostStore from '../../store/spaces/postStore';
 import useAppStore from '../../store/spaces/appStore';
 import useRoomStore from '../../store/spaces/roomStore';
-import useSocket from '../../hooks/shared/useSocket';
 import SidebarClosed from './sidebar/SidebarClosed';
 import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';
 import './sidebar/sidebar.css';
 
-const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToItemById }) => {
+const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     // TODO: spaceIdに基づいてスペース固有の投稿データをフィルタリング
     // TODO: スペースタイトルや説明などの情報を表示
     const posts = usePostStore((state) => state.posts);
@@ -25,58 +24,19 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToI
     // ルーム関連の状態（サブルーム廃止により簡略化）
     const { activeRoomId } = useRoomStore();
 
-    // 目次データを生成
-    const tocData = useMemo(() => {
-        const result = [];
-        let currentSection = null;
-
-        // displayOrder順でソート
-        const sortedPosts = [...posts].sort((a, b) => a.displayOrder - b.displayOrder);
-
-        sortedPosts.forEach(post => {
-            // 見出しの場合、新しいセクションを開始
-            if (post.msg && post.msg.trim().startsWith('#')) {
-                currentSection = {
-                    ...post,
-                    comments: []
-                };
-                result.push(currentSection);
-            }
-            // 注目のコメント（リアクション数が10以上）の場合、現在のセクションに追加
-            else if ((post.positive + post.negative) >= 10 && post.msg && post.msg.trim() !== '') {
-                if (currentSection) {
-                    currentSection.comments.push(post);
-                } else {
-                    // 見出しがない場合は、最初のセクションとして追加
-                    result.push({
-                        id: `section-${post.id}`,
-                        msg: '# その他の注目コメント',
-                        displayOrder: post.displayOrder,
-                        positive: 0,
-                        negative: 0,
-                        comments: [post]
-                    });
-                }
-            }
-        });
-
-        return result;
+    // 見出し投稿のみを抽出（フィルター用）
+    const headings = useMemo(() => {
+        return posts
+            .filter(post => post.msg && post.msg.trim().startsWith('#'))
+            .sort((a, b) => a.displayOrder - b.displayOrder);
     }, [posts]);
-
-    const handleItemClick = (postId) => {
-        if (scrollToItemById) {
-            scrollToItemById(postId);
-        } else {
-            console.warn('scrollToItemById function is not available yet');
-        }
-    };
 
     // 直近の見出しを取得
     const latestHeading = useMemo(() => {
-        if (tocData.length === 0) return '見出しなし';
-        const lastSection = tocData[tocData.length - 1];
-        return lastSection.msg.replace(/^#+\s*/, '');
-    }, [tocData]);
+        if (headings.length === 0) return '見出しなし';
+        const lastHeading = headings[headings.length - 1];
+        return lastHeading.msg.replace(/^#+\s*/, '');
+    }, [headings]);
 
     // アクティブルーム情報を取得（サブルーム廃止により常に"全体"ルーム）
     const activeRoom = useMemo(() => {
@@ -112,8 +72,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId, scrollToI
             />
 
             <SidebarContent
-                tocData={tocData}
-                onItemClick={handleItemClick}
+                headings={headings}
                 isColorfulMode={isColorfulMode}
             />
         </div>

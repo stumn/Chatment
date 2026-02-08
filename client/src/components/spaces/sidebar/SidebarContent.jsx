@@ -15,13 +15,12 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
 /**
- * サイドバーのメインコンテンツ部分（チャプターと注目コメント）
+ * サイドバーのメインコンテンツ部分
  * @param {Object} props - プロパティ
- * @param {Array} props.tocData - 目次データ（チャプターと注目コメントのリスト）
+ * @param {Array} props.headings - 見出し投稿のリスト
  * @param {boolean} props.isColorfulMode - カラフルモードの状態
- * @param {Function} props.onItemClick - 項目クリック時のハンドラ
  */
-const SidebarContent = ({ tocData, isColorfulMode, onItemClick }) => {
+const SidebarContent = ({ headings, isColorfulMode }) => {
     const { spaceId } = useParams();
     const documentId = 0;
 
@@ -62,9 +61,9 @@ const SidebarContent = ({ tocData, isColorfulMode, onItemClick }) => {
                                     onChange={(e) => setHeadingFilter(e.target.value || null)}
                                 >
                                     <MenuItem value="">全て表示</MenuItem>
-                                    {tocData.map(section => (
-                                        <MenuItem key={section.id} value={section.id}>
-                                            {section.msg.replace(/^#+\s*/, '')}
+                                    {headings.map(heading => (
+                                        <MenuItem key={heading.id} value={heading.id}>
+                                            {heading.msg.replace(/^#+\s*/, '')}
                                         </MenuItem>
                                     ))}
                                 </Select>
