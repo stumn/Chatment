@@ -50,12 +50,7 @@ app.get('*', (req, res, next) => {
 
 // Socket.IOハンドラー
 const { initializeSocketHandlers, rooms } = require('./socketHandlers');
-const {
-  initializeDefaultRooms,
-  getActiveRooms,
-  initializeDefaultSpace,
-  migrateExistingDataToSpace
-} = require('./dbOperation');
+const { getActiveRooms } = require('./dbOperation');
 
 initializeSocketHandlers(io);
 

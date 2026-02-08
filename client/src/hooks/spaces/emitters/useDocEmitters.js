@@ -4,21 +4,15 @@ import { validUserId } from '../socketUtils/socketUtils';
 export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocAdd = (payload) => {
-    // const { userInfo } = useAppStore.getState();
+    const { userInfo } = useAppStore.getState();
 
-    // spaceIdを追加(不要説)　ここでuserInfoを取得するから、元のpayloadにuser情報を載せないという手もある
-    const payloadWithSpace = {
-      ...payload,
-      // spaceId: userInfo.spaceId
-    };
-
-    socket.emit('doc-add', payloadWithSpace);
+    socket.emit('doc-add', payload);
 
     emitLog({
       userId: validUserId(userInfo && userInfo._id),
       userNickname: userInfo.nickname,
       action: 'doc-add',
-      detail: payloadWithSpace
+      detail: payload
     });
   };
 
