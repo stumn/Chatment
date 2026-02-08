@@ -1,7 +1,5 @@
 // File: client/src/components/sidebar/SidebarClosed.jsx
 
-import React from 'react';
-
 /**
  * サイドバーが閉じている状態のコンポーネント
  * @param {Object} props - プロパティ

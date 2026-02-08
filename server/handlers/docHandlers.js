@@ -106,7 +106,8 @@ function setupDocHandlers(socket, io, lockedRows) {
         ...payload,
         nickname,
         displayName,
-        updatedAt: updatedPost.updatedAt
+        updatedAt: updatedPost.updatedAt,
+        indentLevel: updatedPost.indentLevel
       });
 
       // 編集完了時にロック解除
