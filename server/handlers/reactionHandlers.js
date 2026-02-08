@@ -18,6 +18,12 @@ function setupReactionHandlers(socket, io) {
         // リアクション処理
         const reactionResult = await processPostReaction(postId, userSocketId, nickname, reactionType);
 
+        // reactionResultの存在確認
+        if (!reactionResult) {
+          console.error('⚠️ Reaction handler: reactionResult is falsy (post not found?)');
+          return;
+        }
+
         // ブロードキャスト用データの作成
         const broadcastData =
           reactionType === 'positive'
@@ -25,7 +31,7 @@ function setupReactionHandlers(socket, io) {
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
         // スペース内にブロードキャスト（spaceIdは必須）
-        const spaceId = reactionResult.spaceId || socket.spaceId;
+        const spaceId = reactionResult.spaceId ?? socket.spaceId;
         if (spaceId != null) {
           io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
         } else {

@@ -36,7 +36,7 @@ function ChatApp() {
 
     // spaceIdが変更されたらスペース情報を取得
     useEffect(() => {
-        if (!spaceId) return;
+        if (spaceId == null || isNaN(spaceId)) return;
 
         const fetchSpaceInfo = async () => {
             try {

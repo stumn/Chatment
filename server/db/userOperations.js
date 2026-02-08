@@ -163,7 +163,7 @@ async function getUserLoginHistory(nickname, status, ageGroup, spaceId) {
 // --- アクティブユーザー一覧を取得（最近ログインしたユーザー） ---
 async function getActiveUsers(spaceId = null, limit = 10) {
     try {
-        const query = spaceId ? { spaceId } : {};
+        const query = spaceId != null ? { spaceId } : {};
 
         const users = await User.find(query)
             .sort({ lastLoginAt: -1 })

@@ -8,7 +8,7 @@ const { validateSpaceExists } = require('./spaceOperations');
 async function getPostsByDisplayOrder(spaceId = null) {
     try {
         // スペース指定がある場合はそのスペースのドキュメントのみ取得
-        const query = spaceId ? { spaceId } : {};
+        const query = spaceId != null ? { spaceId } : {};
 
         const posts = await Post.find(query).sort({ displayOrder: 1 });
         return processXlogs(posts);

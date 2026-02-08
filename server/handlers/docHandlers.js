@@ -21,9 +21,18 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-add', async (payload) => {
     try {
       // socket保存情報を使用（セキュリティと効率性の向上）
-      const spaceId = payload.spaceId || socket.spaceId;
+      const spaceId = payload.spaceId ?? socket.spaceId;
       const nickname = socket.nickname; // 本来のニックネーム
       const displayName = payload.displayName || nickname; // 表示名
+
+      if (spaceId == null) {
+        console.error('doc-add: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_ADD',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // prevDisplayOrder(行追加する1つ前の行)を取得
       let prevDisplayOrder = payload.prevDisplayOrder;
@@ -79,9 +88,18 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-edit', async (payload) => {
     try {
       // socket保存情報を使用（セキュリティと効率性の向上）
-      const spaceId = payload.spaceId || socket.spaceId;
+      const spaceId = payload.spaceId ?? socket.spaceId;
       const nickname = socket.nickname; // 本来のニックネーム
       const displayName = payload.displayName || nickname; // 表示名
+
+      if (spaceId == null) {
+        console.error('doc-edit: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_EDIT',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // 行IDが指定されていないときは、編集したユーザにエラーを通知
       if (!payload.id) {
@@ -127,7 +145,12 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-reorder', async (payload) => {
     try {
-      const spaceId = payload.spaceId || socket.spaceId;
+      const spaceId = payload.spaceId ?? socket.spaceId;
+
+      if (spaceId == null) {
+        console.error('doc-reorder: spaceId is not set');
+        return;
+      }
 
       // 受信データをデストラクション
       const {
@@ -173,7 +196,12 @@ function setupDocHandlers(socket, io, lockedRows) {
 
   socket.on('doc-delete', async (payload) => {
     try {
-      const spaceId = payload.spaceId || socket.spaceId;
+      const spaceId = payload.spaceId ?? socket.spaceId;
+
+      if (spaceId == null) {
+        console.error('doc-delete: spaceId is not set');
+        return;
+      }
 
       // 行削除処理
       const deleted = await deleteDocRow(payload.id);
@@ -199,8 +227,17 @@ function setupDocHandlers(socket, io, lockedRows) {
   socket.on('doc-indent-change', async (payload) => {
     try {
       console.log(payload);
-      const spaceId = payload.spaceId || socket.spaceId;
+      const spaceId = payload.spaceId ?? socket.spaceId;
       const { postId, newIndentLevel, nickname } = payload;
+
+      if (spaceId == null) {
+        console.error('doc-indent-change: spaceId is not set');
+        socket.emit('doc-error', {
+          error: 'DOC_INDENT_CHANGE',
+          message: 'spaceIdが設定されていません。'
+        });
+        return;
+      }
 
       // バリデーション
       if (!postId || newIndentLevel === undefined) {

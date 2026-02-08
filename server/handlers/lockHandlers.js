@@ -7,7 +7,13 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('demand-lock', async (data) => {
     try {
       console.log('demand-lock received:', data);
-      const spaceId = data.spaceId || socket.spaceId;
+      const spaceId = data.spaceId ?? socket.spaceId;
+
+      if (spaceId == null) {
+        console.error('demand-lock: spaceId is not set');
+        socket.emit('Lock-not-allowed', { id: data.rowElementId, message: 'spaceId is not set' });
+        return;
+      }
 
       if (data.rowElementId && data.nickname) {
         if (lockedRows.has(data.rowElementId)) {
@@ -52,7 +58,12 @@ function setupLockHandlers(socket, io, lockedRows) {
   socket.on('unlock-row', (data) => {
     try {
       console.log('unlock-row received:', data);
-      const spaceId = data.spaceId || socket.spaceId;
+      const spaceId = data.spaceId ?? socket.spaceId;
+
+      if (spaceId == null) {
+        console.error('unlock-row: spaceId is not set');
+        return;
+      }
 
       if (data.rowElementId && lockedRows.has(data.rowElementId)) {
         const lockInfo = lockedRows.get(data.rowElementId);

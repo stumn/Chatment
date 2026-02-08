@@ -24,7 +24,7 @@ export const useBasicHandlers = (socket) => {
     const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
 
     // currentSpaceIdがまだ未設定の場合、または一致する場合は更新
-    if (currentSpaceId === undefined || !receivedSpaceId || receivedSpaceId === currentSpaceId) {
+    if (currentSpaceId === undefined || receivedSpaceId == null || receivedSpaceId === currentSpaceId) {
       usePostStore.getState().setPosts(messages || []);
     } else {
       console.warn(`履歴のspaceId不一致: 受信=${receivedSpaceId}, 現在=${currentSpaceId}`);
@@ -43,7 +43,7 @@ export const useBasicHandlers = (socket) => {
     const currentSpaceId = useAppStore.getState().userInfo?.spaceId;
 
     // currentSpaceIdがまだ未設定の場合、または一致する場合は更新
-    if (currentSpaceId === undefined || !receivedSpaceId || receivedSpaceId === currentSpaceId) {
+    if (currentSpaceId === undefined || receivedSpaceId == null || receivedSpaceId === currentSpaceId) {
       usePostStore.getState().setPosts(docs || []);
     } else {
       console.warn(`ドキュメントのspaceId不一致: 受信=${receivedSpaceId}, 現在=${currentSpaceId}`);

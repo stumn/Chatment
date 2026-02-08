@@ -23,16 +23,16 @@ router.get('/posts', async (req, res) => {
     const { spaceId } = req.query;
 
     // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
-    const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
+    const posts = await getPostsByDisplayOrder(spaceId != null ? parseInt(spaceId) : null);
 
-    console.log(`Posts API: Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
+    console.log(`Posts API: Retrieved ${posts.length} posts${spaceId != null ? ` for space ${spaceId}` : ''}`);
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
       posts: posts,
       count: posts.length,
-      spaceId: spaceId || null
+      spaceId: spaceId ?? null
     });
   } catch (error) {
     console.error('Posts API error:', error);
@@ -135,7 +135,7 @@ router.put('/spaces/:spaceId', async (req, res) => {
     const spaceId = parseInt(req.params.spaceId);
     const { name } = req.body;
 
-    if (!spaceId || !name) {
+    if (spaceId == null || isNaN(spaceId) || !name) {
       return res.status(400).json({
         success: false,
         error: 'Required fields: spaceId, name'
