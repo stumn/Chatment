@@ -5,6 +5,8 @@ const {
   saveLog
 } = require('../dbOperation');
 
+const { getSpaceRoom } = require('../socketUtils');
+
 // --- displayOrderの最後尾を取得（ヘルパー）（スペース別） ---
 async function getLastDisplayOrder(spaceId = null) {
   try {
@@ -43,7 +45,7 @@ function setupChatHandlers(socket, io) {
       const p = await SaveChatMessage(messageData);
 
       // Socket.IOのルーム機能により、スペース内の全参加者に送信
-      io.to(String(spaceId)).emit('chat-message', p);
+      io.to(getSpaceRoom(spaceId)).emit('chat-message', p);
 
       // スペース統計をデータベースで更新
       await updateSpaceStats(spaceId, { $inc: { totalMessageCount: 1 } });

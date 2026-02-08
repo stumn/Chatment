@@ -1,4 +1,4 @@
-const { addHeightMemory } = require('../socketUtils');
+const { addHeightMemory, getSpaceRoom } = require('../socketUtils');
 
 // --- UIハンドラーのセットアップ ---
 function setupUIHandlers(socket, io, heightMemory) {
@@ -12,7 +12,7 @@ function setupUIHandlers(socket, io, heightMemory) {
     // スペース内の参加者の高さのみをフィルタリングしてブロードキャスト
     if (spaceId) {
       const spaceHeightArray = heightArray.filter(item => item.spaceId === spaceId);
-      io.to(String(spaceId)).emit('heightChange', spaceHeightArray);
+      io.to(getSpaceRoom(spaceId)).emit('heightChange', spaceHeightArray);
     } else {
       io.emit('heightChange', heightArray);
     }

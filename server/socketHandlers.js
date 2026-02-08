@@ -6,7 +6,7 @@ const { setupReactionHandlers } = require('./handlers/reactionHandlers');
 const { setupDocHandlers } = require('./handlers/docHandlers');
 const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
-const { removeHeightMemory, unlockAllBySocketId } = require('./socketUtils');
+const { removeHeightMemory, unlockAllBySocketId, getSpaceRoom } = require('./socketUtils');
 
 // グローバル変数
 const userSockets = new Map();
@@ -29,7 +29,7 @@ function initializeSocketHandlers(io) {
       // スペースに参加（Socket.IOルーム機能を使用）
       const spaceId = userInfo.spaceId;
       if (spaceId) {
-        socket.join(String(spaceId));
+        socket.join(getSpaceRoom(spaceId));
         socket.spaceId = spaceId;
 
         // スペース参加者を管理
@@ -61,7 +61,7 @@ function initializeSocketHandlers(io) {
       // スペース内の参加者の高さのみをフィルタリングしてブロードキャスト
       if (spaceId) {
         const spaceHeightArray = heightArray.filter(item => item.spaceId === spaceId);
-        io.to(String(spaceId)).emit('heightChange', spaceHeightArray);
+        io.to(getSpaceRoom(spaceId)).emit('heightChange', spaceHeightArray);
       }
 
       // このsocketが保持している全てのロックを解放
@@ -80,7 +80,7 @@ function initializeSocketHandlers(io) {
         spaceParticipants.get(spaceId).delete(socket.userId);
 
         // スペース内の他の参加者に退出を通知
-        io.to(String(spaceId)).emit('user-left', {
+        io.to(getSpaceRoom(spaceId)).emit('user-left', {
           spaceId: spaceId,
           userId: socket.userId,
           nickname: socket.nickname,

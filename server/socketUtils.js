@@ -104,5 +104,6 @@ module.exports = {
     addHeightMemory,
     removeHeightMemory,
     unlockRowByPostId,
-    unlockAllBySocketId
+    unlockAllBySocketId,
+    getSpaceRoom
 };

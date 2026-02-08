@@ -1,5 +1,4 @@
-// スペースルーム名を取得
-const getSpaceRoom = (spaceId) => String(spaceId);
+const { getSpaceRoom } = require('../socketUtils');
 
 function setupLockHandlers(socket, io, lockedRows) {
   // ロックタイムアウトの設定（5分 = 300000ms）

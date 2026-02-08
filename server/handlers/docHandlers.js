@@ -12,10 +12,8 @@ const {
   calculateDisplayOrder,
   detectInsertPosition,
   unlockRowByPostId,
+  getSpaceRoom
 } = require('../socketUtils');
-
-// スペースルーム名を取得
-const getSpaceRoom = (spaceId) => String(spaceId);
 
 // --- ドキュメントハンドラーのセットアップ ---
 function setupDocHandlers(socket, io, lockedRows) {
