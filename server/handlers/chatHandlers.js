@@ -19,14 +19,20 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
 
-  socket.on('chat-message', async ({ nickname, message, userId, spaceId }) => {
+  socket.on('chat-message', async ({ displayName, message }) => {
     try {
+      // socket保存情報を使用（セキュリティと効率性の向上）
+      const nickname = socket.nickname; // 本来のニックネーム
+      const userId = socket.userId;
+      const spaceId = socket.spaceId;
+
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
 
       // チャットメッセージデータ
       const messageData = {
-        nickname,
+        nickname, // 本来のニックネーム（記録用）
+        displayName, // 選択された表示名（表示用）
         message,
         userId,
         displayOrder,
@@ -45,9 +51,9 @@ function setupChatHandlers(socket, io) {
       // ログ記録 - チャットメッセージ
       saveLog({
         userId,
-        userNickname: nickname,
+        userNickname: nickname, // 本来のニックネーム
         action: 'chat-message',
-        detail: { nickname, message, displayOrder },
+        detail: { nickname, displayName, message, displayOrder },
         spaceId
       });
 

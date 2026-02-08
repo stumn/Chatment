@@ -2,14 +2,14 @@ import useAppStore from '../../../store/spaces/appStore';
 import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
-  const emitChatMessage = (nickname, message, userId) => {
+  const emitChatMessage = (handleName, message, userId) => {
     const { userInfo } = useAppStore.getState();
 
+    // displayName（選択された表示名）のみを送信
+    // nickname, userId, spaceIdはサーバー側のsocketから取得される
     const messageData = {
-      nickname,
-      message,
-      userId,
-      spaceId: userInfo.spaceId
+      displayName: handleName, // 選択された表示名
+      message
     };
 
     socket.emit('chat-message', messageData);
@@ -17,7 +17,7 @@ export const useChatEmitters = (socket, emitLog) => {
     emitLog({
       userId: validUserId(userId),
       action: 'chat-message',
-      detail: { nickname, message, spaceId: userInfo.spaceId }
+      detail: { handleName, message }
     });
   };
 

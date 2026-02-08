@@ -91,6 +91,7 @@ const negativeSchema = new mongoose.Schema({
 // 🗨️Post スキーマ / モデル
 const postSchema = new mongoose.Schema({
     nickname: String,
+    displayName: String, // チャットで選択された表示名（オプショナル）
     msg: String,
 
     // --- 投稿者のUser._idを保存するuserIdフィールドを追加 ---
