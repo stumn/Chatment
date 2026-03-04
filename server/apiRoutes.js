@@ -20,6 +20,7 @@ const {
   migrateExistingDataToSpace,
   // 管理者機能
   finishSpace,
+  reactivateSpace,
   getFinishedSpaces,
   getAllSpaces
 } = require('./dbOperation');
@@ -421,6 +422,32 @@ router.post('/spaces/:spaceId/finish', async (req, res) => {
     });
   } catch (error) {
     console.error('Finish space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// スペースを再アクティブ化
+router.post('/spaces/:spaceId/reactivate', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId);
+    const reactivatedSpace = await reactivateSpace(spaceId);
+
+    if (!reactivatedSpace) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found or cannot be reactivated'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: reactivatedSpace
+    });
+  } catch (error) {
+    console.error('Reactivate space API error:', error);
     res.status(500).json({
       success: false,
       error: error.message

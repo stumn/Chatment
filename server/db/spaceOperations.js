@@ -1,6 +1,7 @@
 // spaceOperations.js
 const { Space, Room, Post } = require('../db');
 const { handleErrors } = require('../utils');
+const { saveLog } = require('./logOperations');
 const { createDefaultRoomsForSpace } = require('./roomManagement'); // 追加
 
 const DEFAULT_SPACE_ID = 0; // デフォルトスペースは整数の0
@@ -77,13 +78,18 @@ async function getActiveSpaces() {
         console.log(`📊 [spaceOperation] ${spaceIds.length} アクティブスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
 
-        // 更新後のアクティブスペースデータを取得
+        // 更新後のアクティブスペースデータを取得（最後の投稿の降順でソート）
         const spaces = await Space.find({ isActive: true })
             .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
         console.log(`🌍 [spaceOperation] アクティブスペース ${spaces.length} 件を取得（統計情報更新済み）`);
+
+        // デバッグ: lastActivity の値を確認
+        spaces.forEach(space => {
+            console.log(`  📅 [${space.name}] lastActivity: ${space.lastActivity}`);
+        });
 
         // 各スペースに詳細なユーザー統計を追加
         const spacesWithStats = await Promise.all(spaces.map(async (space) => {
@@ -240,13 +246,16 @@ async function updateSpaceStats(spaceId) {
             ...(lastPost && { lastActivity: lastPost.createdAt })
         };
 
-        await Space.findOneAndUpdate(
+        const updatedSpace = await Space.findOneAndUpdate(
             { id: spaceId },
             { $set: updateData },
             { new: true, timestamps: false }
         );
 
-        console.log(`📊 [spaceOperation] スペース統計更新: ${spaceId}`, updateData);
+        console.log(`📊 [spaceOperation] スペース統計更新: ${spaceId} [${updatedSpace?.name}]`, {
+            ...updateData,
+            lastActivity: updateData.lastActivity ? updateData.lastActivity.toISOString() : 'なし'
+        });
         return updateData;
 
     } catch (error) {
@@ -341,6 +350,15 @@ async function finishSpace(spaceId) {
             throw new Error(`スペースが見つかりません: ${spaceId}`);
         }
 
+        // ログを記録
+        await saveLog({
+            userId: null,
+            userNickname: 'admin',
+            action: 'finish_space',
+            detail: { spaceId, spaceName: result.name },
+            spaceId: spaceId.toString()
+        });
+
         console.log(`🏁 [spaceOperation] スペースを終了: ${spaceId}`);
         return result.toObject();
 
@@ -351,6 +369,47 @@ async function finishSpace(spaceId) {
 }
 
 // --- 終了済みスペース一覧を取得 ---
+// --- スペースを再アクティブ化 ---
+async function reactivateSpace(spaceId) {
+    try {
+        if (spaceId === DEFAULT_SPACE_ID) {
+            throw new Error('デフォルトスペースは再アクティブ化できません');
+        }
+
+        const result = await Space.findOneAndUpdate(
+            { id: spaceId },
+            {
+                $set: {
+                    isFinished: false,
+                    isActive: true,
+                    finishedAt: null // 終了日時をクリア
+                }
+            },
+            { new: true }
+        );
+
+        if (!result) {
+            throw new Error(`スペースが見つかりません: ${spaceId}`);
+        }
+
+        // ログを記録
+        await saveLog({
+            userId: null,
+            userNickname: 'admin',
+            action: 'reactivate_space',
+            detail: { spaceId, spaceName: result.name },
+            spaceId: spaceId.toString()
+        });
+
+        console.log(`🔄 [spaceOperation] スペースを再アクティブ化: ${spaceId}`);
+        return result.toObject();
+
+    } catch (error) {
+        handleErrors(error, `スペース再アクティブ化中にエラーが発生しました: ${spaceId}`);
+        return null;
+    }
+}
+
 async function getFinishedSpaces() {
     try {
         const { getSpaceUserStats } = require('./userOperations');
@@ -362,13 +421,18 @@ async function getFinishedSpaces() {
         console.log(`📊 [spaceOperation] ${spaceIds.length} 終了済みスペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
 
-        // 更新後の終了済みスペースデータを取得
+        // 更新後の終了済みスペースデータを取得（最後の投稿の降順でソート）
         const spaces = await Space.find({ isFinished: true })
-            .sort({ finishedAt: -1 })
+            .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
         console.log(`🏁 [spaceOperation] 終了済みスペース ${spaces.length} 件を取得（統計情報更新済み）`);
+
+        // デバッグ: lastActivity の値を確認
+        spaces.forEach(space => {
+            console.log(`  📅 [${space.name}] lastActivity: ${space.lastActivity}`);
+        });
 
         // 各スペースに詳細なユーザー統計を追加
         const spacesWithStats = await Promise.all(spaces.map(async (space) => {
@@ -403,13 +467,18 @@ async function getAllSpaces() {
         console.log(`📊 [spaceOperation] ${spaceIds.length} スペースの統計情報を更新中...`);
         await Promise.all(spaceIds.map(space => updateSpaceStats(space.id)));
 
-        // 更新後の全スペースデータを取得
+        // 更新後の全スペースデータを取得（最後の投稿の降順でソート）
         const spaces = await Space.find({})
-            .sort({ createdAt: -1 })
+            .sort({ lastActivity: -1 })
             .lean()
             .exec();
 
         console.log(`🌍 [spaceOperation] 全スペース ${spaces.length} 件を取得（統計情報更新済み）`);
+
+        // デバッグ: lastActivity の値を確認
+        spaces.forEach(space => {
+            console.log(`  📅 [${space.name}] lastActivity: ${space.lastActivity}`);
+        });
 
         // 各スペースに詳細なユーザー統計を追加
         const spacesWithStats = await Promise.all(spaces.map(async (space) => {
@@ -445,6 +514,7 @@ module.exports = {
     getPostsBySpace,
     deactivateSpace,
     finishSpace,
+    reactivateSpace,
     getFinishedSpaces,
     getAllSpaces
 };
