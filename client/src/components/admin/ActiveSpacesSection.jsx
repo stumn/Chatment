@@ -154,7 +154,7 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
     }
 
     const confirmed = window.confirm(
-      `スペース「${space.name}」を終了しますか？\n\n終了後は再び開始することはできませんが、ドキュメントの閲覧は可能です。`
+      `スペース「${space.name}」を終了しますか？\n\n終了しても、各種データのダウンロードとドキュメントの閲覧は可能です。`
     );
 
     if (confirmed) {
