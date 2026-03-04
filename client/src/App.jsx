@@ -11,6 +11,7 @@ import { Suspense, lazy } from 'react';
 const SpaceApp = lazy(() => import('./pages/SpaceApp'));
 const ChatApp = lazy(() => import('./pages/ChatApp'));
 const DocumentPage = lazy(() => import('./pages/DocumentPage'));
+const LogAnalysisPage = lazy(() => import('./pages/LogAnalysisPage'));
 
 function App() {
   return (
@@ -32,6 +33,9 @@ function App() {
 
           {/* ドキュメント表示 - 統一エンドポイント（スペースID + ドキュメントID） */}
           <Route path="/document/:spaceId/:docId" element={<DocumentPage />} />
+
+          {/* ログ分析ページ - スペースIDで分析 */}
+          <Route path="/log-analysis/:spaceId" element={<LogAnalysisPage />} />
 
         </Routes>
       </Suspense>

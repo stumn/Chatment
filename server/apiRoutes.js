@@ -591,4 +591,23 @@ router.get('/spaces/:spaceId/export/json', async (req, res) => {
   }
 });
 
+// ログ分析エンドポイント
+router.get('/spaces/:spaceId/log-analysis', async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    const { analyzeSpaceLogs } = require('./db/logOperations');
+
+    const analysis = await analyzeSpaceLogs(spaceId);
+
+    res.json(analysis);
+
+  } catch (error) {
+    console.error('Log analysis API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

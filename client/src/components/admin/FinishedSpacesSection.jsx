@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DocumentViewButton from './ui/DocumentViewButton';
+import LogAnalysisButton from './ui/LogAnalysisButton';
 
 // テーブルヘッダーコンポーネント
 const TableHeader = () => (
@@ -145,6 +146,7 @@ const FinishedSpaceRow = ({ space, onReactivateSpace }) => {
       <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-gray-200 text-left">
         <div className="flex gap-1">
           <DocumentViewButton spaceId={space.id} />
+          <LogAnalysisButton spaceId={space.id} />
           <a
             href={`/api/spaces/${space.id}/export/json`}
             className="px-3 py-2 !bg-slate-500 !text-white border-none rounded text-sm font-medium cursor-pointer hover:!bg-slate-600 transition-colors duration-150 no-underline flex items-center justify-center"

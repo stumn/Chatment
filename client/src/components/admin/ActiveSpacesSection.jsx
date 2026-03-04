@@ -1,4 +1,5 @@
 import DocumentViewButton from './ui/DocumentViewButton';
+import LogAnalysisButton from './ui/LogAnalysisButton';
 
 // テーブルヘッダーコンポーネント
 const TableHeader = () => (
@@ -197,6 +198,7 @@ const ActiveSpaceRow = ({ space, onSelectSpace, onFinishSpace, onEditSpace }) =>
         <GoButton />
         <EditNameButton />
         <DocumentViewButton spaceId={space.id} />
+        <LogAnalysisButton spaceId={space.id} />
         <FinishSpaceButton />
       </td>
     </tr >
