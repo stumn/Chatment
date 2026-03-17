@@ -52,7 +52,9 @@ function setupChatHandlers(socket, io) {
         userNickname: nickname,
         action: 'chat-message',
         detail: { nickname, message, displayOrder, roomId },
-        spaceId
+        spaceId,
+        level: 'info',
+        source: 'server'
       });
 
     } catch (e) { console.error(e); }

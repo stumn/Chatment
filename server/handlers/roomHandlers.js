@@ -8,21 +8,23 @@ const {
 
 function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
 
-  socket.on('join-room', ({ roomId, userId, nickname, userInfo }) => {
+  socket.on('join-space', ({ roomId, userId, nickname, userInfo }) => {
     try {
       // ルームの存在確認
       if (rooms.size === 0) {
 
-        // ログ記録 - ルーム参加エラー
+        // ログ記録 - スペース参加エラー
         saveLog({
           userId,
           userNickname: nickname,
-          action: 'room-join-error',
+          action: 'space-join-error',
           detail: { error: 'No rooms available', nickname },
-          spaceId: userInfo?.spaceId
+          spaceId: userInfo?.spaceId,
+          level: 'error',
+          source: 'server'
         });
 
-        socket.emit('room-error', { error: 'No rooms available', message: '利用可能なルームがありません' });
+        socket.emit('space-error', { error: 'No rooms available', message: '利用可能なスペースがありません' });
         return;
       }
 
@@ -33,12 +35,14 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         saveLog({
           userId,
           userNickname: nickname,
-          action: 'room-join-error',
+          action: 'space-join-error',
           detail: { error: 'Room not found', roomId, nickname },
-          spaceId: userInfo?.spaceId
+          spaceId: userInfo?.spaceId,
+          level: 'error',
+          source: 'server'
         });
 
-        socket.emit('room-error', { error: 'Room not found', roomId, message: 'ルームが見つかりません' });
+        socket.emit('space-error', { error: 'Room not found', roomId, message: 'スペースが見つかりません' });
         return;
       }
 
@@ -51,7 +55,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         currentRoom.participants.forEach(participantUserId => {
           const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
-            participantSocket.emit('user-left', {
+            participantSocket.emit('other-user-left', {
               roomId: currentRoomId,
               userId,
               nickname,
@@ -81,7 +85,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       socket.currentSocketRoom = roomId;
 
       // 参加成功をクライアントに通知
-      socket.emit('room-joined', {
+      socket.emit('space-joined', {
         roomId,
         roomInfo: {
           name: room.name,
@@ -94,7 +98,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         if (participantUserId !== userId) {
           const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
-            participantSocket.emit('user-joined', {
+            participantSocket.emit('other-user-joined', {
               roomId,
               userId,
               nickname,
@@ -104,26 +108,28 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         }
       });
 
-      // ログ記録 - ルーム参加
+      // ログ記録 - スペース参加
       saveLog({
         userId,
         userNickname: nickname,
-        action: 'join-room',
+        action: 'join-space',
         detail: { roomId, nickname, participantCount: room.participants.size },
-        spaceId: userInfo?.spaceId
+        spaceId: userInfo?.spaceId,
+        level: 'info',
+        source: 'server'
       });
 
     } catch (error) {
-      console.error('Error in join-room:', error);
-      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム参加中にエラーが発生しました' });
+      console.error('Error in join-space:', error);
+      socket.emit('space-error', { error: error.message, roomId, message: 'スペース参加中にエラーが発生しました' });
     }
   });
 
-  socket.on('leave-room', ({ roomId, userId, nickname }) => {
+  socket.on('leave-space', ({ roomId, userId, nickname }) => {
     try {
       if (!rooms.has(roomId)) {
         // ルームが存在しない場合でも退出完了として扱う
-        socket.emit('room-left', {
+        socket.emit('space-left', {
           roomId,
           participantCount: 0
         });
@@ -141,7 +147,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         socket.currentSocketRoom = null;
       }
 
-      socket.emit('room-left', {
+      socket.emit('space-left', {
         roomId,
         participantCount: room.participants.size
       });
@@ -150,7 +156,7 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       room.participants.forEach(participantUserId => {
         const participantSocket = userSockets.get(participantUserId);
         if (participantSocket) {
-          participantSocket.emit('user-left', {
+          participantSocket.emit('other-user-left', {
             roomId,
             userId,
             nickname,
@@ -159,23 +165,25 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
         }
       });
 
-      // ログ記録 - ルーム退出
+      // ログ記録 - スペース退出
       saveLog({
         userId,
         userNickname: nickname,
-        action: 'leave-room',
+        action: 'leave-space',
         detail: { roomId, nickname, participantCount: room.participants.size },
-        spaceId: userInfo?.spaceId
+        spaceId: userInfo?.spaceId,
+        level: 'info',
+        source: 'server'
       });
 
     } catch (error) {
-      console.error('Error in leave-room:', error);
-      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム退出中にエラーが発生しました' });
+      console.error('Error in leave-space:', error);
+      socket.emit('space-error', { error: error.message, roomId, message: 'スペース退出中にエラーが発生しました' });
     }
   });
 
   // その他のルーム関連ハンドラー...
-  socket.on('get-room-list', async (data) => {
+  socket.on('get-space-info', async (data) => {
     try {
       const { spaceId } = data || {};
 
@@ -230,52 +238,56 @@ function setupRoomHandlers(socket, io, rooms, userRooms, userSockets) {
       });
 
       // スペース情報も含めて送信
-      socket.emit('room-list', {
+      socket.emit('space-info', {
         rooms: roomList,
         spaceId,
         spaceInfo: spaceInfo
       });
 
-      // ログ記録 - ルーム一覧取得
+      // ログ記録 - スペース情報取得
       saveLog({
         userId: socket.userId,
         userNickname: socket.nickname,
-        action: 'get-room-list',
+        action: 'get-space-info',
         detail: { spaceId, roomCount: roomList.length },
-        spaceId
+        spaceId,
+        level: 'info',
+        source: 'server'
       });
 
     } catch (error) {
-      console.error('Error in get-room-list:', error);
-      socket.emit('room-error', { error: error.message, message: 'ルーム一覧取得中にエラーが発生しました' });
+      console.error('Error in get-space-info:', error);
+      socket.emit('space-error', { error: error.message, message: 'スペース情報取得中にエラーが発生しました' });
     }
   });
 
-  socket.on('fetch-room-history', async ({ roomId }) => {
+  socket.on('fetch-space-history', async ({ roomId }) => {
     try {
       if (!roomId) {
-        socket.emit('room-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
+        socket.emit('space-error', { error: 'Room ID required', message: 'ルームIDが指定されていません' });
         return;
       }
 
       // spaceIdはroomIdから自動抽出されるので、第2引数は不要
       const messages = await getRoomHistory(roomId);
 
-      socket.emit('room-history', { roomId, messages });
+      socket.emit('space-history', { roomId, messages });
 
-      // ログ記録 - ルーム履歴取得
+      // ログ記録 - スペース履歴取得
       const spaceId = roomId.match(/space(\d+)-/)?.[1];
       saveLog({
         userId: socket.userId,
         userNickname: socket.nickname,
-        action: 'fetch-room-history',
+        action: 'fetch-space-history',
         detail: { roomId, messageCount: messages.length },
-        spaceId: spaceId ? parseInt(spaceId) : null
+        spaceId: spaceId ? parseInt(spaceId) : null,
+        level: 'info',
+        source: 'server'
       });
 
     } catch (error) {
-      console.error('Error fetching room history:', error);
-      socket.emit('room-error', { error: error.message, roomId, message: 'ルーム履歴取得中にエラーが発生しました' });
+      console.error('Error fetching space history:', error);
+      socket.emit('space-error', { error: error.message, roomId, message: 'スペース履歴取得中にエラーが発生しました' });
     }
   });
 }

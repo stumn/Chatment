@@ -77,20 +77,6 @@ export default function ResizablePanels({ appController, spaceId }) {
     useEffect(() => {
         const newLines = calculateLines(bottomHeight);
         setLines({ num: newLines, timestamp: Date.now() });
-
-        if (newLines === lines.num) return; // 行数が変わらない場合は更新しない
-
-        const data = {
-            userId: userInfo && userInfo._id,
-            action: 'calculate-lines',
-            detail: {
-                height: bottomHeight,
-                lines: newLines,
-                user: userInfo && userInfo.nickname
-            }
-        };
-        emitLog(data);
-
     }, [bottomHeight, messages]);
 
     const calculateLines = (newBottomHeight) => {
@@ -110,11 +96,14 @@ export default function ResizablePanels({ appController, spaceId }) {
     const handleMouseDown = (event) => {
         const startY = event.clientY;
         const startHeight = myHeight;
+        const oldLines = lines.num;
+        let finalHeight = startHeight; // 最終的な高さを保持
 
         const onMouseMove = (moveEvent) => {
             const currentY = moveEvent.clientY;
             let newTopHeight = Math.max(startHeight + (currentY - startY), 0);
             newTopHeight = Math.max(0, Math.min(MAX_TOP_HEIGHT, newTopHeight));
+            finalHeight = newTopHeight; // 最終的な高さを更新
             setMyHeight(newTopHeight);
             document.getElementById('divider').style.backgroundColor = `rgba(4, 149, 35, 0.51)`;
         };
@@ -124,18 +113,24 @@ export default function ResizablePanels({ appController, spaceId }) {
             document.removeEventListener("mouseup", onMouseUp);
             document.getElementById('divider').style.backgroundColor = `rgba(53, 59, 72, 0.6)`;
 
+            // 統合ログ: move-divider
+            const newBottomHeight = CONTAINER_resizable_HEIGHT - DIVIDER_HEIGHT - finalHeight;
+            const newLines = calculateLines(newBottomHeight);
 
-            const data = {
-                userId: userInfo && userInfo._id,
-                action: 'divider-move',
+            emitLog({
+                userId: userInfo?._id,
+                userNickname: userInfo?.nickname,
+                action: 'move-divider',
                 detail: {
-                    from: startY,
-                    to: startHeight,
-                    user: userInfo && userInfo.nickname
-                }
-            };
-            emitLog(data);
-
+                    spaceId: userInfo?.spaceId,
+                    oldHeight: startHeight,
+                    newHeight: finalHeight,
+                    oldLines: oldLines,
+                    newLines: newLines
+                },
+                level: 'info',
+                source: 'client'
+            });
         };
 
         document.addEventListener("mousemove", onMouseMove);

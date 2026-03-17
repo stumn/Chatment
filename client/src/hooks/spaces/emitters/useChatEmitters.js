@@ -14,12 +14,6 @@ export const useChatEmitters = (socket, emitLog) => {
     };
 
     socket.emit('chat-message', messageData);
-
-    emitLog({
-      userId: validUserId(userId),
-      action: 'chat-message',
-      detail: { nickname, message, roomId, spaceId: userInfo.spaceId }
-    });
   };
 
   const emitPositive = (id) => {
@@ -31,12 +25,6 @@ export const useChatEmitters = (socket, emitLog) => {
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      action: 'positive',
-      detail: { postId: id, nickname: userInfo.nickname }
-    });
   };
 
   const emitNegative = (id) => {
@@ -47,12 +35,6 @@ export const useChatEmitters = (socket, emitLog) => {
       postId: id,
       userSocketId: socket.id,
       nickname: userInfo.nickname,
-    });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      action: 'negative',
-      detail: { postId: id, nickname: userInfo.nickname }
     });
   };
 

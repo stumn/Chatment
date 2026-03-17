@@ -22,13 +22,31 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
     }, [isOpen, spaceId]);
 
     const fetchLogAnalysis = async () => {
+        console.log('[LogAnalysis] fetchLogAnalysis開始 - spaceId:', spaceId);
         setLoading(true);
         setError(null);
         try {
             const response = await fetch(`/api/spaces/${spaceId}/log-analysis`);
             const data = await response.json();
+            console.log('[LogAnalysis] レスポンス受信:', {
+                success: data.success,
+                hasRecentLogs: !!data.recentLogs,
+                recentLogsLength: data.recentLogs?.length
+            });
 
             if (data.success) {
+                // デバッグ: 最新ログのサンプルを確認
+                if (data.recentLogs && data.recentLogs.length > 0) {
+                    const sample = data.recentLogs[0];
+                    console.log('[LogAnalysis] 受信した最新ログサンプル:', {
+                        action: sample.action,
+                        level: sample.level,
+                        source: sample.source,
+                        userNickname: sample.userNickname,
+                        hasDetail: !!sample.detail,
+                        fullLog: sample
+                    });
+                }
                 setAnalysis(data);
             } else {
                 setError(data.error || 'ログ分析に失敗しました');
@@ -203,9 +221,18 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
     };
 
     const renderLogs = () => {
+        console.log('[LogAnalysis] renderLogs呼び出し - analysis:', {
+            hasAnalysis: !!analysis,
+            hasRecentLogs: !!analysis?.recentLogs,
+            recentLogsLength: analysis?.recentLogs?.length
+        });
+
         if (!analysis?.recentLogs || analysis.recentLogs.length === 0) {
             return <div className="text-center text-gray-500 py-4">最近のログがありません</div>;
         }
+
+        // 最初のログをコンソールに出力
+        console.log('[LogAnalysis] 表示する最初のログ:', analysis.recentLogs[0]);
 
         return (
             <div className="space-y-2">
@@ -216,11 +243,30 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
                     {analysis.recentLogs.map((log, index) => (
                         <div key={index} className="bg-gray-50 p-3 rounded mb-2 text-sm">
                             <div className="flex items-start justify-between mb-1">
-                                <span className="font-medium text-gray-900">{log.action || 'unknown'}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-900">{log.action || 'unknown'}</span>
+                                    {log.level && (
+                                        <span className={`text-xs px-1.5 py-0.5 rounded ${log.level === 'error' ? 'bg-red-100 text-red-700' :
+                                            log.level === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                                                log.level === 'debug' ? 'bg-gray-100 text-gray-600' :
+                                                    'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {log.level}
+                                        </span>
+                                    )}
+                                    {log.source && (
+                                        <span className="text-xs text-gray-500">({log.source})</span>
+                                    )}
+                                </div>
                                 <span className="text-xs text-gray-500">
                                     {formatDate(log.timestamp || log.createdAt)}
                                 </span>
                             </div>
+                            {log.userNickname && (
+                                <div className="text-xs text-gray-600 mb-1">
+                                    <span className="font-medium">ユーザー:</span> {log.userNickname}
+                                </div>
+                            )}
                             {log.detail && Object.keys(log.detail).length > 0 && (
                                 <div className="text-xs text-gray-600 mt-1">
                                     {Object.entries(log.detail).map(([key, value]) => (
@@ -272,8 +318,8 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
                         <button
                             key={tab.id}
                             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                             onClick={() => setActiveTab(tab.id)}
                         >

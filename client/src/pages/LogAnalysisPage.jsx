@@ -428,26 +428,62 @@ const LogAnalysisPage = () => {
 
         return (
             <div className="space-y-2">
-                <div className="text-sm text-gray-600 mb-4">
-                    最新100件のログ（新しい順）
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-600">最新100件のログ（新しい順）</div>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                            <span className="inline-block w-3 h-3 rounded bg-blue-50 border border-blue-200"></span>
+                            ユーザー操作
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300"></span>
+                            システム処理
+                        </span>
+                    </div>
                 </div>
                 <div className="max-h-[500px] overflow-y-auto">
                     {analysis.recentLogs.map((log, index) => (
-                        <div key={index} className="bg-gray-50 p-3 rounded mb-2 text-sm">
+                        <div key={index} className={`p-3 rounded mb-2 text-sm border ${log.source === 'client' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+                            }`}>
                             <div className="flex items-start justify-between mb-1">
                                 <span className="font-medium text-gray-900">{log.action || 'unknown'}</span>
-                                <span className="text-xs text-gray-500">
-                                    {formatDate(log.timestamp || log.createdAt)}
-                                </span>
+                                <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                                    <span className="text-xs text-gray-500">
+                                        {formatDate(log.timestamp || log.createdAt)}
+                                    </span>
+                                    {log.level && (
+                                        <span className={`text-xs px-1.5 py-0.5 rounded ${log.level === 'error' ? 'bg-red-100 text-red-700' :
+                                            log.level === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                                                log.level === 'debug' ? 'bg-gray-100 text-gray-600' :
+                                                    'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {log.level}
+                                        </span>
+                                    )}
+                                    {log.source && (
+                                        <span className="text-xs text-gray-400">({log.source})</span>
+                                    )}
+                                </div>
                             </div>
+                            {log.userNickname && (
+                                <div className="text-xs text-gray-600 mb-1">
+                                    <span className="font-medium">ユーザー:</span> {log.userNickname}
+                                </div>
+                            )}
                             {log.detail && Object.keys(log.detail).length > 0 && (
                                 <div className="text-xs text-gray-600 mt-1">
+                                    {log.detail.msgPreview && (
+                                        <div className="mb-1 px-2 py-1 bg-white border-l-2 border-gray-300 text-gray-700 italic">
+                                            "{log.detail.msgPreview}"
+                                        </div>
+                                    )}
                                     {Object.entries(log.detail).map(([key, value]) => {
-                                        // roomIdとspaceIdは非表示
-                                        if (key === 'roomId' || key === 'spaceId') {
-                                            return null;
-                                        }
-
+                                        if (['roomId', 'spaceId', 'msgPreview', 'nickname', 'userSocketId'].includes(key)) return null;
+                                        if (key === 'newMsg') return (
+                                            <div key={key} className="mb-1 px-2 py-1 bg-white border-l-2 border-blue-300 text-gray-700 italic">
+                                                → "{typeof value === 'string' && value.length > 40 ? value.substring(0, 40) + '...' : value}"
+                                            </div>
+                                        );
                                         return (
                                             <div key={key}>
                                                 <span className="font-medium">{key}:</span> {JSON.stringify(value)}
@@ -485,7 +521,7 @@ const LogAnalysisPage = () => {
         // ユーザ絞り込み
         if (selectedUsers.length > 0) {
             filteredLogs = filteredLogs.filter(log => {
-                const logUser = log.detail?.user || log.detail?.nickname || log.userName || 'unknown';
+                const logUser = log.userNickname || log.detail?.user || log.detail?.nickname || 'unknown';
                 return selectedUsers.includes(logUser);
             });
         }
@@ -751,31 +787,69 @@ const LogAnalysisPage = () => {
                         )}
                     </div>
                     <div className="max-h-[600px] overflow-y-auto">
+                        <div className="flex items-center justify-end gap-3 text-xs text-gray-500 mb-2">
+                            <span className="flex items-center gap-1">
+                                <span className="inline-block w-3 h-3 rounded bg-blue-50 border border-blue-200"></span>
+                                ユーザー操作
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300"></span>
+                                システム処理
+                            </span>
+                        </div>
                         {filteredLogs.map((log, index) => (
-                            <div key={index} className="bg-gray-50 p-3 rounded mb-2 text-sm border-l-4 border-blue-400">
+                            <div key={index} className={`p-3 rounded mb-2 text-sm border-l-4 ${log.level === 'error' ? 'border-l-red-400' :
+                                log.level === 'warning' ? 'border-l-yellow-400' :
+                                    log.level === 'debug' ? 'border-l-gray-300' :
+                                        'border-l-blue-400'
+                                } ${log.source === 'client' ? 'bg-blue-50' : 'bg-gray-50'
+                                }`}>
                                 <div className="flex items-start justify-between mb-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-gray-400 font-mono">#{index + 1}</span>
                                         <span className="font-medium text-gray-900">{log.action || 'unknown'}</span>
                                     </div>
-                                    <span className="text-xs text-gray-500">
-                                        {formatDate(log.timestamp || log.createdAt)}
-                                    </span>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                                        <span className="text-xs text-gray-500">
+                                            {formatDate(log.timestamp || log.createdAt)}
+                                        </span>
+                                        {log.level && (
+                                            <span className={`text-xs px-1.5 py-0.5 rounded ${log.level === 'error' ? 'bg-red-100 text-red-700' :
+                                                log.level === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                                                    log.level === 'debug' ? 'bg-gray-100 text-gray-600' :
+                                                        'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {log.level}
+                                            </span>
+                                        )}
+                                        {log.source && (
+                                            <span className="text-xs text-gray-400">({log.source})</span>
+                                        )}
+                                    </div>
                                 </div>
+                                {log.userNickname && (
+                                    <div className="text-xs text-gray-600 mb-1">
+                                        <span className="font-medium">ユーザー:</span> {log.userNickname}
+                                    </div>
+                                )}
                                 {log.detail && Object.keys(log.detail).length > 0 && (
                                     <div className="text-xs text-gray-600 mt-2 bg-white p-2 rounded text-left">
+                                        {log.detail.msgPreview && (
+                                            <div className="mb-2 px-2 py-1 border-l-2 border-gray-300 text-gray-700 italic">
+                                                "{log.detail.msgPreview}"
+                                            </div>
+                                        )}
                                         {Object.entries(log.detail).map(([key, value]) => {
-                                            // roomIdとspaceIdは非表示
-                                            if (key === 'roomId' || key === 'spaceId') {
-                                                return null;
-                                            }
-
+                                            if (['roomId', 'spaceId', 'msgPreview', 'nickname', 'userSocketId'].includes(key)) return null;
+                                            if (key === 'newMsg') return (
+                                                <div key={key} className="mb-1 px-2 py-1 border-l-2 border-blue-300 text-gray-700 italic">
+                                                    → "{typeof value === 'string' && value.length > 40 ? value.substring(0, 40) + '...' : value}"
+                                                </div>
+                                            );
                                             let displayValue = JSON.stringify(value);
-                                            // messageフィールドが30文字を超える場合は省略
-                                            if ((key === 'msg' || key === 'message') && typeof value === 'string' && value.length > 30) {
-                                                displayValue = `"${value.substring(0, 30)}..."`;
+                                            if ((key === 'msg' || key === 'message') && typeof value === 'string' && value.length > 40) {
+                                                displayValue = `"${value.substring(0, 40)}..."`;
                                             }
-
                                             return (
                                                 <div key={key} className="mb-1">
                                                     <span className="font-medium text-blue-700">{key}:</span>{' '}

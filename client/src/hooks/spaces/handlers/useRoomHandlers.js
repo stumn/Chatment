@@ -29,13 +29,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
       }
     }
 
-    const userInfo = useAppStore.getState().userInfo;
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo && userInfo.nickname,
-      action: 'room-joined',
-      detail: { roomId: data.roomId, participantCount: data.roomInfo?.participantCount }
-    });
   };
 
   const handleRoomLeft = (data) => {
@@ -43,14 +36,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-
-    const userInfo = useAppStore.getState().userInfo;
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo && userInfo.nickname,
-      action: 'room-left',
-      detail: { roomId: data.roomId, participantCount: data.participantCount }
-    });
   };
 
   const handleUserJoined = (data) => {
@@ -58,13 +43,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-
-    emitLog({
-      userId: validUserId(data.userId),
-      userNickname: data.nickname,
-      action: 'user-joined',
-      detail: { roomId: data.roomId, participantCount: data.participantCount }
-    });
   };
 
   const handleUserLeft = (data) => {
@@ -72,13 +50,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
 
     // 参加者数を更新
     useRoomStore.getState().updateRoomParticipantCount(data.roomId, data.participantCount);
-
-    emitLog({
-      userId: validUserId(data.userId),
-      userNickname: data.nickname,
-      action: 'room-left',
-      detail: { roomId: data.roomId, participantCount: data.participantCount }
-    });
   };
 
   const handleRoomError = (data) => {
@@ -112,9 +83,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
       // ルーム一覧を受信したら、最初のルームに自動参加（デフォルトスペースにサブルームが2つ残っているため）
       if (data.rooms.length <= 3) {
         const firstRoom = data.rooms[0];
-
-        // ログ記録
-        emitLog('join-room', { roomId: firstRoom.id });
 
         // roomEmittersを使ってルーム参加を送信
         if (roomEmitters && roomEmitters.emitJoinRoom) {
@@ -158,18 +126,6 @@ export const useRoomHandlers = (emitLog, roomEmitters) => {
         });
       }
 
-      // パフォーマンスログ
-      const userInfo = useAppStore.getState().userInfo;
-      emitLog({
-        userId: validUserId(userInfo?._id),
-        userNickname: userInfo?.nickname,
-        action: 'room-history-loaded',
-        detail: {
-          roomId: data.roomId,
-          messageCount: data.messages.length,
-          loadTimeMs: loadTime
-        }
-      });
     }
   };
 

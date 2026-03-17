@@ -356,7 +356,9 @@ async function finishSpace(spaceId) {
             userNickname: 'admin',
             action: 'finish_space',
             detail: { spaceId, spaceName: result.name },
-            spaceId: spaceId.toString()
+            spaceId: spaceId.toString(),
+            level: 'info',
+            source: 'server'
         });
 
         console.log(`🏁 [spaceOperation] スペースを終了: ${spaceId}`);
@@ -398,7 +400,9 @@ async function reactivateSpace(spaceId) {
             userNickname: 'admin',
             action: 'reactivate_space',
             detail: { spaceId, spaceName: result.name },
-            spaceId: spaceId.toString()
+            spaceId: spaceId.toString(),
+            level: 'info',
+            source: 'server'
         });
 
         console.log(`🔄 [spaceOperation] スペースを再アクティブ化: ${spaceId}`);

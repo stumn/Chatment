@@ -4,16 +4,7 @@ import { validUserId } from '../socketUtils/socketUtils';
 export const useDocEmitters = (socket, emitLog) => {
 
   const emitDocAdd = (payload) => {
-    const { userInfo } = useAppStore.getState();
-
     socket.emit('doc-add', payload);
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-add',
-      detail: payload
-    });
   };
 
   const emitDemandLock = (data) => {
@@ -50,28 +41,12 @@ export const useDocEmitters = (socket, emitLog) => {
       socket.on('Lock-not-allowed', onLockNotAllowed);
 
       socket.emit('demand-lock', data);
-
-      emitLog({
-        userId: validUserId(userInfo && userInfo._id),
-        userNickname: userInfo.nickname,
-        action: 'doc-demand-lock',
-        detail: data
-      });
     });
   };
 
   const emitUnlockRow = (data) => {
-    const { userInfo } = useAppStore.getState();
     console.log('[Lock] Emitting unlock-row:', data);
-
     socket.emit('unlock-row', data);
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-unlock-row',
-      detail: data
-    });
   };
 
   const emitDocEdit = (payload) => {
@@ -84,20 +59,10 @@ export const useDocEmitters = (socket, emitLog) => {
     };
 
     socket.emit('doc-edit', payloadWithSpace);
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-edit',
-      detail: payloadWithSpace
-    });
   };
 
   const emitDocReorder = (payload) => {
     const { userInfo } = useAppStore.getState();
-
-    // 編集前の情報を取得
-    const posts = window.__postStore?.getState?.().posts || [];
-    const oldOrder = posts.map(p => ({ id: p.id, displayOrder: p.displayOrder }));
 
     // spaceIdを追加
     const payloadWithSpace = {
@@ -106,31 +71,14 @@ export const useDocEmitters = (socket, emitLog) => {
     };
 
     socket.emit('doc-reorder', payloadWithSpace);
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-reorder',
-      detail: {
-        ...payloadWithSpace,
-        oldOrder: oldOrder
-      }
-    });
   };
 
   const emitDocDelete = (id) => {
-    const { userInfo } = useAppStore.getState();
     socket.emit('doc-delete', { id });
-    emitLog({ action: 'doc-delete', detail: { documentId: id } });
   };
 
   const emitIndentChange = (postId, newIndentLevel) => {
     const { userInfo } = useAppStore.getState();
-
-    // 編集前の情報を取得
-    const posts = window.__postStore?.getState?.().posts || [];
-    const targetPost = posts.find(p => p.id === postId);
-    const oldIndentLevel = targetPost?.indentLevel;
 
     const payload = {
       postId,
@@ -142,17 +90,6 @@ export const useDocEmitters = (socket, emitLog) => {
     console.log(payload);
 
     socket.emit('doc-indent-change', payload);
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'doc-indent-change',
-      detail: {
-        ...payload,
-        oldIndentLevel,
-        documentId: postId
-      }
-    });
   };
 
   return {

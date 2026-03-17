@@ -68,7 +68,7 @@ function initializeSocketHandlers(io) {
         room.participants.forEach(participantUserId => {
           const participantSocket = userSockets.get(participantUserId);
           if (participantSocket) {
-            participantSocket.emit('user-left', {
+            participantSocket.emit('other-user-left', {
               roomId: currentRoomId,
               userId: socket.userId,
               nickname: socket.nickname,

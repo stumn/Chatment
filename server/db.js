@@ -164,11 +164,28 @@ const Post = mongoose.model("Post", postSchema);
 // 📝Log スキーマ / モデル
 const logSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    userName: String,
+    userNickname: String,
     action: String, // 操作種別
     detail: Object, // 操作内容
     spaceId: String, // スペースID
+
+    // 追加フィールド
+    level: {
+        type: String,
+        enum: ['error', 'warning', 'info', 'debug'],
+        default: 'info'
+    },
+    source: {
+        type: String,
+        enum: ['client', 'server'],
+        default: 'server'
+    },
 }, options);
+
+// インデックス追加
+logSchema.index({ spaceId: 1, action: 1, createdAt: -1 }); // スペース・アクション別の時系列取得
+logSchema.index({ level: 1, createdAt: -1 }); // エラーログ検索用
+logSchema.index({ userId: 1, createdAt: -1 }); // ユーザー別ログ取得用
 
 const Log = mongoose.model("Log", logSchema);
 

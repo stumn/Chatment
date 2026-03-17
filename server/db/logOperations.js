@@ -1,32 +1,51 @@
 // logOperations.js
-const { Log, Space, Room } = require('../db');
+const { Log, Space, Room, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
 // ログを保存（spaceId対応）
-async function saveLog({ userId, userNickname = '', action, detail, spaceId = null }) {
+async function saveLog({ userId, userNickname = '', action, detail, spaceId = null, level = 'info', source = 'server' }) {
     try {
-        // spaceIdが提供されていない場合、roomIdからspaceIdを取得
         let resolvedSpaceId = spaceId;
-        if (!resolvedSpaceId && detail && detail.roomId) {
+        let enrichedDetail = detail ? { ...detail } : {};
+
+        // roomId から spaceId を取得
+        if (!resolvedSpaceId && enrichedDetail.roomId) {
             try {
-                const room = await Room.findOne({ id: detail.roomId }).lean();
-                if (room && room.spaceId) {
-                    resolvedSpaceId = room.spaceId;
-                }
+                const room = await Room.findOne({ id: enrichedDetail.roomId }).lean();
+                if (room && room.spaceId) resolvedSpaceId = room.spaceId;
             } catch (e) {
                 console.warn('Failed to resolve spaceId from roomId:', e.message);
             }
         }
 
-        const logData = {
+        // postId (detail.postId または detail.id) から spaceId とメッセージプレビューを取得
+        const postId = enrichedDetail.postId || enrichedDetail.id;
+        if (postId) {
+            try {
+                const post = await Post.findById(postId).lean();
+                if (post) {
+                    if (!resolvedSpaceId && post.spaceId) resolvedSpaceId = post.spaceId;
+                    // チャットメッセージまたはドキュメント行の内容をプレビューとして付加
+                    if (post.msg) {
+                        enrichedDetail.msgPreview = post.msg.length > 40
+                            ? post.msg.substring(0, 40) + '...'
+                            : post.msg;
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to resolve data from postId:', e.message);
+            }
+        }
+
+        await Log.create({
             userId,
             userNickname,
             action,
             spaceId: resolvedSpaceId,
-            detail: detail,
-        };
-
-        await Log.create(logData);
+            detail: enrichedDetail,
+            level,
+            source,
+        });
     } catch (e) {
         handleErrors(e, 'ログ記録失敗:');
     }
@@ -77,6 +96,13 @@ async function analyzeSpaceLogs(spaceId) {
             }
             if (log.updatedAt) {
                 log.updatedAt = new Date(log.updatedAt);
+            }
+            // level/sourceが存在しない古いログにデフォルト値を設定
+            if (!log.level) {
+                log.level = 'info';
+            }
+            if (!log.source) {
+                log.source = 'server';
             }
         });
 
@@ -146,7 +172,7 @@ async function analyzeSpaceLogs(spaceId) {
         // 4. ユーザー別活動統計
         const userStats = {};
         allLogs.forEach(log => {
-            const user = log.detail?.user || log.detail?.nickname || log.userName || 'unknown';
+            const user = log.userNickname || log.detail?.user || log.detail?.nickname || 'unknown';
             if (!userStats[user]) {
                 userStats[user] = {
                     totalActions: 0,
@@ -196,8 +222,8 @@ async function analyzeSpaceLogs(spaceId) {
             const nextAction = next.action || 'unknown';
 
             // 興味深い遷移パターンを検出
-            if ((currentAction === 'login' && nextAction === 'join-room') ||
-                (currentAction === 'join-room' && nextAction === 'send-message') ||
+            if ((currentAction === 'login' && nextAction === 'join-space') ||
+                (currentAction === 'join-space' && nextAction === 'send-message') ||
                 (currentAction === 'add-line' && nextAction === 'edit-line')) {
                 stateTransitions.push({
                     from: currentAction,
@@ -227,6 +253,18 @@ async function analyzeSpaceLogs(spaceId) {
 
         // 記録期間をログ出力（デバッグ用）
         console.log(`[Log Analysis] 記録期間 - 開始: ${summary.timeRange.start}, 終了: ${summary.timeRange.end}`);
+
+        // 最新ログのサンプルを出力（level/sourceフィールドの確認用）
+        if (allLogs.length > 0) {
+            const sampleLog = allLogs[allLogs.length - 1];
+            console.log(`[Log Analysis] 最新ログサンプル:`, {
+                action: sampleLog.action,
+                level: sampleLog.level,
+                source: sampleLog.source,
+                userNickname: sampleLog.userNickname,
+                hasDetail: !!sampleLog.detail
+            });
+        }
 
         return {
             success: true,

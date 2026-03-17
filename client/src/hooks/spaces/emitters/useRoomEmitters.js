@@ -15,14 +15,7 @@ export const useRoomEmitters = (socket, emitLog) => {
       userInfo: userInfo
     };
 
-    socket.emit('join-room', joinData);
-
-    emitLog({
-      userId: validUserId(userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'join-room',
-      detail: { roomId, nickname: userInfo.nickname }
-    });
+    socket.emit('join-space', joinData);
   };
 
   const emitLeaveRoom = (roomId) => {
@@ -35,40 +28,19 @@ export const useRoomEmitters = (socket, emitLog) => {
       nickname: userInfo.nickname
     };
 
-    socket.emit('leave-room', leaveData);
-
-    emitLog({
-      userId: validUserId(userInfo._id),
-      userNickname: userInfo.nickname,
-      action: 'leave-room',
-      detail: { roomId, nickname: userInfo.nickname }
-    });
+    socket.emit('leave-space', leaveData);
   };
 
   const emitGetRoomList = () => {
     const { userInfo } = useAppStore.getState();
-    socket.emit('get-room-list', userInfo);
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo && userInfo.nickname,
-      action: 'get-room-list',
-      detail: {}
-    });
+    socket.emit('get-space-info', userInfo);
   };
 
   const emitGetRoomInfo = (roomId) => {
     const { userInfo } = useAppStore.getState();
     if (!roomId) return;
 
-    socket.emit('get-room-info', { roomId });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo && userInfo.nickname,
-      action: 'get-room-info',
-      detail: { roomId }
-    });
+    socket.emit('get-space-info', { roomId });
   };
 
   const emitFetchRoomHistory = (roomId) => {
@@ -84,14 +56,7 @@ export const useRoomEmitters = (socket, emitLog) => {
 
     roomId === 'room-0' // ここはサーバ処理でも良さそう
       ? socket.emit('fetch-history', { roomId, startTime })
-      : socket.emit('fetch-room-history', { roomId, startTime });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      userNickname: userInfo && userInfo.nickname,
-      action: 'fetch-room-history',
-      detail: { roomId, startTime }
-    });
+      : socket.emit('fetch-space-history', { roomId, startTime });
   };
 
   return {

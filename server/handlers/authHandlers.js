@@ -38,6 +38,24 @@ async function handleLogin(socket, userInfo) {
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
 
+    // ログイン成功ログを記録
+    const { saveLog } = require('../dbOperation');
+    const isNewUser = newUser.loginHistory.length === 1; // loginHistoryが1つなら新規ユーザー
+    saveLog({
+      userId: newUser._id.toString(),
+      userNickname: nickname,
+      action: 'login-success',
+      detail: {
+        status,
+        ageGroup,
+        isNewUser: isNewUser,
+        loginCount: newUser.loginHistory.length
+      },
+      spaceId,
+      level: 'info',
+      source: 'server'
+    });
+
     // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
     socket.on('fetch-history', async () => {
       try {
