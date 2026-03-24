@@ -39,7 +39,7 @@ async function saveLog({ userId, userNickname = '', action, detail, spaceId = nu
 
         await Log.create({
             userId,
-            userNickname,
+            userName: userNickname,
             action,
             spaceId: resolvedSpaceId,
             detail: enrichedDetail,
