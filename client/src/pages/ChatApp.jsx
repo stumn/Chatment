@@ -36,7 +36,7 @@ function ChatApp() {
 
     // spaceIdが変更されたらスペース情報を取得
     useEffect(() => {
-        if (!spaceId) return;
+        if (spaceId == null || isNaN(spaceId)) return;
 
         const fetchSpaceInfo = async () => {
             try {
@@ -65,21 +65,6 @@ function ChatApp() {
 
         setOpen(false);
     }, [userInfo, isLoggedIn, spaceId]); // spaceIdを依存配列に追加
-
-    /**
-     * [Architectural Note]
-     * Room joining logic was previously handled here, but has been refactored for better separation of concerns.
-     * Room joining is now managed automatically in useRoomHandlers.js, which listens for the "room-list" event
-     * from the server and joins the first available room upon receiving it.
-     *
-     * Lifecycle:
-     * - After login, socket communication is established and user info is sent.
-     * - useRoomHandlers.js (hooked elsewhere in the app) listens for "room-list" events.
-     * - When "room-list" is received, useRoomHandlers.js automatically joins the first room.
-     * - This ensures that room joining is decoupled from the ChatApp component and handled in a centralized place.
-     *
-     * If you need to modify room joining behavior, refer to useRoomHandlers.js for the current implementation.
-     */
 
     // myHeightが変更されたらサーバーに高さを送信
     useEffect(() => {

@@ -9,11 +9,13 @@ export const useDocHandlers = (emitLog) => {
 
   const handleDocAdd = (payload) => {
     // 新規作成として変更状態を記録
-    addMessage(payload, true, payload.roomId);
+    addMessage(payload, true);
   };
 
   const handleDocEdit = (payload) => {
-    updatePost(payload.id, payload.newMsg, payload.nickname, payload.updatedAt);
+    // displayNameを優先的に使用し、なければnicknameを使用
+    const displayName = payload.displayName || payload.nickname;
+    updatePost(payload.id, payload.newMsg, displayName, payload.updatedAt);
 
     // 見出し行（#で始まる行）の場合、インデントレベルも更新
     if (payload.indentLevel !== undefined) {

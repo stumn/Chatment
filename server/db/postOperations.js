@@ -2,10 +2,16 @@
 const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs } = require('./userOperations');
+const { validateSpaceExists } = require('./spaceOperations');
 
 // --- データベースにレコードを保存 ---
-async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, source = 'document', spaceId = 1) {
+async function saveRecord(nickname, msg, userId, displayOrder, source = 'document', spaceId, displayName = null) {
     try {
+        // spaceIdのバリデーション
+        if (spaceId === null || spaceId === undefined) {
+            throw new Error('spaceIdが指定されていません');
+        }
+
         // userIdが空文字列・null・undefined・不正なObjectIdの場合はundefinedにする
         let validUserId = userId;
         if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.match(/^[a-fA-F0-9]{24}$/)) {
@@ -20,7 +26,7 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
             spaceId, // スペースIDを追加
             source, // ソース情報を追加
             ...(validUserId && { userId: validUserId }),
-            ...(roomId && { roomId })
+            ...(displayName && { displayName }) // チャット用の表示名
         };
 
         // 新規投稿をデータベースに保存
@@ -34,9 +40,19 @@ async function saveRecord(nickname, msg, userId, displayOrder, roomId = null, so
 }
 
 // --- チャットメッセージ受送信 ---
-async function SaveChatMessage({ nickname, message, userId, displayOrder = 0, roomId = null, spaceId = 1 }) {
+async function SaveChatMessage({ nickname, displayName, message, userId, displayOrder = 0, spaceId }) {
     try {
-        const record = await saveRecord(nickname, message, userId, displayOrder, roomId, 'chat', spaceId); // ソースをchatに指定、スペースIDを渡す
+        // spaceIdのバリデーション
+        if (spaceId === null || spaceId === undefined) {
+            throw new Error('spaceIdが指定されていません');
+        }
+
+        const validation = await validateSpaceExists(spaceId);
+        if (!validation.valid) {
+            throw new Error(validation.error || `スペースID ${spaceId} が無効です`);
+        }
+
+        const record = await saveRecord(nickname, message, userId, displayOrder, 'chat', spaceId, displayName);
         return organizeLogs(record);
     } catch (error) {
         handleErrors(error, 'チャット受送信中にエラーが発生しました');
@@ -60,6 +76,8 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
 
     return {
         id: post.id,
+        userId: post.userId,
+        spaceId: post.spaceId,
         reaction: post[reactionType].length,
         userHasReacted: post[reactionType].some(p => p.userSocketId === userSocketId),
         spaceId: post.spaceId,
@@ -70,7 +88,10 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
 //  --- Doc 行編集 ---
 async function updatePostData(payload) {
 
-    const updateObj = { msg: payload.newMsg };
+    const updateObj = {
+        msg: payload.newMsg,
+        ...(payload.displayName && { displayName: payload.displayName })
+    };
 
     // 受信したデータにニックネームがあれば更新
     if (payload.nickname) updateObj.nickname = payload.nickname;

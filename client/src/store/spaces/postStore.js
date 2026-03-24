@@ -8,8 +8,8 @@ const usePostStore = create((set, get) => ({
     //　history, docs用: 全件取得
     setPosts: (posts) => set({ posts: [...posts], }),
 
-    // 1件追加（仮IDは使わず、サーバ返却値のみ） roomId指定可能
-    addPost: (post, isNewlyCreated = false, roomId = null) =>
+    // 1件追加（仮IDは使わず、サーバ返却値のみ）
+    addPost: (post, isNewlyCreated = false) =>
         set((state) => {
 
             // post.idが存在しない場合はエラー
@@ -22,21 +22,18 @@ const usePostStore = create((set, get) => ({
             const postIdMap = new Map(state.posts.map(p => [p.id, true]));
             if (postIdMap.has(post.id)) { return { posts: state.posts }; }
 
-            // roomIdが指定されている場合は、postにroomIdを設定
-            const postWithRoom = roomId ? { ...post, roomId } : post;
-
             // 新規作成の場合のみ変更状態を記録
             let newChangeStates = new Map(state.changeStates);
-            newChangeStates = addChangeStateIfNeeded(newChangeStates, postWithRoom, isNewlyCreated);
+            newChangeStates = addChangeStateIfNeeded(newChangeStates, post, isNewlyCreated);
 
             return {
-                posts: [...state.posts, postWithRoom].sort((a, b) => a.displayOrder - b.displayOrder),
+                posts: [...state.posts, post].sort((a, b) => a.displayOrder - b.displayOrder),
                 changeStates: newChangeStates
             };
         }),
 
     // 更新
-    updatePost: (id, newMsg, nickname, updatedAt) =>
+    updatePost: (id, newMsg, displayName, updatedAt) =>
         set((state) => {
 
             // IDが指定されていない場合はエラー
@@ -49,7 +46,7 @@ const usePostStore = create((set, get) => ({
                 newChangeStates.set(id, {
                     type: 'modified',
                     timestamp: new Date(),
-                    userNickname: nickname || existingPost.nickname || 'Unknown'
+                    userNickname: displayName || existingPost.displayName || existingPost.nickname || 'Unknown'
                 });
             }
 
@@ -59,7 +56,7 @@ const usePostStore = create((set, get) => ({
                         ? {
                             ...m,
                             msg: newMsg !== undefined ? newMsg : m.msg,
-                            ...(nickname ? { nickname } : {}),
+                            ...(displayName ? { displayName } : {}),
                             ...(updatedAt ? { updatedAt } : {})
                         }
                         : m
@@ -90,17 +87,6 @@ const usePostStore = create((set, get) => ({
             changeStates: newChangeStates
         };
     }),
-
-    // ----- 特定ルームのメッセージのみ取得 ----- 将来的に削除
-    getRoomMessages: (roomId) => {
-        return [...get().posts]
-            .filter(post => post.roomId === roomId)
-            .sort((a, b) => {
-                const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : new Date(a.createdAt).getTime();
-                const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : new Date(b.createdAt).getTime();
-                return aTime - bTime;
-            });
-    },
 
     // Positive
     updatePositive: (id, positive, userHasVotedPositive) => set((state) => ({

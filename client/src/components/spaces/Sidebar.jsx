@@ -3,7 +3,6 @@
 import React, { useMemo } from 'react';
 import usePostStore from '../../store/spaces/postStore';
 import useAppStore from '../../store/spaces/appStore';
-import useRoomStore from '../../store/spaces/roomStore';
 import SidebarClosed from './sidebar/SidebarClosed';
 import SidebarHeader from './sidebar/SidebarHeader';
 import SidebarContent from './sidebar/SidebarContent';
@@ -21,9 +20,6 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
     const toggleChatScrollMode = useAppStore((state) => state.toggleChatScrollMode);
     const userInfo = propsUserInfo || useAppStore((state) => state.userInfo);
 
-    // ルーム関連の状態（サブルーム廃止により簡略化）
-    const { activeRoomId } = useRoomStore();
-
     // 見出し投稿のみを抽出（フィルター用）
     const headings = useMemo(() => {
         return posts
@@ -38,20 +34,20 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
         return lastHeading.msg.replace(/^#+\s*/, '');
     }, [headings]);
 
-    // アクティブルーム情報を取得（サブルーム廃止により常に"全体"ルーム）
-    const activeRoom = useMemo(() => {
+    // スペース情報を設定
+    const activeSpace = useMemo(() => {
         return {
-            id: activeRoomId,
+            id: spaceId,
             name: '全体'
         };
-    }, [activeRoomId]);
+    }, [spaceId]);
 
     if (!isOpen) {
         return (
             <SidebarClosed
                 onToggle={onToggle}
                 latestHeading={latestHeading}
-                activeRoom={activeRoom}
+                activeRoom={activeSpace}
             />
         );
     }

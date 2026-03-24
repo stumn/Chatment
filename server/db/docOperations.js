@@ -2,12 +2,13 @@
 const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs, processXlogs } = require('./userOperations');
+const { validateSpaceExists } = require('./spaceOperations');
 
 // --- displayOrder順で全Postを取得（スペース別） ---
 async function getPostsByDisplayOrder(spaceId = null) {
     try {
         // スペース指定がある場合はそのスペースのドキュメントのみ取得
-        const query = spaceId ? { spaceId } : {};
+        const query = spaceId != null ? { spaceId } : {};
 
         const posts = await Post.find(query).sort({ displayOrder: 1 });
         return processXlogs(posts);
@@ -17,8 +18,18 @@ async function getPostsByDisplayOrder(spaceId = null) {
 }
 
 // --- 新規行追加 ---
-async function addDocRow({ nickname, msg = '', displayOrder, spaceId, indentLevel = 0 }) {
+async function addDocRow({ nickname, displayName, msg = '', displayOrder, spaceId, indentLevel = 0 }) {
     try {
+        // spaceIdのバリデーション
+        if (spaceId === null || spaceId === undefined) {
+            throw new Error('spaceIdが指定されていません');
+        }
+
+        const validation = await validateSpaceExists(spaceId);
+        if (!validation.valid) {
+            throw new Error(validation.error || `スペースID ${spaceId} が無効です`);
+        }
+
         let order = displayOrder;
         if (!Number.isFinite(order)) {
             const maxOrderPost = await Post.findOne().sort({ displayOrder: -1 });
@@ -27,6 +38,7 @@ async function addDocRow({ nickname, msg = '', displayOrder, spaceId, indentLeve
         const now = new Date();
         const newPost = await Post.create({
             nickname,
+            displayName, // 表示名を追加
             msg,
             displayOrder: order,
             spaceId, // spaceIdを追加

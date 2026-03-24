@@ -7,7 +7,7 @@ const { handleErrors } = require('../utils');
 async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
     try {
         // スペースIDが提供されていない場合はエラー
-        if (!spaceId) {
+        if (spaceId == null) {
             throw new Error('スペースIDが指定されていません');
         }
 
@@ -80,7 +80,7 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
 // --- ログイン時・過去ログをDBから取得（スペース別） ---
 async function getPastLogs(spaceId = null) {
     try {
-        if (!spaceId) {
+        if (spaceId == null) {
             throw new Error('スペースIDが指定されていません');
         }
 
@@ -105,17 +105,16 @@ function organizeLogs(post, mySocketId = null) {
 
     const data = {
         nickname: post.nickname,
+        displayName: post.displayName || post.nickname,
         msg: post.msg,
         userId: post.userId,
-        // spaceId
-        // roomId
+        spaceId: post.spaceId,
         source: post.source || 'unknown',
         positive: post.positive ? post.positive.length : 0,
         negative: post.negative ? post.negative.length : 0,
         displayOrder: typeof post.displayOrder === 'number' ? post.displayOrder : Number(post.displayOrder),
         indentLevel: post.indentLevel ? post.indentLevel : 0,
         previousData: post.previousData || null,
-        // 
         id: post._id || post.id, // _idがなければidを使う
         createdAt: post.createdAt,
         userHasVotedPositive: mySocketId ? post.positive?.some(p => p.userSocketId === mySocketId) : false,
@@ -164,7 +163,7 @@ async function getUserLoginHistory(nickname, status, ageGroup, spaceId) {
 // --- アクティブユーザー一覧を取得（最近ログインしたユーザー） ---
 async function getActiveUsers(spaceId = null, limit = 10) {
     try {
-        const query = spaceId ? { spaceId } : {};
+        const query = spaceId != null ? { spaceId } : {};
 
         const users = await User.find(query)
             .sort({ lastLoginAt: -1 })

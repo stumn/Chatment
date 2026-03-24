@@ -8,7 +8,6 @@ import DocComments from "./doc/DocComments";
 import useSizeStore from "../../store/sizeStore";
 import useAppStore from "../../store/spaces/appStore";
 import usePostStore from "../../store/spaces/postStore";
-import useRoomStore from "../../store/spaces/roomStore";
 
 export default function ResizablePanels({ appController, spaceId }) {
 
@@ -20,19 +19,6 @@ export default function ResizablePanels({ appController, spaceId }) {
     const { myHeight, setMyHeight } = useAppStore();
     const { userInfo } = useAppStore();
     const isChatScrollMode = useAppStore((state) => state.isChatScrollMode);
-
-    // ルーム情報を取得
-    const { activeRoomId, rooms } = useRoomStore();
-    const currentRoom = rooms.find(room => room.id === activeRoomId);
-
-    // ルーム変更を監視してログ出力
-    useEffect(() => {
-        if (!activeRoomId) {
-            // ルーム参加待機中
-        } else if (!currentRoom) {
-            console.warn(`⚠️ [ルーム情報が見つかりません: ${activeRoomId}`);
-        }
-    }, [activeRoomId, currentRoom]);
 
     const { raw: { emitLog } } = appController;
 

@@ -1,23 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getAllRoomsWithStats,
-  getRoomMessageCounts,
-  explainRoomQuery,
-  getActiveRooms,
-  getRoomById,
-  createRoom,
   getPostsByDisplayOrder,
   // スペース関連操作
   getActiveSpaces,
   getSpaceById,
   createSpace,
   updateSpace,
-  getRoomsBySpace,
   getPostsBySpace,
   deactivateSpace,
   updateSpaceStats,
-  migrateExistingDataToSpace,
   // 管理者機能
   finishSpace,
   reactivateSpace,
@@ -25,186 +17,41 @@ const {
   getAllSpaces
 } = require('./dbOperation');
 
-// パフォーマンス測定エンドポイント
-router.get('/room-stats', async (req, res) => {
-  try {
-    const stats = await getAllRoomsWithStats();
-    const messageCounts = await getRoomMessageCounts();
-
-    res.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      roomStats: stats,
-      messageCounts: messageCounts
-    });
-  } catch (error) {
-    console.error('Room stats API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// インデックス使用状況確認エンドポイント（開発用）
-router.get('/db-performance/:roomId', async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const explanation = await explainRoomQuery(roomId);
-
-    res.json({
-      success: true,
-      roomId: roomId,
-      performance: {
-        executionTimeMillis: explanation.executionStats.executionTimeMillis,
-        totalDocsExamined: explanation.executionStats.totalDocsExamined,
-        totalDocsReturned: explanation.executionStats.totalDocsReturned,
-        indexUsed: explanation.executionStats.executionStages.indexName || 'No index used'
-      }
-    });
-  } catch (error) {
-    console.error('DB performance API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// ルーム一覧取得
-router.get('/rooms', async (req, res) => {
-  try {
-    const rooms = await getActiveRooms();
-    res.json({
-      success: true,
-      rooms: rooms,
-      count: rooms.length
-    });
-  } catch (error) {
-    console.error('Rooms API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// 特定ルーム情報取得
-router.get('/rooms/:roomId', async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const room = await getRoomById(roomId);
-
-    if (!room) {
-      return res.status(404).json({
-        success: false,
-        error: 'Room not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      room: room
-    });
-  } catch (error) {
-    console.error('Room info API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// 新しいルーム作成
-router.post('/rooms', async (req, res) => {
-  try {
-    const { id, name, settings } = req.body;
-
-    if (!id || !name) {
-      return res.status(400).json({
-        success: false,
-        error: 'Required fields: id, name'
-      });
-    }
-
-    const newRoom = await createRoom({
-      id,
-      name,
-      settings
-    });
-
-    if (!newRoom) {
-      return res.status(400).json({
-        success: false,
-        error: 'Failed to create room'
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      room: newRoom
-    });
-
-  } catch (error) {
-    console.error('Create room API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
 // 全ポストデータ取得エンドポイント（スペース指定可能）
 router.get('/posts', async (req, res) => {
   try {
     // クエリパラメータからspaceIdを取得
     const { spaceId } = req.query;
 
-    // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
-    const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
+    // spaceIdのバリデーション（NaN防止）
+    let parsedSpaceId = null;
+    if (spaceId != null) {
+      parsedSpaceId = parseInt(spaceId);
+      if (!Number.isInteger(parsedSpaceId) || isNaN(parsedSpaceId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid spaceId parameter'
+        });
+      }
+    }
 
-    console.log(`Posts API: Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
+    // displayOrder順で投稿を取得（スペース指定がある場合はそのスペースのみ）
+    const posts = await getPostsByDisplayOrder(parsedSpaceId);
+
+    console.log(`Posts API: Retrieved ${posts.length} posts${parsedSpaceId != null ? ` for space ${parsedSpaceId}` : ''}`);
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
       posts: posts,
       count: posts.length,
-      spaceId: spaceId || null
+      spaceId: parsedSpaceId
     });
   } catch (error) {
     console.error('Posts API error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to retrieve posts data'
-    });
-  }
-});
-
-// 特定のルームのポストデータ取得（オプション：将来的な拡張用）
-router.get('/posts/:roomId', async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { spaceId } = req.query;
-
-    // スペース指定による絞り込み対応
-    const posts = await getPostsByDisplayOrder(spaceId ? parseInt(spaceId) : null);
-
-    console.log(`Posts API (Room ${roomId}): Retrieved ${posts.length} posts${spaceId ? ` for space ${spaceId}` : ''}`);
-
-    res.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      posts: posts,
-      count: posts.length,
-      roomId: roomId,
-      spaceId: spaceId || null
-    });
-  } catch (error) {
-    console.error(`Posts API (Room ${roomId}) error:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to retrieve room posts data'
     });
   }
 });
@@ -301,7 +148,7 @@ router.put('/spaces/:spaceId', async (req, res) => {
     const spaceId = parseInt(req.params.spaceId);
     const { name } = req.body;
 
-    if (!spaceId || !name) {
+    if (spaceId == null || isNaN(spaceId) || !name) {
       return res.status(400).json({
         success: false,
         error: 'Required fields: spaceId, name'
@@ -327,27 +174,6 @@ router.put('/spaces/:spaceId', async (req, res) => {
 
   } catch (error) {
     console.error('Update space API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// スペース別ルーム一覧取得
-router.get('/spaces/:spaceId/rooms', async (req, res) => {
-  try {
-    const spaceId = parseInt(req.params.spaceId); // 整数に変換
-    const rooms = await getRoomsBySpace(spaceId);
-
-    res.json({
-      success: true,
-      spaceId: spaceId,
-      rooms: rooms,
-      count: rooms.length
-    });
-  } catch (error) {
-    console.error('Space rooms API error:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -491,31 +317,6 @@ router.get('/admin/spaces', async (req, res) => {
   }
 });
 
-// データ移行エンドポイント（初回セットアップ用）
-router.post('/migrate-to-spaces', async (req, res) => {
-  try {
-    const result = await migrateExistingDataToSpace();
-
-    if (result) {
-      res.json({
-        success: true,
-        message: 'Data migration completed successfully'
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: 'Data migration failed'
-      });
-    }
-  } catch (error) {
-    console.error('Migration API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
 // スペースのデータをCSV形式でエクスポート
 router.get('/spaces/:spaceId/export/csv', async (req, res) => {
   try {
@@ -531,7 +332,7 @@ router.get('/spaces/:spaceId/export/csv', async (req, res) => {
     }
 
     // CSVヘッダー
-    let csvContent = 'ID,投稿者,内容,投稿日時,ルームID,表示順序,ポジティブ反応,ネガティブ反応\n';
+    let csvContent = 'ID,投稿者,内容,投稿日時,表示順序,ポジティブ反応,ネガティブ反応\n';
 
     // データ行を追加
     posts.forEach(post => {
@@ -540,7 +341,6 @@ router.get('/spaces/:spaceId/export/csv', async (req, res) => {
         `"${(post.nickname || '').replace(/"/g, '""')}"`, // CSVエスケープ
         `"${(post.msg || '').replace(/"/g, '""')}"`,
         post.createdAt ? new Date(post.createdAt).toISOString() : '',
-        post.roomId || '',
         post.displayOrder || 0,
         post.positive || 0,
         post.negative || 0

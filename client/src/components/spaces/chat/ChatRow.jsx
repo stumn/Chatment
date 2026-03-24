@@ -82,7 +82,7 @@ const ChatRow = ({ data, index, style }) => {
             onMouseLeave={() => setIsHovered(false)}
         >
             <div className="text-left text-[15px] ml-5">
-                <strong className="font-bold">{cMsg.nickname}</strong>
+                <strong className="font-bold">{cMsg.displayName || cMsg.nickname}</strong>
                 <span className="text-[#666] text-sm before:content-['\00A0\00A0']">{cMsg.time}</span>
             </div>
             <div
