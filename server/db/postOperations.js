@@ -2,7 +2,7 @@
 const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs } = require('./userOperations');
-const { validateSpaceExists } = require('./spaceOperations');
+const { getSpaceById } = require('./spaceOperations');
 
 // --- データベースにレコードを保存 ---
 async function saveRecord(nickname, msg, userId, displayOrder, source = 'document', spaceId, displayName = null) {
@@ -47,9 +47,9 @@ async function SaveChatMessage({ nickname, displayName, message, userId, display
             throw new Error('spaceIdが指定されていません');
         }
 
-        const validation = await validateSpaceExists(spaceId);
-        if (!validation.valid) {
-            throw new Error(validation.error || `スペースID ${spaceId} が無効です`);
+        const space = await getSpaceById(spaceId);
+        if (!space) {
+            throw new Error(`スペースID ${spaceId} が無効です`);
         }
 
         const record = await saveRecord(nickname, message, userId, displayOrder, 'chat', spaceId, displayName);

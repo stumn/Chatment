@@ -2,7 +2,7 @@
 const { Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { organizeLogs, processXlogs } = require('./userOperations');
-const { validateSpaceExists } = require('./spaceOperations');
+const { getSpaceById } = require('./spaceOperations');
 
 // --- displayOrder順で全Postを取得（スペース別） ---
 async function getPostsByDisplayOrder(spaceId = null) {
@@ -25,9 +25,9 @@ async function addDocRow({ nickname, displayName, msg = '', displayOrder, spaceI
             throw new Error('spaceIdが指定されていません');
         }
 
-        const validation = await validateSpaceExists(spaceId);
-        if (!validation.valid) {
-            throw new Error(validation.error || `スペースID ${spaceId} が無効です`);
+        const space = await getSpaceById(spaceId);
+        if (!space) {
+            throw new Error(`スペースID ${spaceId} が無効です`);
         }
 
         let order = displayOrder;
