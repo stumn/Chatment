@@ -1,6 +1,6 @@
 const DEFAULT_SOCKET_ORIGINS = [
-  'http://127.0.0.1:5173',
-  'http://localhost:5173'
+  'http://127.0.0.1:3000',
+  'http://localhost:3000',
 ];
 
 const socketCorsOrigins = (process.env.SOCKET_CORS_ORIGINS || '')
