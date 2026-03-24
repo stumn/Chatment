@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import DocumentViewButton from './ui/DocumentViewButton';
 import LogAnalysisButton from './ui/LogAnalysisButton';
 
