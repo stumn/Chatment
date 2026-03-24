@@ -6,7 +6,7 @@ const { setupReactionHandlers } = require('./handlers/reactionHandlers');
 const { setupDocHandlers } = require('./handlers/docHandlers');
 const { setupLockHandlers } = require('./handlers/lockHandlers');
 const { setupLogHandlers } = require('./handlers/logHandlers');
-const { removeHeightMemory, unlockAllBySocketId } = require('./socketUtils');
+const { removeHeightMemory, unlockAllBySocketId, toStringSpaceId } = require('./socketUtils');
 
 // グローバル変数
 const userSockets = new Map();
@@ -22,6 +22,16 @@ function initializeSocketHandlers(io) {
     // ログインハンドラー
     socket.on('login', async (userInfo) => {
       await handleLogin(socket, userInfo);
+
+      // ログイン後、スペース単位のSocket.IOルームに参加
+      if (socket.spaceId != null) {
+        if (socket.currentSpaceRoom) {
+          socket.leave(socket.currentSpaceRoom);
+        }
+        socket.currentSpaceRoom = toStringSpaceId(socket.spaceId);
+        socket.join(socket.currentSpaceRoom);
+      }
+
       // ログイン後にuserSocketsにソケットを追加
       userSockets.set(socket.userId, socket);
     });
