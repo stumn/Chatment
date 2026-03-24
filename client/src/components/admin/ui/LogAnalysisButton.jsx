@@ -9,9 +9,12 @@ import React from 'react';
  */
 const LogAnalysisButton = ({ spaceId, className = "" }) => {
     const handleOpenLogAnalysis = () => {
-        // 新しいタブでログ分析ページを開く
+        // 新しいタブでログ分析ページを開く（opener を無効化してタブナビングを防止）
         const logAnalysisUrl = `/log-analysis/${spaceId}`;
-        window.open(logAnalysisUrl, '_blank');
+        const newWindow = window.open(logAnalysisUrl, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+            newWindow.opener = null;
+        }
     };
 
     return (
