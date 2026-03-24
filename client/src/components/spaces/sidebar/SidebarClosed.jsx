@@ -4,10 +4,8 @@
  * サイドバーが閉じている状態のコンポーネント
  * @param {Object} props - プロパティ
  * @param {Function} props.onToggle - サイドバーを開く関数
- * @param {string} props.latestHeading - 最新の見出しテキスト
- * @param {Object} props.activeRoom - アクティブなルーム情報
  */
-const SidebarClosed = ({ onToggle, latestHeading, activeRoom }) => {
+const SidebarClosed = ({ onToggle }) => {
     return (
         <button
             onClick={onToggle}

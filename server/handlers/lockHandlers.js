@@ -1,4 +1,4 @@
-const { getSpaceRoom } = require('../socketUtils');
+const { toStringSpaceId } = require('../socketUtils');
 
 function setupLockHandlers(socket, io, lockedRows) {
   // ロックタイムアウトの設定（5分 = 300000ms）
@@ -26,7 +26,7 @@ function setupLockHandlers(socket, io, lockedRows) {
             console.warn(`⏰ Lock timeout: ${data.rowElementId} (locked by ${existingLock.nickname} for ${Math.floor(lockAge / 1000)}s)`);
             lockedRows.delete(data.rowElementId);
             // 古いロックを解除通知（スペース内）
-            io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: existingLock.postId });
+            io.to(toStringSpaceId(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: existingLock.postId });
             // ロック取得を続行
           } else {
             console.log('Row is already locked:', data.rowElementId);
@@ -51,7 +51,7 @@ function setupLockHandlers(socket, io, lockedRows) {
 
         socket.emit('Lock-permitted', { id: data.rowElementId, nickname: socket.nickname });
         // スペース内の他のクライアントにロック通知
-        socket.to(getSpaceRoom(spaceId)).emit('row-locked', { id: data.rowElementId, nickname: socket.nickname });
+        socket.to(toStringSpaceId(spaceId)).emit('row-locked', { id: data.rowElementId, nickname: socket.nickname });
       }
     } catch (e) { console.error('Error in demand-lock:', e); }
   });
@@ -80,7 +80,7 @@ function setupLockHandlers(socket, io, lockedRows) {
 
         lockedRows.delete(data.rowElementId);
         // lockInfoから取得したpostIdを使用（クライアント提供データを信頼しない）
-        io.to(getSpaceRoom(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: lockInfo.postId });
+        io.to(toStringSpaceId(spaceId)).emit('row-unlocked', { id: data.rowElementId, postId: lockInfo.postId });
       } else if (data.rowElementId && !lockedRows.has(data.rowElementId)) {
         console.warn('Unlock attempted for non-locked row:', data.rowElementId);
       }

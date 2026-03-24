@@ -1,7 +1,6 @@
 const {
   getPostsByDisplayOrder,
   SaveChatMessage,
-  updateRoomStats,
   saveLog
 } = require('../dbOperation');
 
@@ -19,7 +18,7 @@ async function getLastDisplayOrder(spaceId = null) {
 // --- チャットハンドラーのセットアップ ---
 function setupChatHandlers(socket, io) {
 
-  socket.on('chat-message', async ({ nickname, message, userId, roomId, spaceId }) => {
+  socket.on('chat-message', async ({ nickname, message, userId, spaceId }) => {
     try {
       // displayOrderの最後尾を取得（スペース別）
       const displayOrder = await getLastDisplayOrder(spaceId);
@@ -31,27 +30,23 @@ function setupChatHandlers(socket, io) {
         userId,
         displayOrder,
         spaceId, // スペースIDを追加
-        ...(roomId && { roomId })
       };
 
       // DBにデータ保存
       const p = await SaveChatMessage(messageData);
 
       // Socket.IOのルーム機能により、該当ルームの全参加者に即座に送信
-      const responseData = { ...p, roomId };
+      const responseData = { ...p };
 
       // メッセージをルームに送信
-      io.to(roomId).emit('chat-message', responseData);
-
-      // ルーム統計をデータベースで更新
-      await updateRoomStats(roomId, { $inc: { messageCount: 1 } });
+      io.to(spaceId).emit('chat-message', responseData);
 
       // ログ記録 - チャットメッセージ
       saveLog({
         userId,
         userNickname: nickname,
         action: 'chat-message',
-        detail: { nickname, message, displayOrder, roomId },
+        detail: { nickname, message, displayOrder, spaceId },
         spaceId,
         level: 'info',
         source: 'server'

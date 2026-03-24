@@ -1,5 +1,5 @@
 // logOperations.js
-const { Log, Space, Room, Post } = require('../db');
+const { Log, Space, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
 // ログを保存（spaceId対応）
@@ -7,16 +7,6 @@ async function saveLog({ userId, userNickname = '', action, detail, spaceId = nu
     try {
         let resolvedSpaceId = spaceId;
         let enrichedDetail = detail ? { ...detail } : {};
-
-        // roomId から spaceId を取得
-        if (!resolvedSpaceId && enrichedDetail.roomId) {
-            try {
-                const room = await Room.findOne({ id: enrichedDetail.roomId }).lean();
-                if (room && room.spaceId) resolvedSpaceId = room.spaceId;
-            } catch (e) {
-                console.warn('Failed to resolve spaceId from roomId:', e.message);
-            }
-        }
 
         // postId (detail.postId または detail.id) から spaceId とメッセージプレビューを取得
         const postId = enrichedDetail.postId || enrichedDetail.id;
@@ -60,19 +50,6 @@ async function analyzeSpaceLogs(spaceId) {
         // スペース情報を取得
         const spaceData = await Space.findOne({ id: spaceIdNum }).lean();
 
-        // このスペースに属する全roomIdを取得（数値型と文字列型両方で検索）
-        const rooms = await Room.find({
-            $or: [
-                { spaceId: spaceIdNum },
-                { spaceId: spaceIdStr }
-            ]
-        }).select('id').lean();
-        const roomIds = rooms.map(r => r.id);
-
-        if (roomIds.length === 0) {
-            console.warn(`[Log Analysis] スペース${spaceId}: 該当するRoomが見つかりませんでした`);
-        }
-
         // 1. 全ログを時系列で取得（複数条件で広く取得）
         const rawLogs = await Log.find({
             $or: [
@@ -80,7 +57,6 @@ async function analyzeSpaceLogs(spaceId) {
                 { spaceId: spaceIdStr },          // 文字列型のspaceId
                 { 'detail.spaceId': spaceIdStr }, // detail内のspaceId（文字列）
                 { 'detail.spaceId': spaceIdNum }, // detail内のspaceId（数値）
-                { 'detail.roomId': { $in: roomIds } } // roomIdから逆引き
             ]
         })
             .sort({ timestamp: 1, createdAt: 1 })
@@ -126,12 +102,6 @@ async function analyzeSpaceLogs(spaceId) {
                 return true;
             }
 
-            // roomIdから判定
-            const roomId = log.detail?.roomId;
-            if (roomId && roomIds.includes(roomId)) {
-                return true;
-            }
-
             return false;
         });
 
@@ -148,9 +118,6 @@ async function analyzeSpaceLogs(spaceId) {
         } else {
             console.log(`[Log Analysis] スペース${spaceId}: ${allLogs.length}件のログを取得`);
         }
-
-        // 取得したroomIds数も表示
-        console.log(`[Log Analysis] スペース${spaceId}に属するRoom数: ${roomIds.length}件 (roomIds: ${roomIds.join(', ')})`);
 
         // 3. アクション別統計
         const actionStats = {};

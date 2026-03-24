@@ -3,7 +3,7 @@ const {
   saveLog
 } = require('../dbOperation');
 
-const { getSpaceRoom } = require('../socketUtils');
+const { toStringSpaceId } = require('../socketUtils');
 
 // --- positive/negativeリアクションの共通ハンドラー ---
 function setupReactionHandlers(socket, io) {
@@ -48,7 +48,7 @@ function setupReactionHandlers(socket, io) {
             : { id: reactionResult.id, negative: reactionResult.reaction, userHasVotedNegative: reactionResult.userHasReacted };
 
         // スペース内にブロードキャスト
-        io.to(getSpaceRoom(spaceId)).emit(reactionType, broadcastData);
+        io.to(toStringSpaceId(spaceId)).emit(reactionType, broadcastData);
 
         // ログ記録 - リアクション
         saveLog({

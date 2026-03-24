@@ -55,7 +55,7 @@ function removeHeightMemory(heightMemory, id) {
 }
 
 // スペースルーム名を取得
-const getSpaceRoom = (spaceId) => String(spaceId);
+const toStringSpaceId = (spaceId) => String(spaceId);
 
 // ロック管理関連の関数
 function unlockRowByPostId(lockedRows, io, postId, spaceId = null) {
@@ -67,7 +67,7 @@ function unlockRowByPostId(lockedRows, io, postId, spaceId = null) {
             // lockInfo内のspaceIdを使用（引数のspaceIdは互換性のため残す）
             const targetSpaceId = lockInfo.spaceId ?? spaceId;
             if (targetSpaceId != null) {
-                io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: rowElementId, postId });
+                io.to(toStringSpaceId(targetSpaceId)).emit('row-unlocked', { id: rowElementId, postId });
             } else {
                 console.error('⚠️ unlockRowByPostId: spaceId is required for space isolation');
             }
@@ -92,7 +92,7 @@ function unlockAllBySocketId(lockedRows, io, socketId, spaceId = null) {
     unlockedRows.forEach(row => {
         const targetSpaceId = row.spaceId ?? spaceId;
         if (targetSpaceId != null) {
-            io.to(getSpaceRoom(targetSpaceId)).emit('row-unlocked', { id: row.id, postId: row.postId });
+            io.to(toStringSpaceId(targetSpaceId)).emit('row-unlocked', { id: row.id, postId: row.postId });
         } else {
             console.error('⚠️ unlockAllBySocketId: spaceId is required for space isolation');
         }
@@ -108,5 +108,5 @@ module.exports = {
     removeHeightMemory,
     unlockRowByPostId,
     unlockAllBySocketId,
-    getSpaceRoom
+    toStringSpaceId
 };

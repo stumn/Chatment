@@ -30,7 +30,6 @@ const EditSpaceModal = ({ isOpen, onClose, onUpdate, space }) => {
                 await onUpdate({
                     id: space.id,
                     name: spaceName
-                    // subRoomSettingsは廃止（常に1つの"全体"ルームのみ）
                 });
 
                 onClose();

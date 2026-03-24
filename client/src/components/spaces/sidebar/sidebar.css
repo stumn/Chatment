@@ -69,38 +69,6 @@
 
 /* コメントボタン - Tailwindに移行済み */
 
-/* ルームボタン基本スタイル - Tailwindに移行済み */
-
-.sb-room-button.active {
-    background-color: #15803d0d;
-    border: 1px solid #15803d;
-    color: #15803d;
-    font-weight: 600;
-}
-
-.sb-room-button.colorful-mode.active {
-    background-color: #15803d0d;
-    border: 1px solid #15803d;
-    color: #15803d;
-}
-
-.sb-room-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* ルーム情報 - Tailwindに移行済み */
-
-.sb-room-button.active .sb-room-participants {
-    background-color: #15803d0d;
-    color: #047857;
-}
-
-.sb-room-button.colorful-mode.active .sb-room-participants {
-    background-color: #15803d0d;
-    color: #047857;
-}
-
 /* ローディングコンテナ - Tailwindに移行済み */
 
 .sb-dot-loader {
@@ -111,21 +79,6 @@
     border-top-color: #3b82f6;
     animation: sb-spin 1s linear infinite;
     display: inline-block;
-}
-
-.sb-room-button.colorful-mode .sb-dot-loader {
-    border-color: #bbf7d0;
-    border-top-color: #10b981;
-}
-
-.sb-room-button.active .sb-dot-loader {
-    border-color: #bbf7d0;
-    border-top-color: #047857;
-}
-
-.sb-room-button.colorful-mode.active .sb-dot-loader {
-    border-color: #bbf7d0;
-    border-top-color: #047857;
 }
 
 /* アニメーションの定義 */

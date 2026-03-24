@@ -1,8 +1,7 @@
 // spaceOperations.js
-const { Space, Room, Post } = require('../db');
+const { Space, Post } = require('../db');
 const { handleErrors } = require('../utils');
 const { saveLog } = require('./logOperations');
-const { createDefaultRoomsForSpace } = require('./roomManagement'); // 追加
 
 const DEFAULT_SPACE_ID = 0; // デフォルトスペースは整数の0
 
@@ -39,13 +38,6 @@ async function migrateExistingDataToSpace() {
 
         // デフォルトスペースを初期化
         await initializeDefaultSpace();
-
-        // 1. spaceIdが未設定のルームを更新
-        const roomsUpdated = await Room.updateMany(
-            { spaceId: { $exists: false } },
-            { $set: { spaceId: DEFAULT_SPACE_ID } }
-        );
-        console.log(`📁 [spaceOperation] ${roomsUpdated.modifiedCount} 件のルームを移行しました`);
 
         // 2. spaceIdが未設定の投稿を更新
         const postsUpdated = await Post.updateMany(
@@ -97,10 +89,6 @@ async function getActiveSpaces() {
             return {
                 ...space,
                 userStats: userStats || null,
-                subRoomSettings: space.settings?.subRoomSettings || {
-                    enabled: false,
-                    rooms: [{ name: '全体' }]
-                }
             };
         }));
 
@@ -121,7 +109,6 @@ async function getSpaceById(spaceId) {
             return null;
         }
 
-        // フロントエンド用にデータ構造を返す（subRoomSettings廃止）
         return space;
 
     } catch (error) {
@@ -141,7 +128,7 @@ async function createSpace(spaceData) {
             throw new Error(`スペースID ${id} は既に存在します`);
         }
 
-        // 新しいスペースを作成（サブルーム設定は廃止）
+        // 新しいスペースを作成
         const newSpace = await Space.create({
             id,
             name,
@@ -151,10 +138,6 @@ async function createSpace(spaceData) {
         });
 
         console.log(`🌍 [spaceOperation] 新しいスペース作成: ${name} (${id})`);
-
-        // 統合されたルーム作成関数を使用（常に"全体"ルームのみ）
-        const createdRooms = await createDefaultRoomsForSpace(id);
-        console.log(`🏠 [spaceOperation] スペース ${id} のルーム作成完了: ${createdRooms.length}件`);
 
         return newSpace.toObject();
 
@@ -175,7 +158,7 @@ async function updateSpace(spaceId, updateData) {
             throw new Error(`スペースID ${spaceId} が見つかりません`);
         }
 
-        // 更新データを準備（subRoomSettings廃止）
+        // 更新データを準備
         const updateFields = {};
 
         if (name !== undefined) {
@@ -201,10 +184,6 @@ async function updateSpace(spaceId, updateData) {
         // フロントエンド用にデータ構造を平坦化して返す
         const flattenedSpace = {
             ...updatedSpace.toObject(),
-            subRoomSettings: updatedSpace.settings?.subRoomSettings || {
-                enabled: false,
-                rooms: [{ name: '全体' }]
-            }
         };
 
         return flattenedSpace;
@@ -218,9 +197,6 @@ async function updateSpace(spaceId, updateData) {
 // --- スペースの統計情報を更新 ---
 async function updateSpaceStats(spaceId) {
     try {
-        // ルーム数を取得
-        const roomCount = await Room.countDocuments({ spaceId, isActive: true });
-
         // メッセージ数を取得
         const totalMessageCount = await Post.countDocuments({ spaceId });
 
@@ -240,7 +216,6 @@ async function updateSpaceStats(spaceId) {
             .exec();
 
         const updateData = {
-            roomCount,
             totalMessageCount,
             participantCount,
             ...(lastPost && { lastActivity: lastPost.createdAt })
@@ -261,24 +236,6 @@ async function updateSpaceStats(spaceId) {
     } catch (error) {
         handleErrors(error, `スペース統計更新中にエラーが発生しました: ${spaceId}`);
         return null;
-    }
-}
-
-// --- スペース別ルーム一覧を取得 ---
-async function getRoomsBySpace(spaceId) {
-    try {
-        const rooms = await Room.find({ spaceId, isActive: true })
-            .sort({ lastActivity: -1 })
-            .lean()
-            .exec();
-
-        console.log(`🏠 [spaceOperation] スペース ${spaceId} のルーム ${rooms.length} 件を取得`);
-
-        return rooms;
-
-    } catch (error) {
-        handleErrors(error, `スペース別ルーム取得中にエラーが発生しました: ${spaceId}`);
-        return [];
     }
 }
 
@@ -444,10 +401,6 @@ async function getFinishedSpaces() {
             return {
                 ...space,
                 userStats: userStats || null,
-                subRoomSettings: space.settings?.subRoomSettings || {
-                    enabled: false,
-                    rooms: [{ name: '全体' }]
-                }
             };
         }));
 
@@ -490,10 +443,6 @@ async function getAllSpaces() {
             return {
                 ...space,
                 userStats: userStats || null,
-                subRoomSettings: space.settings?.subRoomSettings || {
-                    enabled: false,
-                    rooms: [{ name: '全体' }]
-                }
             };
         }));
 
@@ -514,7 +463,6 @@ module.exports = {
     createSpace,
     updateSpace,
     updateSpaceStats,
-    getRoomsBySpace,
     getPostsBySpace,
     deactivateSpace,
     finishSpace,

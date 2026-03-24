@@ -94,12 +94,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
     clearError();
 
     try {
-      // サブルーム設定のデフォルト値
-      const defaultSubRoomSettings = {
-        enabled: false,
-        rooms: [{ name: '全体' }]
-      };
-
       const response = await fetch('/api/spaces', {
         method: 'POST',
         headers: {
@@ -111,7 +105,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
           settings: {
             theme: 'default'
           },
-          subRoomSettings: spaceData.subRoomSettings || defaultSubRoomSettings
         }),
       });
 
@@ -160,7 +153,6 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         },
         body: JSON.stringify({
           name: spaceData.name,
-          subRoomSettings: spaceData.subRoomSettings
         }),
       });
 

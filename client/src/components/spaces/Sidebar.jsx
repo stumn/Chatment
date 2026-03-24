@@ -44,11 +44,7 @@ const Sidebar = ({ isOpen, onToggle, userInfo: propsUserInfo, spaceId }) => {
 
     if (!isOpen) {
         return (
-            <SidebarClosed
-                onToggle={onToggle}
-                latestHeading={latestHeading}
-                activeRoom={activeSpace}
-            />
+            <SidebarClosed onToggle={onToggle} />
         );
     }
 

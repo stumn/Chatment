@@ -138,7 +138,7 @@ const usePostStore = create((set, get) => ({
         return state.lockedRows.get(rowElementId);
     },
 
-    // 全てのロック状態をクリア（room切り替え時などに使用）
+    // 全てのロック状態をクリア
     clearAllLocks: () => set({ lockedRows: new Map() }),
 
     // ------ 変更状態を管理するためのマップ ------
