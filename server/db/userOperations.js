@@ -22,54 +22,37 @@ async function saveUser(nickname, status, ageGroup, socketId, spaceId) {
             throw new Error(`スペースID ${spaceId} は現在利用できません（非アクティブまたは終了済み）`);
         }
 
-        // 既存ユーザーを検索（nickname, status, ageGroup, spaceIdの組み合わせで判定）
-        let existingUser = await User.findOne({
+        const now = new Date();
+
+        // 既存ユーザー更新と新規作成を一本化
+        const updatedUser = await User.findOneAndUpdate({
             nickname,
             status,
             ageGroup,
             spaceId
-        });
-
-        if (existingUser) {
-            // 既存ユーザーが見つかった場合、更新
-
-            // socketIdを追加（重複チェック）
-            if (!existingUser.socketId.includes(socketId)) {
-                existingUser.socketId.push(socketId);
-            }
-
-            // ログイン履歴を追加
-            existingUser.loginHistory.push({
-                socketId: socketId,
-                loginAt: new Date()
-            });
-
-            // 最後のログイン日時を更新
-            existingUser.lastLoginAt = new Date();
-
-            // 保存
-            const updatedUser = await existingUser.save();
-
-            return updatedUser;
-        } else {
-            // 新規ユーザーの場合、作成
-            const userData = {
+        }, {
+            $addToSet: { socketId },
+            $push: {
+                loginHistory: {
+                    socketId,
+                    loginAt: now
+                }
+            },
+            $set: { lastLoginAt: now },
+            $setOnInsert: {
                 nickname,
                 status,
                 ageGroup,
-                spaceId,
-                socketId: [socketId], // 配列として初期化
-                loginHistory: [{
-                    socketId: socketId,
-                    loginAt: new Date()
-                }],
-                lastLoginAt: new Date()
-            };
+                spaceId
+            }
+        }, {
+            new: true,
+            upsert: true,
+            runValidators: true,
+            setDefaultsOnInsert: true
+        });
 
-            const newUser = await User.create(userData);
-
-            return newUser;
-        }
+        return updatedUser;
 
     } catch (error) {
         handleErrors(error, 'ユーザー保存時にエラーが発生しました');

@@ -58,11 +58,12 @@ async function addDocRow({ nickname, displayName, msg = '', displayOrder, spaceI
 // --- 並び替え(doc-reorder)に合わせて、displayOrderを更新 ---
 async function updateDisplayOrder(postId, newDisplayOrder) {
     try {
-        const post = await Post.findById(postId);
-        if (!post) throw new Error(`Post not found: ${postId}`);
-
-        post.displayOrder = newDisplayOrder;
-        const newPost = await post.save();
+        const newPost = await Post.findOneAndUpdate(
+            { _id: postId },
+            { $set: { displayOrder: newDisplayOrder } },
+            { new: true, runValidators: true }
+        );
+        if (!newPost) throw new Error(`Post not found: ${postId}`);
 
         return organizeLogs(newPost);
     } catch (error) {
@@ -83,12 +84,15 @@ async function deleteDocRow(id) {
 // --- インデントレベルの更新 ---
 async function updateIndentLevel(postId, newIndentLevel) {
     try {
-        const post = await Post.findById(postId);
-        if (!post) throw new Error(`Post not found: ${postId}`);
-
         // インデントレベルを0-2の範囲に制限
-        post.indentLevel = Math.min(Math.max(newIndentLevel || 0, 0), 2);
-        const updatedPost = await post.save();
+        const normalizedIndentLevel = Math.min(Math.max(newIndentLevel || 0, 0), 2);
+
+        const updatedPost = await Post.findOneAndUpdate(
+            { _id: postId },
+            { $set: { indentLevel: normalizedIndentLevel } },
+            { new: true, runValidators: true }
+        );
+        if (!updatedPost) throw new Error(`Post not found: ${postId}`);
 
         return organizeLogs(updatedPost);
     } catch (error) {
