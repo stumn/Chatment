@@ -6,10 +6,9 @@ const {
   getActiveSpaces,
   getSpaceById,
   createSpace,
-  updateSpace,
+  updateSpaceName,
   getPostsBySpace,
   deactivateSpace,
-  updateSpaceStats,
   // 管理者機能
   finishSpace,
   reactivateSpace,
@@ -117,8 +116,7 @@ router.post('/spaces', async (req, res) => {
     // サブルーム機能廃止により、バリデーションは不要
     const newSpace = await createSpace({
       id: parseInt(id), // 整数に変換
-      name,
-      settings
+      name
     });
 
     if (!newSpace) {
@@ -156,9 +154,7 @@ router.put('/spaces/:spaceId', async (req, res) => {
     }
 
     // サブルーム機能廃止により、バリデーションは不要
-    const updatedSpace = await updateSpace(spaceId, {
-      name
-    });
+    const updatedSpace = await updateSpaceName(spaceId, { name });
 
     if (!updatedSpace) {
       return res.status(404).json({

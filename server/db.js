@@ -65,12 +65,6 @@ const spaceSchema = new mongoose.Schema({
     totalMessageCount: { type: Number, default: 0 }, // 総メッセージ数
     participantCount: { type: Number, default: 0 }, // 現在の参加者数
     lastActivity: { type: Date, default: Date.now }, // 最後のアクティビティ時刻
-
-    // スペース固有の設定
-    settings: {
-        theme: { type: String, default: 'default' } // テーマ設定
-        // サブルーム設定は廃止（常に1つの"全体"ルームのみ）
-    }
 }, options);
 
 // Spaceコレクション用のインデックス
