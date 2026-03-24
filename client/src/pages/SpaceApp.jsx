@@ -18,6 +18,7 @@ function SpaceApp() {
     const addSpace = useSpaceStore(state => state.addSpace);
     const updateSpace = useSpaceStore(state => state.updateSpace);
     const finishSpace = useSpaceStore(state => state.finishSpace);
+    const reactivateSpace = useSpaceStore(state => state.reactivateSpace);
     const clearError = useSpaceStore(state => state.clearError);
 
     // ローカル状態（モーダル表示のため）
@@ -100,6 +101,17 @@ function SpaceApp() {
         }
     };
 
+    // スペースを再アクティブ化する関数
+    const handleReactivateSpace = async (spaceId) => {
+        try {
+            await reactivateSpace(spaceId);
+            setSuccessMessage('スペースが再アクティブ化されました');
+            setTimeout(() => setSuccessMessage(''), 3000); // 3秒後に消去
+        } catch (error) {
+            console.error('スペース再アクティブ化エラー:', error);
+        }
+    };
+
     // 編集モーダルを閉じるハンドラー
     const handleEditModalClose = () => {
         setIsEditModalOpen(false);
@@ -112,6 +124,14 @@ function SpaceApp() {
             <div className="font-system bg-white px-8 py-6 rounded-lg shadow-md max-w-4xl mx-auto my-6"
                 style={{ width: `${width}px` }}>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Chatment スペース管理</h2>
+
+                {/* データベースから取得した真正な統計情報を表示 */}
+                <div className="mb-4 text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                    <span>💡 表示されている統計情報は、DBから取得した最新のデータです。</span>
+                    <br />
+                    <span>ユーザー数や日時にカーソルを合わせると、詳細な統計情報が表示されます。</span>
+
+                </div>
 
                 {/* メッセージ表示とモーダル管理 (SpaceMessageModal.jsx) */}
                 <SpaceMessageModal
@@ -145,7 +165,10 @@ function SpaceApp() {
                 />
 
                 {/* 終了スペース一覧 */}
-                <FinishedSpacesSection finishedSpaces={finishedSpaces} />
+                <FinishedSpacesSection
+                    finishedSpaces={finishedSpaces}
+                    onReactivateSpace={handleReactivateSpace}
+                />
 
                 {/* フッター */}
                 <div className="text-center text-gray-500 mt-8">

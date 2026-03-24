@@ -233,6 +233,44 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
   },
 
   /**
+   * スペースを再アクティブ化する
+   */
+  reactivateSpace: async (spaceId) => {
+    const { setLoading, setError, clearError } = get();
+
+    setLoading(true);
+    clearError();
+
+    try {
+      // バックエンドAPIでスペースを再アクティブ化する処理
+      const response = await fetch(`/api/spaces/${spaceId}/reactivate`, {
+        method: 'POST'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const reactivatedSpace = data.space;
+
+        set((state) => ({
+          finishedSpaces: state.finishedSpaces.filter(space => space.id !== spaceId),
+          activeSpaces: [...state.activeSpaces, reactivatedSpace],
+          isLoading: false
+        }));
+
+        return reactivatedSpace;
+      } else {
+        throw new Error(data.error || 'スペースの再アクティブ化に失敗しました');
+      }
+    } catch (error) {
+      console.error('スペース再アクティブ化エラー:', error);
+      setError(error.message);
+      setLoading(false);
+      throw error;
+    }
+  },
+
+  /**
    * ストアの状態をリセット
    */
   reset: () => {

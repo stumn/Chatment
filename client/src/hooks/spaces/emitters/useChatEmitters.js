@@ -2,23 +2,18 @@ import useAppStore from '../../../store/spaces/appStore';
 import { validUserId } from '../socketUtils/socketUtils';
 
 export const useChatEmitters = (socket, emitLog) => {
-  const emitChatMessage = (handleName, message, userId) => {
+  const emitChatMessage = (nickname, message, userId, roomId = null) => {
     const { userInfo } = useAppStore.getState();
 
-    // displayName（選択された表示名）のみを送信
-    // nickname, userId, spaceIdはサーバー側のsocketから取得される
     const messageData = {
-      displayName: handleName, // 選択された表示名
-      message
+      nickname,
+      message,
+      userId,
+      spaceId: userInfo.spaceId,
+      ...(roomId && { roomId }) // roomIdがある場合のみ追加
     };
 
     socket.emit('chat-message', messageData);
-
-    emitLog({
-      userId: validUserId(userId),
-      action: 'chat-message',
-      detail: { handleName, message }
-    });
   };
 
   const emitPositive = (id) => {
@@ -30,12 +25,6 @@ export const useChatEmitters = (socket, emitLog) => {
       userSocketId: socket.id,
       nickname: userInfo.nickname,
     });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      action: 'positive',
-      detail: { postId: id, nickname: userInfo.nickname }
-    });
   };
 
   const emitNegative = (id) => {
@@ -46,12 +35,6 @@ export const useChatEmitters = (socket, emitLog) => {
       postId: id,
       userSocketId: socket.id,
       nickname: userInfo.nickname,
-    });
-
-    emitLog({
-      userId: validUserId(userInfo && userInfo._id),
-      action: 'negative',
-      detail: { postId: id, nickname: userInfo.nickname }
     });
   };
 

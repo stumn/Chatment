@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import DocumentViewButton from './ui/DocumentViewButton';
+import LogAnalysisButton from './ui/LogAnalysisButton';
 
 // テーブルヘッダーコンポーネント
 const TableHeader = () => (
@@ -45,13 +46,74 @@ const TableHeader = () => (
 );
 
 // 終了した部屋の行をレンダリングするコンポーネント
-const FinishedSpaceRow = ({ space }) => {
-  // 終了日時のフォーマット
-  const formatFinishedAt = (finishedAt) => {
-    if (!finishedAt) return '不明';
-    const date = new Date(finishedAt);
+const FinishedSpaceRow = ({ space, onReactivateSpace }) => {
+  // 最後の投稿時間のフォーマット
+  const formatLastActivity = (lastActivity) => {
+    if (!lastActivity) return '不明';
+    const date = new Date(lastActivity);
     return date.toLocaleDateString('ja-JP') + ' ' + date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
   };
+
+  // 統計情報をツールチップテキストに整形
+  const getStatsTooltip = () => {
+    if (!space.userStats) return '';
+
+    const stats = space.userStats;
+    let tooltip = `詳細統計:\n`;
+    tooltip += `- 投稿者数: ${space.participantCount || 0}人\n`;
+    tooltip += `- 登録ユーザー: ${stats.totalUsers || 0}人\n`;
+
+    if (stats.avgLoginCount) {
+      tooltip += `- 平均ログイン: ${stats.avgLoginCount.toFixed(1)}回\n`;
+    }
+
+    if (stats.statusAgeDistribution && stats.statusAgeDistribution.length > 0) {
+      tooltip += `\n属性・年齢層分布:\n`;
+      stats.statusAgeDistribution.forEach(item => {
+        tooltip += `  ${item._id.status || '不明'} / ${item._id.ageGroup || '不明'}: ${item.count}人\n`;
+      });
+    }
+
+    return tooltip;
+  };
+
+  // 時間情報をツールチップテキストに整形
+  const getTimeTooltip = () => {
+    let tooltip = `詳細な時間情報:\n`;
+
+    if (space.createdAt) {
+      const created = new Date(space.createdAt);
+      tooltip += `- 作成日時: ${created.toLocaleString('ja-JP')}\n`;
+    }
+
+    if (space.finishedAt) {
+      const finished = new Date(space.finishedAt);
+      tooltip += `- 終了日時: ${finished.toLocaleString('ja-JP')}\n`;
+    }
+
+    if (space.lastActivity) {
+      const lastAct = new Date(space.lastActivity);
+      tooltip += `- 最後の投稿: ${lastAct.toLocaleString('ja-JP')}\n`;
+    }
+
+    if (space.totalMessageCount !== undefined) {
+      tooltip += `- 総投稿数: ${space.totalMessageCount}件`;
+    }
+
+    return tooltip;
+  };
+
+  // 再アクティブ化ボタンのクリックハンドラ
+  const handleReactivate = async () => {
+    if (window.confirm(`「${space.name}」を再アクティブ化しますか？`)) {
+      try {
+        await onReactivateSpace(space.id);
+      } catch (error) {
+        console.error('再アクティブ化エラー:', error);
+      }
+    }
+  };
+
 
   return (
     <tr>
@@ -61,12 +123,30 @@ const FinishedSpaceRow = ({ space }) => {
         </div>
       </td>
       <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[100px] text-left">
-        {space.participantCount || 0} 人
+        <div
+          className="flex flex-col cursor-help"
+          title={getStatsTooltip()}
+        >
+          <span className="font-medium">{space.participantCount || 0} 人</span>
+          {space.userStats && space.userStats.totalUsers > 0 && (
+            <span className="text-xs text-gray-400">
+              (登録: {space.userStats.totalUsers})
+            </span>
+          )}
+        </div>
       </td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[140px] text-left">{formatFinishedAt(space.finishedAt)}</td>
+      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-b border-gray-200 w-[140px] text-left">
+        <div
+          className="cursor-help"
+          title={getTimeTooltip()}
+        >
+          {formatLastActivity(space.lastActivity)}
+        </div>
+      </td>
       <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-gray-200 text-left">
         <div className="flex gap-1">
           <DocumentViewButton spaceId={space.id} />
+          <LogAnalysisButton spaceId={space.id} />
           <a
             href={`/api/spaces/${space.id}/export/json`}
             className="px-3 py-2 !bg-slate-500 !text-white border-none rounded text-sm font-medium cursor-pointer hover:!bg-slate-600 transition-colors duration-150 no-underline flex items-center justify-center"
@@ -83,6 +163,18 @@ const FinishedSpaceRow = ({ space }) => {
           >
             CSV
           </a>
+          <button
+            className="px-3 py-2 !bg-green-600 text-white border-none rounded text-sm font-medium cursor-pointer hover:!bg-green-700 transition-colors duration-150 flex items-center justify-center"
+            onClick={handleReactivate}
+            title="スペースを再アクティブ化"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M3 21v-5h5" />
+            </svg>
+          </button>
         </div>
       </td>
     </tr>
@@ -94,8 +186,9 @@ const FinishedSpaceRow = ({ space }) => {
  * 
  * @param {Object} props - コンポーネントのプロップス
  * @param {Array} props.finishedSpaces - 終了したスペースの配列
+ * @param {Function} props.onReactivateSpace - スペース再アクティブ化時のコールバック関数
  */
-const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
+const FinishedSpacesSection = ({ finishedSpaces = [], onReactivateSpace }) => {
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-left">終了したスペース</h2>
@@ -105,7 +198,11 @@ const FinishedSpacesSection = ({ finishedSpaces = [] }) => {
           <tbody>
             {finishedSpaces.length > 0 ? (
               finishedSpaces.map(space => (
-                <FinishedSpaceRow key={space.id} space={space} />
+                <FinishedSpaceRow
+                  key={space.id}
+                  space={space}
+                  onReactivateSpace={onReactivateSpace}
+                />
               ))
             ) : (
               <tr>

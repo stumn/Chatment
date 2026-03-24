@@ -52,11 +52,13 @@ function setupReactionHandlers(socket, io) {
 
         // ログ記録 - リアクション
         saveLog({
-          userId: reactionResult.userId,
-          userNickname: nickname,
+          userId: socket.userId || reactionResult.userId,
+          userNickname: socket.nickname || nickname,
           action: reactionType,
-          detail: { postId, userSocketId, nickname },
-          spaceId: reactionResult.spaceId
+          detail: { postId },
+          spaceId: socket.spaceId || reactionResult.spaceId,
+          level: 'info',
+          source: 'server'
         });
 
       } catch (e) { console.error(e); }

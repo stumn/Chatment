@@ -80,6 +80,8 @@ async function processPostReaction(postId, userSocketId = null, nickname = '', r
         spaceId: post.spaceId,
         reaction: post[reactionType].length,
         userHasReacted: post[reactionType].some(p => p.userSocketId === userSocketId),
+        spaceId: post.spaceId,
+        userId: post.userId,
     };
 }
 

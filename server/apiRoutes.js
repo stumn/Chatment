@@ -12,6 +12,7 @@ const {
   updateSpaceStats,
   // 管理者機能
   finishSpace,
+  reactivateSpace,
   getFinishedSpaces,
   getAllSpaces
 } = require('./dbOperation');
@@ -254,6 +255,32 @@ router.post('/spaces/:spaceId/finish', async (req, res) => {
   }
 });
 
+// スペースを再アクティブ化
+router.post('/spaces/:spaceId/reactivate', async (req, res) => {
+  try {
+    const spaceId = parseInt(req.params.spaceId);
+    const reactivatedSpace = await reactivateSpace(spaceId);
+
+    if (!reactivatedSpace) {
+      return res.status(404).json({
+        success: false,
+        error: 'Space not found or cannot be reactivated'
+      });
+    }
+
+    res.json({
+      success: true,
+      space: reactivatedSpace
+    });
+  } catch (error) {
+    console.error('Reactivate space API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // 終了済みスペース一覧を取得（管理者機能）
 router.get('/admin/spaces/finished', async (req, res) => {
   try {
@@ -357,6 +384,25 @@ router.get('/spaces/:spaceId/export/json', async (req, res) => {
 
   } catch (error) {
     console.error('JSON export API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ログ分析エンドポイント
+router.get('/spaces/:spaceId/log-analysis', async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    const { analyzeSpaceLogs } = require('./db/logOperations');
+
+    const analysis = await analyzeSpaceLogs(spaceId);
+
+    res.json(analysis);
+
+  } catch (error) {
+    console.error('Log analysis API error:', error);
     res.status(500).json({
       success: false,
       error: error.message

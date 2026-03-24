@@ -12,7 +12,7 @@ async function handleLogin(socket, userInfo) {
   try {
 
     // nickname, status, ageGroup, spaceIdが必須
-    if (!nickname || !status || !ageGroup || spaceId == null) {
+    if (!nickname || !status || !ageGroup || !spaceId) {
       const errorMsg = 'ログイン情報が不完全です。nickname, status, ageGroup, spaceIdが必要です。';
       console.error(errorMsg, userInfo);
       socket.emit('login_error', {
@@ -21,7 +21,7 @@ async function handleLogin(socket, userInfo) {
           nickname: !nickname,
           status: !status,
           ageGroup: !ageGroup,
-          spaceId: spaceId == null
+          spaceId: !spaceId
         }
       });
       return;
@@ -37,6 +37,40 @@ async function handleLogin(socket, userInfo) {
 
     // ユーザログインが成功したことを通知
     socket.emit('connect OK', newUser);
+
+    // ログイン成功ログを記録
+    const { saveLog } = require('../dbOperation');
+    const isNewUser = newUser.loginHistory.length === 1; // loginHistoryが1つなら新規ユーザー
+    saveLog({
+      userId: newUser._id.toString(),
+      userNickname: nickname,
+      action: 'login-success',
+      detail: {
+        status,
+        ageGroup,
+        isNewUser: isNewUser,
+        loginCount: newUser.loginHistory.length
+      },
+      spaceId,
+      level: 'info',
+      source: 'server'
+    });
+
+    // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
+    socket.on('fetch-history', async () => {
+      try {
+        const messages = await getPastLogs(spaceId);
+        socket.emit('history', messages);
+      } catch (e) { console.error(e); }
+    });
+
+    // ドキュメント用取得ハンドラー（スペース別のドキュメント）
+    socket.on('fetch-docs', async () => {
+      try {
+        const docs = await getPostsByDisplayOrder(spaceId);
+        socket.emit('docs', docs);
+      } catch (e) { console.error(e); }
+    });
 
   } catch (e) {
     console.error('ログインエラー:', e);
@@ -56,40 +90,6 @@ async function handleLogin(socket, userInfo) {
   }
 }
 
-// --- 履歴取得ハンドラー（connection時に一度だけ登録） ---
-function setupHistoryHandlers(socket) {
-  // チャット履歴取得ハンドラー（スペース別の過去チャットログ）
-  socket.on('fetch-history', async () => {
-    try {
-      // socket.spaceIdを使用して最新のスペースIDを参照
-      const currentSpaceId = socket.spaceId;
-      if (currentSpaceId == null) {
-        console.warn('⚠️ fetch-history: spaceIdが未設定です');
-        socket.emit('history', { messages: [], spaceId: null });
-        return;
-      }
-      const messages = await getPastLogs(currentSpaceId);
-      socket.emit('history', { messages, spaceId: currentSpaceId });
-    } catch (e) { console.error('fetch-historyエラー:', e); }
-  });
-
-  // ドキュメント用取得ハンドラー（スペース別のドキュメント）
-  socket.on('fetch-docs', async () => {
-    try {
-      // socket.spaceIdを使用して最新のスペースIDを参照
-      const currentSpaceId = socket.spaceId;
-      if (currentSpaceId == null) {
-        console.warn('⚠️ fetch-docs: spaceIdが未設定です');
-        socket.emit('docs', { docs: [], spaceId: null });
-        return;
-      }
-      const docs = await getPostsByDisplayOrder(currentSpaceId);
-      socket.emit('docs', { docs, spaceId: currentSpaceId });
-    } catch (e) { console.error('fetch-docsエラー:', e); }
-  });
-}
-
 module.exports = {
-  handleLogin,
-  setupHistoryHandlers
+  handleLogin
 };

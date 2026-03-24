@@ -28,8 +28,14 @@ export const createEventHandlerMap = (handlers) => {
     handleRowUnlocked,
     handleLockNotAllowed,
 
-    // Space level handlers
+    // Room handlers
+    handleRoomJoined,
+    handleRoomLeft,
+    handleUserJoined,
     handleUserLeft,
+    handleRoomError,
+    handleRoomList,
+    handleRoomHistory,
   } = handlers;
 
   return {
@@ -52,8 +58,14 @@ export const createEventHandlerMap = (handlers) => {
     'doc-reorder': handleDocReorder,
     'doc-delete': handleDocDelete,
     'doc-indent-change': handleIndentChange,
-    // Space単位のイベント
-    'user-left': handleUserLeft,
+    // Space関連のイベント
+    'space-joined': handleRoomJoined,
+    'space-left': handleRoomLeft,
+    'other-user-joined': handleUserJoined,
+    'other-user-left': handleUserLeft,
+    'space-error': handleRoomError,
+    'space-info': handleRoomList,
+    'space-history': handleRoomHistory,
     // エラーハンドリング
     'connect_error': handleConnectError,
     'disconnect': handleDisconnect,
