@@ -18,7 +18,15 @@ import { useDocEmitters } from '../spaces/emitters/useDocEmitters';
 import { createEmitLog } from '../spaces/socketUtils/socketUtils';
 import { createEventHandlerMap } from '../spaces/socketUtils/eventMap';
 
-const socket = io();
+const socket = io({
+  transports: ['websocket', 'polling'],
+  timeout: Number(import.meta.env.VITE_SOCKET_TIMEOUT || 20000),
+  reconnection: true,
+  reconnectionAttempts: Number(import.meta.env.VITE_SOCKET_RECONNECTION_ATTEMPTS || Infinity),
+  reconnectionDelay: Number(import.meta.env.VITE_SOCKET_RECONNECTION_DELAY || 1000),
+  reconnectionDelayMax: Number(import.meta.env.VITE_SOCKET_RECONNECTION_DELAY_MAX || 10000),
+  randomizationFactor: Number(import.meta.env.VITE_SOCKET_RECONNECTION_RANDOMIZATION || 0.5),
+});
 
 // --- socketインスタンスを外部参照用にexport ---
 export const socketId = () => socket.id;
