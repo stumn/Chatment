@@ -18,6 +18,7 @@ const ChatComments = ({ lines, bottomHeight, chatFunctions, isChatMaximized, isC
     const minLikesFilter = useAppStore((state) => state.minLikesFilter);
 
     const chatMessages = useMemo(() => {
+
         // 見出しが見つからない状態をリセット
         let isHeadingMissing = false;
 
