@@ -78,7 +78,7 @@ async function getPastLogs(spaceId = null) {
     }
 }
 
-// --- ログを整形（mapのほうが簡潔ということで変更）---
+// --- ログを整形---
 async function processXlogs(xLogs) {
     return xLogs.map(post => organizeLogs(post));
 }

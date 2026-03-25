@@ -27,6 +27,7 @@ const DocComments = ({ lines, documentFunctions, isDocMaximized }) => {
     const minLikesFilter = useAppStore((state) => state.minLikesFilter);
 
     const docMessages = useMemo(() => {
+
         // 最大化モードの場合は全件表示、通常モードはチャット分を除外
         let docPosts = isDocMaximized ? [...posts] : posts.slice(0, -lines.num);
         docPosts = [...docPosts].sort((a, b) => a.displayOrder - b.displayOrder);
