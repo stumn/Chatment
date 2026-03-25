@@ -76,6 +76,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       } else {
         throw new Error(data.error || '全スペース一覧の取得に失敗しました');
       }
+
     } catch (error) {
       console.error('全スペース一覧取得エラー:', error);
       setError(error.message);
@@ -121,6 +122,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       } else {
         throw new Error(data.error || 'スペースの作成に失敗しました');
       }
+
     } catch (error) {
       console.error('スペース追加エラー:', error);
       setError(error.message);
@@ -148,12 +150,8 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
     try {
       const response = await fetch(`/api/spaces/${spaceData.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: spaceData.name,
-        }),
+        headers: { 'Content-Type': 'application/json', },
+        body: JSON.stringify({ name: spaceData.name, }),
       });
 
       const data = await response.json();
@@ -178,6 +176,7 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
       } else {
         throw new Error(data.error || 'スペースの更新に失敗しました');
       }
+
     } catch (error) {
       console.error('スペース更新エラー:', error);
       setError(error.message);
@@ -213,9 +212,11 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         }));
 
         return finishedSpace;
+
       } else {
         throw new Error(data.error || 'スペースの終了に失敗しました');
       }
+
     } catch (error) {
       console.error('スペース終了エラー:', error);
       setError(error.message);
@@ -251,9 +252,11 @@ const useSpaceStore = create(subscribeWithSelector((set, get) => ({
         }));
 
         return reactivatedSpace;
+
       } else {
         throw new Error(data.error || 'スペースの再アクティブ化に失敗しました');
       }
+
     } catch (error) {
       console.error('スペース再アクティブ化エラー:', error);
       setError(error.message);

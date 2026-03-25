@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import BaseModal from './ui/BaseModal';
 
 /**
@@ -16,9 +16,7 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
     const [activeTab, setActiveTab] = useState('summary'); // summary, actions, users, timeline, logs
 
     useEffect(() => {
-        if (isOpen && spaceId) {
-            fetchLogAnalysis();
-        }
+        if (isOpen && spaceId) { fetchLogAnalysis(); }
     }, [isOpen, spaceId]);
 
     const fetchLogAnalysis = async () => {
@@ -35,18 +33,6 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
             });
 
             if (data.success) {
-                // デバッグ: 最新ログのサンプルを確認
-                if (data.recentLogs && data.recentLogs.length > 0) {
-                    const sample = data.recentLogs[0];
-                    console.log('[LogAnalysis] 受信した最新ログサンプル:', {
-                        action: sample.action,
-                        level: sample.level,
-                        source: sample.source,
-                        userNickname: sample.userNickname,
-                        hasDetail: !!sample.detail,
-                        fullLog: sample
-                    });
-                }
                 setAnalysis(data);
             } else {
                 setError(data.error || 'ログ分析に失敗しました');
@@ -300,9 +286,7 @@ const LogAnalysisModal = ({ isOpen, onClose, spaceId }) => {
             );
         }
 
-        if (!analysis) {
-            return null;
-        }
+        if (!analysis) return null;
 
         return (
             <div>

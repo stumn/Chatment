@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {
+  // 投稿関連操作
   getPostsByDisplayOrder,
+
   // スペース関連操作
   getActiveSpaces,
   getSpaceById,
@@ -9,6 +11,7 @@ const {
   updateSpaceName,
   getPostsBySpace,
   deactivateSpace,
+
   // 管理者機能
   finishSpace,
   reactivateSpace,
@@ -46,6 +49,7 @@ router.get('/posts', async (req, res) => {
       count: posts.length,
       spaceId: parsedSpaceId
     });
+
   } catch (error) {
     console.error('Posts API error:', error);
     res.status(500).json({
@@ -88,10 +92,8 @@ router.get('/spaces/:spaceId', async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      space: space
-    });
+    res.json({ success: true, space: space });
+
   } catch (error) {
     console.error('Space info API error:', error);
     res.status(500).json({
@@ -104,7 +106,7 @@ router.get('/spaces/:spaceId', async (req, res) => {
 // 新しいスペース作成
 router.post('/spaces', async (req, res) => {
   try {
-    const { id, name, settings } = req.body;
+    const { id, name } = req.body;
 
     if (!id || !name) {
       return res.status(400).json({
@@ -113,7 +115,6 @@ router.post('/spaces', async (req, res) => {
       });
     }
 
-    // サブルーム機能廃止により、バリデーションは不要
     const newSpace = await createSpace({
       id: parseInt(id), // 整数に変換
       name
@@ -190,6 +191,7 @@ router.get('/spaces/:spaceId/posts', async (req, res) => {
       posts: posts,
       count: posts.length
     });
+
   } catch (error) {
     console.error('Space posts API error:', error);
     res.status(500).json({
@@ -242,6 +244,7 @@ router.post('/spaces/:spaceId/finish', async (req, res) => {
       success: true,
       space: finishedSpace
     });
+
   } catch (error) {
     console.error('Finish space API error:', error);
     res.status(500).json({
@@ -268,6 +271,7 @@ router.post('/spaces/:spaceId/reactivate', async (req, res) => {
       success: true,
       space: reactivatedSpace
     });
+
   } catch (error) {
     console.error('Reactivate space API error:', error);
     res.status(500).json({
@@ -286,6 +290,7 @@ router.get('/admin/spaces/finished', async (req, res) => {
       success: true,
       spaces: finishedSpaces
     });
+
   } catch (error) {
     console.error('Get finished spaces API error:', error);
     res.status(500).json({
@@ -304,6 +309,7 @@ router.get('/admin/spaces', async (req, res) => {
       success: true,
       spaces: allSpaces
     });
+
   } catch (error) {
     console.error('Get all spaces API error:', error);
     res.status(500).json({
