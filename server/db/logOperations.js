@@ -37,7 +37,7 @@ async function saveLog({ userId, userNickname = '', action, detail, spaceId = nu
         // ログを保存
         await Log.create({
             userId,
-            userName: userNickname,
+            userNickname: userNickname,
             action,
             spaceId: targetSpaceId,
             detail: logDetail,
