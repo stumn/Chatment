@@ -226,17 +226,16 @@ export const useAppController = () => {
      */
     const deleteDocument = useCallback((id, reason = 'manual') => {
         try {
-            // 楽観的更新: 即座にUIから削除
-            removePost(id);
-
-            // サーバーに送信
-            emitDocDelete(id);
-
             // 削除前の内容を取得（ログ用）
             const posts = usePostStore.getState().posts;
             const deletedPost = posts.find(p => p.id === id);
             const deletedContent = deletedPost?.msg || '';
 
+            // 楽観的更新: 即座にUIから削除
+            removePost(id);
+
+            // サーバーに送信
+            emitDocDelete(id);
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
