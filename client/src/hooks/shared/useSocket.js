@@ -69,15 +69,14 @@ export default function useSocket() {
 
   useEffect(() => {
     // 既に登録済みの場合はスキップ
-    if (isListenersRegisteredRef.current) {
-      return;
-    }
+    if (isListenersRegisteredRef.current) return;
 
     // heightChangeハンドラーは状態更新のため、ここで定義
     const handleHeightChange = (data) => setHeightArray(data);
 
     // 認証完了後の処理
     const enhancedHandleConnectOK = (userInfo) => {
+
       // 最新のハンドラーを参照
       const { basicHandlers: currentBasicHandlers } = handlersRef.current;
 
