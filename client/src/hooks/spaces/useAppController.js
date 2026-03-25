@@ -16,11 +16,11 @@ const CHAT_VALIDATION_REASON_MAP = {
     },
     [MESSAGE_VALIDATION_REASON.TOO_LONG]: {
         message: 'メッセージが140文字を超えています。短くしてください。',
-        warnMessage: 'Message too long, truncating to 140 characters'
+        warnMessage: 'Message too long, cannot send (over 140 characters)'
     },
     [MESSAGE_VALIDATION_REASON.TOO_MANY_LINES]: {
         message: '改行数が5行を超えています。短くしてください。',
-        warnMessage: 'Too many lines in chat message, limiting to 5 lines'
+        warnMessage: 'Too many lines in chat message (maximum 5 lines allowed)'
     },
     [MESSAGE_VALIDATION_REASON.INVALID_AFTER_NORMALIZE]: {
         message: '有効な文字が含まれていません。'
