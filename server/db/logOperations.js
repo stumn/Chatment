@@ -2,23 +2,30 @@
 const { Log, Space, Post } = require('../db');
 const { handleErrors } = require('../utils');
 
-// ログを保存（spaceId対応）
-async function saveLog({ userId, userNickname = '', action, detail, spaceId = null, level = 'info', source = 'server' }) {
+// ログを保存
+async function saveLog({ userId, userNickname = '', action, detail, spaceId = null,
+    level = 'info', source = 'server' }) {
     try {
-        let resolvedSpaceId = spaceId;
-        let enrichedDetail = detail ? { ...detail } : {};
+        const logDetail = detail ? { ...detail } : {};
+        let targetSpaceId = spaceId;
 
-        // postId (detail.postId または detail.id) から spaceId とメッセージプレビューを取得
-        const postId = enrichedDetail.postId || enrichedDetail.id;
-        if (postId) {
+        // detail.postId || detail.id からpostIdを取得 
+        const relatedPostId = logDetail.postId || logDetail.id;
+
+        // relatedPostId から spaceId とメッセージプレビューを取得
+        if (relatedPostId) {
             try {
-                const post = await Post.findById(postId).lean();
-                if (post) {
-                    if (!resolvedSpaceId && post.spaceId) resolvedSpaceId = post.spaceId;
+                const post = await Post.findById(relatedPostId).lean();
+                if (!post) {
+                    // postが見つからない場合は補完をスキップして通常ログを記録
+                    console.warn('Post not found while saving log:', relatedPostId);
+                } else {
+                    if (!targetSpaceId && post.spaceId) targetSpaceId = post.spaceId;
+
                     // チャットメッセージまたはドキュメント行の内容をプレビューとして付加
                     if (post.msg) {
-                        enrichedDetail.msgPreview = post.msg.length > 40
-                            ? post.msg.substring(0, 40) + '...'
+                        logDetail.msgPreview = post.msg.length > 30
+                            ? post.msg.substring(0, 30) + '...'
                             : post.msg;
                     }
                 }
@@ -27,15 +34,17 @@ async function saveLog({ userId, userNickname = '', action, detail, spaceId = nu
             }
         }
 
+        // ログを保存
         await Log.create({
             userId,
             userName: userNickname,
             action,
-            spaceId: resolvedSpaceId,
-            detail: enrichedDetail,
+            spaceId: targetSpaceId,
+            detail: logDetail,
             level,
             source,
         });
+
     } catch (e) {
         handleErrors(e, 'ログ記録失敗:');
     }
@@ -81,12 +90,6 @@ async function analyzeSpaceLogs(spaceId) {
                 log.source = 'server';
             }
         });
-
-        // 日付変換のサンプルをログ出力（デバッグ用）
-        if (rawLogs.length > 0) {
-            const sampleLog = rawLogs[0];
-            console.log(`[Log Analysis] 日付変換サンプル - timestamp: ${sampleLog.timestamp}, createdAt: ${sampleLog.createdAt}`);
-        }
 
         // 2. 指定されたspaceIdのログのみであることを検証・フィルタリング
         const allLogs = rawLogs.filter(log => {
