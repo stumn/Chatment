@@ -35,6 +35,8 @@ const CHAT_VALIDATION_REASON_MAP = {
  */
 export const useAppController = () => {
     // Socket通信関連の取得
+    const socketFunctions = useSocket();
+
     const {
         // ドキュメント操作
         emitDocAdd,
@@ -56,7 +58,7 @@ export const useAppController = () => {
         heightArray,
         socketId,
         emitLog
-    } = useSocket();
+    } = socketFunctions;
 
     // Store関連の取得
     const userInfo = useAppStore((state) => state.userInfo);
