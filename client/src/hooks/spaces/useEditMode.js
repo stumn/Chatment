@@ -34,6 +34,7 @@ const useEditMode = (
     // contentEditableの要素を参照するためのref
     const contentRef = useRef(null);
 
+    // 投稿の更新関数と変更状態を管理する関数を取得
     const updateDocMessage = usePostStore((state) => state.updatePost);
     const setChangeState = usePostStore((state) => state.setChangeState);
 

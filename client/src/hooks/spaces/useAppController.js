@@ -4,6 +4,28 @@ import { useCallback, useMemo } from 'react';
 import useSocket from '../shared/useSocket';
 import usePostStore from '../../store/spaces/postStore';
 import useAppStore from '../../store/spaces/appStore';
+import {
+    MESSAGE_VALIDATION_REASON,
+    validateAndNormalizeMessage,
+    resolveValidationFailure
+} from '../../utils/messageValidation';
+
+const CHAT_VALIDATION_REASON_MAP = {
+    [MESSAGE_VALIDATION_REASON.EMPTY]: {
+        message: 'メッセージが空です。文字を入力してください。'
+    },
+    [MESSAGE_VALIDATION_REASON.TOO_LONG]: {
+        message: 'メッセージが140文字を超えています。短くしてください。',
+        warnMessage: 'Message too long, cannot send (over 140 characters)'
+    },
+    [MESSAGE_VALIDATION_REASON.TOO_MANY_LINES]: {
+        message: '改行数が5行を超えています。短くしてください。',
+        warnMessage: 'Too many lines in chat message (maximum 5 lines allowed)'
+    },
+    [MESSAGE_VALIDATION_REASON.INVALID_AFTER_NORMALIZE]: {
+        message: '有効な文字が含まれていません。'
+    }
+};
 
 /**
  * アプリケーションの中央制御フック
@@ -14,17 +36,25 @@ import useAppStore from '../../store/spaces/appStore';
 export const useAppController = () => {
     // Socket通信関連の取得
     const socketFunctions = useSocket();
+
     const {
+        // ドキュメント操作
         emitDocAdd,
         emitDocEdit,
         emitDocDelete,
         emitDocReorder,
         emitIndentChange,
+
+        // チャット操作
         emitChatMessage,
         emitPositive,
         emitNegative,
+
+        // ロック操作
         emitDemandLock,
         emitUnlockRow,
+
+        // その他
         heightArray,
         socketId,
         emitLog
@@ -32,7 +62,7 @@ export const useAppController = () => {
 
     // Store関連の取得
     const userInfo = useAppStore((state) => state.userInfo);
-    const { addPost, updatePost, removePost, reorderPost } = usePostStore();
+    const { removePost } = usePostStore();
 
     // ===== DOCUMENT操作 =====
 
@@ -56,12 +86,107 @@ export const useAppController = () => {
                 action: 'document-add',
                 detail: { insertAfterDocumentId: payload.insertAfterId }
             });
+
         } catch (error) {
             console.error('Failed to add document:', error);
         }
-        // emitDocAdd, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
+
+    const getDocumentOriginalMessage = useCallback((documentId) => {
+        const posts = usePostStore.getState().posts;
+        const originalPost = posts.find((post) => post.id === documentId);
+        return originalPost?.msg || '';
+    }, []);
+
+    const logDocumentValidationFailure = useCallback((action, detail) => {
+        emitLog({
+            userId: userInfo?._id,
+            userNickname: userInfo?.nickname,
+            action,
+            detail
+        });
+    }, [emitLog, userInfo]);
+
+    const validateAndNormalizeDocumentMessage = useCallback((documentId, inputMsg, originalMsg) => {
+        const validation = validateAndNormalizeMessage(inputMsg, { maxLength: 140, maxLines: 5 });
+        if (validation.success) {
+            return validation;
+        }
+
+        if (validation.reason === MESSAGE_VALIDATION_REASON.EMPTY) {
+            console.warn('Empty content - requires delete confirmation');
+            logDocumentValidationFailure('document-edit-empty-validation', {
+                documentId,
+                originalMsg,
+                attemptedMsg: inputMsg
+            });
+
+            return {
+                success: false,
+                requiresDeleteConfirmation: true,
+                postId: documentId
+            };
+        }
+
+        if (validation.reason === MESSAGE_VALIDATION_REASON.TOO_LONG) {
+            console.warn('Document content too long, truncating to 140 characters');
+            logDocumentValidationFailure('document-edit-length-validation-error', {
+                documentId,
+                originalMsg,
+                attemptedMsg: inputMsg,
+                length: validation.length
+            });
+
+            return { success: false, error: '文字数が140文字を超えています。短くしてください。' };
+        }
+
+        if (validation.reason === MESSAGE_VALIDATION_REASON.TOO_MANY_LINES) {
+            console.warn('Too many lines, limiting to 5 lines');
+            logDocumentValidationFailure('document-edit-lines-validation-error', {
+                documentId,
+                originalMsg,
+                attemptedMsg: inputMsg,
+                lineCount: validation.lineCount
+            });
+
+            return { success: false, error: '改行数が5行を超えています。短くしてください。' };
+        }
+
+        logDocumentValidationFailure('document-edit-invalid-chars-validation-error', {
+            documentId,
+            originalMsg,
+            attemptedMsg: inputMsg
+        });
+
+        return { success: false, error: '有効な文字が含まれていません。' };
+    }, [logDocumentValidationFailure]);
+
+    const submitDocumentEdit = useCallback((documentId, validatedMsg) => {
+        emitDocEdit({
+            id: documentId,
+            newMsg: validatedMsg,
+            nickname: userInfo?.nickname,
+            updatedAt: new Date().toISOString()
+        });
+    }, [emitDocEdit, userInfo]);
+
+    const logDocumentEditResult = useCallback((documentId, inputMsg, originalMsg, validatedMsg) => {
+        const action = validatedMsg.startsWith('#') ? 'document-edit-heading' : 'document-edit';
+
+        emitLog({
+            userId: userInfo?._id,
+            userNickname: userInfo?.nickname,
+            action,
+            detail: {
+                documentId,
+                originalMsg,
+                validatedMsg,
+                originalLength: originalMsg?.length,
+                messageLength: validatedMsg?.length,
+                inputLength: inputMsg?.length
+            }
+        });
+    }, [emitLog, userInfo]);
 
     /**
      * ドキュメントを編集する（楽観的更新付き）
@@ -71,137 +196,28 @@ export const useAppController = () => {
      */
     const editDocument = useCallback((id, newMsg) => {
         try {
-            // 元の内容を取得（ログ用）
-            const posts = usePostStore.getState().posts;
-            const originalPost = posts.find(p => p.id === id);
-            const originalMsg = originalPost?.msg || '';
+            // 編集前の内容を取得
+            const originalMsg = getDocumentOriginalMessage(id);
 
-            // 基本バリデーション
-            // 内容が空のときは，この行を削除しますか？という確認を行いたい
-            if (!newMsg?.trim()) {
-                console.warn('Empty content - requires delete confirmation');
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit-empty-validation',
-                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg }
-                });
-                return {
-                    success: false,
-                    requiresDeleteConfirmation: true,
-                    postId: id
-                };
-            }
+            // バリデーションと正規化
+            const validationResult = validateAndNormalizeDocumentMessage(id, newMsg, originalMsg);
+            if (!validationResult.success) return validationResult;
 
-            // 文字数制限（140文字）
-            let validatedMsg = newMsg;
-            if (newMsg.length > 140) {
-                console.warn('Document content too long, truncating to 140 characters');
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit-length-validation-error',
-                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg, length: newMsg.length }
-                });
-                return { success: false, error: '文字数が140文字を超えています。短くしてください。' };
-            }
+            // 楽観的更新: 即座にUIを更新
+            const { validatedMsg } = validationResult;
+            submitDocumentEdit(id, validatedMsg);
 
-            // 改行数制限（5行まで）
-            const lines = validatedMsg.split('\n');
-            if (lines.length > 5) {
-                console.warn('Too many lines, limiting to 5 lines');
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit-lines-validation-error',
-                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg, lineCount: lines.length }
-                });
-                return { success: false, error: '改行数が5行を超えています。短くしてください。' };
-            }
+            // ログ記録
+            logDocumentEditResult(id, newMsg, originalMsg, validatedMsg);
 
-            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
-            validatedMsg = validatedMsg.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
-            // 基本的な文字正規化
-            validatedMsg = validatedMsg
-                .replace(/\r/g, '')              // キャリッジリターン除去
-                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
-                .trim();                         // 前後の空白除去
-
-            // 正規化後に再度空チェック
-            if (!validatedMsg) {
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit-invalid-chars-validation-error',
-                    detail: { documentId: id, originalMsg, attemptedMsg: newMsg }
-                });
-                return { success: false, error: '有効な文字が含まれていません。' };
-            }
-
-            // 1文字目が#の場合、見出し行として扱う（#は削除しない・チャットには送信しない）
-            if (validatedMsg.startsWith('#')) {
-
-                // サーバーに送信
-                emitDocEdit({
-                    id,
-                    newMsg: validatedMsg,
-                    nickname: userInfo?.nickname,
-                    updatedAt: new Date().toISOString()
-                });
-
-                // ログ記録
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit-heading',
-                    detail: {
-                        documentId: id,
-                        originalMsg,
-                        validatedMsg,
-                        originalLength: originalMsg?.length,
-                        messageLength: validatedMsg?.length,
-                        inputLength: newMsg?.length
-                    }
-                });
-
-                return { success: true, validatedMsg };
-
-            } else {
-                // サーバーに送信
-                emitDocEdit({
-                    id,
-                    newMsg: validatedMsg,
-                    nickname: userInfo?.nickname,
-                    updatedAt: new Date().toISOString()
-                });
-
-                // ログ記録
-                emitLog({
-                    userId: userInfo?._id,
-                    userNickname: userInfo?.nickname,
-                    action: 'document-edit',
-                    detail: {
-                        documentId: id,
-                        originalMsg,
-                        validatedMsg,
-                        originalLength: originalMsg?.length,
-                        messageLength: validatedMsg?.length,
-                        inputLength: newMsg?.length
-                    }
-                });
-
-                return { success: true, validatedMsg };
-            }
-
+            return { success: true, validatedMsg };
 
         } catch (error) {
             console.error('Failed to edit document:', error);
             return { success: false, error: '編集に失敗しました。もう一度お試しください。' };
         }
-        // emitDocEdit, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userInfo, updatePost]);
+    }, [getDocumentOriginalMessage, validateAndNormalizeDocumentMessage,
+        submitDocumentEdit, logDocumentEditResult]);
 
     /**
      * ドキュメントを削除する（楽観的更新付き）
@@ -220,7 +236,6 @@ export const useAppController = () => {
 
             // サーバーに送信
             emitDocDelete(id);
-
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
@@ -238,8 +253,6 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to delete document:', error);
         }
-        // emitDocDelete, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [removePost, userInfo]);
 
     /**
@@ -270,8 +283,6 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to reorder document:', error);
         }
-        // emitDocReorder, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
 
     // ===== CHAT操作 =====
@@ -284,46 +295,25 @@ export const useAppController = () => {
      */
     const sendChatMessage = useCallback((handleName, message) => {
         try {
-            // バリデーション
-            if (!message?.trim()) {
-                return { success: false, error: 'メッセージが空です。文字を入力してください。' };
+            const validation = validateAndNormalizeMessage(message, { maxLength: 140, maxLines: 5 });
+
+            const validationError = resolveValidationFailure(validation, CHAT_VALIDATION_REASON_MAP);
+            if (validationError) {
+                if (validationError.warnMessage) {
+                    console.warn(validationError.warnMessage);
+                }
+                return { success: false, error: validationError.message };
             }
 
-            let validatedMessage = message;
+            const { validatedMsg } = validation;
 
-            if (message.length > 140) {
-                console.warn('Message too long, truncating to 140 characters');
-                return { success: false, error: 'メッセージが140文字を超えています。短くしてください。' };
-            }
-
-            // 改行数制限（5行まで）
-            const lines = message.split('\n');
-            if (lines.length > 5) {
-                console.warn('Too many lines in chat message, limiting to 5 lines');
-                return { success: false, error: '改行数が5行を超えています。短くしてください。' };
-            }
-
-            // 基本的な禁止文字除去（制御文字の除去、改行・タブ以外）
-            validatedMessage = validatedMessage.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
-            // 基本的な文字正規化
-            validatedMessage = validatedMessage
-                .replace(/\r/g, '')              // キャリッジリターン除去
-                .replace(/\n{3,}/g, '\n\n')      // 3つ以上の連続改行を2つに制限
-                .trim();                         // 前後の空白除去
-
-            // 正規化後に再度空チェック
-            if (!validatedMessage) {
-                return { success: false, error: '有効な文字が含まれていません。' };
-            }
-
-            emitChatMessage(handleName, validatedMessage, userInfo?._id);
+            emitChatMessage(handleName, validatedMsg, userInfo?._id);
 
             // ログ記録
             emitLog({
                 userId: userInfo?._id,
                 action: 'chat-send',
-                detail: { handleName, messageLength: validatedMessage.length }
+                detail: { handleName, messageLength: validatedMsg.length }
             });
 
             return { success: true };
@@ -331,9 +321,7 @@ export const useAppController = () => {
             console.error('Failed to send chat message:', error);
             return { success: false, error: 'メッセージの送信に失敗しました。もう一度お試しください。' };
         }
-        // emitChatMessage, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userInfo]);
+    }, [emitLog, emitChatMessage, userInfo]);
 
     /**
      * ポジティブ評価
@@ -382,8 +370,6 @@ export const useAppController = () => {
             console.error('Failed to request lock:', error);
             return { success: false, error: error.message };
         }
-        // emitDemandLockはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
 
     /**
@@ -401,8 +387,6 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to unlock row:', error);
         }
-        // emitUnlockRowはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
 
     /**
@@ -433,8 +417,6 @@ export const useAppController = () => {
         } catch (error) {
             console.error('Failed to change indent:', error);
         }
-        // emitIndentChange, emitLogはuseSocket内で安定しているため依存配列から除外
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfo]);
 
     // ===== 公開API =====

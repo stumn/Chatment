@@ -11,8 +11,8 @@ import PostMeta from '../shared/ui/PostMeta';
  */
 const PostItem = ({ post, index }) => {
     const isHeading = post.msg && post.msg.trim().startsWith('#');
-    const positive = post.positive.length || 0;
-    const negative = post.negative.length || 0;
+    const positive = Array.isArray(post.positive) ? post.positive.length : (post.positive || 0);
+    const negative = Array.isArray(post.negative) ? post.negative.length : (post.negative || 0);
     const diff = positive - negative;
 
     console.log(positive, negative, diff);

@@ -21,8 +21,19 @@ const DocRow = ({ data, index, style }) => {
     const message = docMessages[index];
 
     const {
-        document: { add, edit, delete: deleteDoc, requestLock }, chat: sendChatMessage
+        document: documentApi,
+        emitLog,
+        spaceId
     } = documentFunctions;
+
+    const {
+        add,
+        edit,
+        delete: deleteDoc,
+        requestLock,
+        unlockRow,
+        changeIndent
+    } = documentApi;
 
     // 行のElement IDを生成（useEditModeより前に定義する必要がある）
     const rowElementId = `dc-${index}-${message?.displayOrder}-${message?.id}`;
@@ -38,7 +49,7 @@ const DocRow = ({ data, index, style }) => {
         handleKeyDown,
         editError,
         clearEditError
-    } = useEditMode(message, userInfo, edit, listRef, index, documentFunctions.document.unlockRow, rowElementId, deleteDoc, documentFunctions.emitLog);
+    } = useEditMode(message, userInfo, edit, listRef, index, unlockRow, rowElementId, deleteDoc, emitLog);
 
     // この行がロックされているかチェック（Zustandで購読して再レンダリングを有効化）
     const locked = usePostStore((state) => state.isRowLocked(rowElementId));
@@ -69,7 +80,7 @@ const DocRow = ({ data, index, style }) => {
             prevDisplayOrder: message.displayOrder, // ここでdisplayOrderを指定
             indentLevel: newIndentLevel, // インデントレベルを追加
             datafordebug: `${userInfo.nickname} + (${userInfo.status}+${userInfo.ageGroup})` || 'Undefined',
-            spaceId: documentFunctions.spaceId, // spaceIdを追加
+            spaceId, // spaceIdを追加
         };
         add && add(data);
     };
@@ -114,10 +125,8 @@ const DocRow = ({ data, index, style }) => {
         // ポジティブ・ネガティブの差を計算
         const diff = positive - negative;
 
-        if (diff === 0) {
-            // 差がない場合は何もしない
-            return {};
-        }
+        // 差がない場合は何もしない
+        if (diff === 0) return {};
 
         return diff > 0
             ? { backgroundColor: '#e6ffe6', padding: '2px 4px', borderRadius: '4px' }
@@ -159,20 +168,13 @@ const DocRow = ({ data, index, style }) => {
 
     // インデント変更処理
     const handleIndentChange = (delta) => {
-        console.log('handleIndentChange', delta);
 
         const currentIndent = message.indentLevel || 0;
-        console.log('currentIndent', currentIndent);
-
         const newIndent = Math.min(Math.max(currentIndent + delta, 0), 2);
-        console.log('newIndent', newIndent);
 
-        console.log(message.id);
         if (newIndent !== currentIndent) {
-            console.log(newIndent !== currentIndent);
-            if (documentFunctions.document.changeIndent) {
-                console.log(documentFunctions.document.changeIndent);
-                documentFunctions.document.changeIndent(message.id, newIndent);
+            if (changeIndent) {
+                changeIndent(message.id, newIndent);
 
                 // インデント変更後にリストの高さを再計算
                 if (listRef && listRef.current && typeof listRef.current.resetAfterIndex === 'function') {
