@@ -16,6 +16,15 @@ const LogAnalysisPage = () => {
     const [selectedDateRange, setSelectedDateRange] = useState({ start: null, end: null }); // 期間絞り込み用
     const [showCalendar, setShowCalendar] = useState(null); // 'start' | 'end' | null
     const [calendarMonth, setCalendarMonth] = useState(new Date()); // カレンダーで表示中の月
+    const [dividerUserFilter, setDividerUserFilter] = useState(''); // 仕切り分析のユーザー絞り込み用
+    const [dividerDateFilter, setDividerDateFilter] = useState(''); // 仕切り分析の日付絞り込み用
+    const [expandedLogIndexes, setExpandedLogIndexes] = useState([]); // 展開された仕切りログのインデックス
+
+    const toggleExpandLog = (index) => {
+        setExpandedLogIndexes(prev => 
+            prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+        );
+    };
 
     useEffect(() => {
         // タイトルを設定
@@ -100,6 +109,418 @@ const LogAnalysisPage = () => {
                 return [...prev, userName];
             }
         });
+    };
+
+    // 仕切り関連のアクションリスト
+    const DIVIDER_ACTIONS = ['move-divider', 'divider-move', 'calculate-lines', 'height-change'];
+
+    // 仕切りログの抽出・正規化
+    const dividerLogs = useMemo(() => {
+        if (!analysis?.allLogs) return [];
+        
+        return analysis.allLogs
+            .filter(log => DIVIDER_ACTIONS.includes(log.action))
+            .map(log => {
+                const timestamp = log.timestamp || log.createdAt;
+                const date = new Date(timestamp);
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                
+                // ユーザー名を多層的に検索（フラットキーの互換性対応）
+                const user = log.userNickname || 
+                             log.detail?.user || 
+                             log.detail?.nickname || 
+                             log['detail.user'] || 
+                             log['detail.nickname'] || 
+                             '不明';
+                
+                let fromHeight = null;
+                let toHeight = null;
+                let fromLines = null;
+                let toLines = null;
+                
+                if (log.action === 'calculate-lines') {
+                    toHeight = log.detail?.height !== undefined ? log.detail.height : log['detail.height'];
+                    toLines = log.detail?.lines !== undefined ? log.detail.lines : log['detail.lines'];
+                } else if (log.action === 'divider-move') {
+                    fromHeight = log.detail?.from !== undefined ? log.detail.from : log['detail.from'];
+                    toHeight = log.detail?.to !== undefined ? log.detail.to : log['detail.to'];
+                } else if (log.action === 'move-divider') {
+                    fromHeight = log.detail?.oldHeight !== undefined ? log.detail.oldHeight : log['detail.oldHeight'];
+                    toHeight = log.detail?.newHeight !== undefined ? log.detail.newHeight : log['detail.newHeight'];
+                    fromLines = log.detail?.oldLines !== undefined ? log.detail.oldLines : log['detail.oldLines'];
+                    toLines = log.detail?.newLines !== undefined ? log.detail.newLines : log['detail.newLines'];
+                } else if (log.action === 'height-change') {
+                    fromHeight = log.detail?.oldHeight !== undefined ? log.detail.oldHeight : log['detail.oldHeight'];
+                    toHeight = log.detail?.newHeight !== undefined ? log.detail.newHeight : log['detail.newHeight'];
+                }
+                
+                return {
+                    original: log,
+                    timestamp,
+                    dateStr,
+                    user,
+                    action: log.action,
+                    fromHeight: fromHeight !== undefined && fromHeight !== null ? Math.round(Number(fromHeight) * 10) / 10 : null,
+                    toHeight: toHeight !== undefined && toHeight !== null ? Math.round(Number(toHeight) * 10) / 10 : null,
+                    fromLines: fromLines !== undefined && fromLines !== null ? Number(fromLines) : null,
+                    toLines: toLines !== undefined && toLines !== null ? Number(toLines) : null
+                };
+            })
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // 新しい順
+    }, [analysis]);
+
+    // 仕切りログのグループ化
+    const groupedDividerLogs = useMemo(() => {
+        // まず、グループ化のために古い順（昇順）にソートする
+        const sortedLogs = [...dividerLogs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const groups = [];
+        
+        sortedLogs.forEach(log => {
+            if (groups.length === 0) {
+                groups.push([log]);
+                return;
+            }
+            
+            const lastGroup = groups[groups.length - 1];
+            const lastLog = lastGroup[lastGroup.length - 1];
+            
+            const timeDiff = (new Date(log.timestamp) - new Date(lastLog.timestamp)) / 1000; // 秒数
+            const isSameUser = log.user === lastLog.user;
+            
+            // 接続条件: 1つ前の調整後（toHeight）が現在の調整前（fromHeight）と一致する
+            const isConnected = lastLog.toHeight !== null && log.fromHeight !== null && lastLog.toHeight === log.fromHeight;
+            
+            // 連続する条件: 同じユーザー、高さが繋がっている、時間差が5秒以内（15秒から短縮）
+            if (isSameUser && isConnected && timeDiff <= 5) {
+                lastGroup.push(log);
+            } else {
+                groups.push([log]);
+            }
+        });
+        
+        // グループ化したものを、1つの表示用オブジェクトにマッピング
+        const mappedGroups = groups.map(group => {
+            if (group.length === 1) {
+                return {
+                    ...group[0],
+                    isGroup: false,
+                    hasDirectionChange: false,
+                    subLogs: group
+                };
+            }
+            
+            const firstLog = group[0];
+            const lastLog = group[group.length - 1];
+            
+            // 方向転換（迷い）の検知ロジック
+            let directions = [];
+            group.forEach(l => {
+                if (l.fromHeight !== null && l.toHeight !== null) {
+                    const diff = l.toHeight - l.fromHeight;
+                    if (diff > 0.1) directions.push('up');
+                    if (diff < -0.1) directions.push('down');
+                }
+            });
+            const hasDirectionChange = directions.includes('up') && directions.includes('down');
+            
+            return {
+                timestamp: lastLog.timestamp, // 最新の操作時刻
+                dateStr: lastLog.dateStr,
+                user: firstLog.user,
+                action: 'move-divider', // グループアクション名
+                fromHeight: firstLog.fromHeight,
+                toHeight: lastLog.toHeight,
+                fromLines: firstLog.fromLines || firstLog.toLines,
+                toLines: lastLog.toLines,
+                isGroup: true,
+                hasDirectionChange,
+                subLogs: group // 生のDBログ（グループ内の個別ログ）
+            };
+        });
+        
+        // 再び新しい順（降順）にソートして返す
+        return mappedGroups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }, [dividerLogs]);
+
+    // フィルタリングされた仕切りログ
+    const filteredDividerLogs = useMemo(() => {
+        let logs = groupedDividerLogs;
+        if (dividerUserFilter) {
+            logs = logs.filter(log => log.user === dividerUserFilter);
+        }
+        if (dividerDateFilter) {
+            logs = logs.filter(log => log.dateStr === dividerDateFilter);
+        }
+        return logs;
+    }, [groupedDividerLogs, dividerUserFilter, dividerDateFilter]);
+
+    // ユーザー別の操作回数と最終設定値の集計
+    const dividerUserStats = useMemo(() => {
+        const stats = {};
+        dividerLogs.forEach(log => {
+            if (!stats[log.user]) {
+                stats[log.user] = {
+                    count: 0,
+                    lastSeen: log.timestamp,
+                    lastHeight: log.toHeight,
+                    lastLines: log.toLines
+                };
+            }
+            stats[log.user].count++;
+            if (new Date(log.timestamp) > new Date(stats[log.user].lastSeen)) {
+                stats[log.user].lastSeen = log.timestamp;
+                stats[log.user].lastHeight = log.toHeight;
+                stats[log.user].lastLines = log.toLines;
+            }
+        });
+        return Object.entries(stats).sort((a, b) => b[1].count - a[1].count);
+    }, [dividerLogs]);
+
+    // 日付別の操作回数集計
+    const dividerDateStats = useMemo(() => {
+        const stats = {};
+        dividerLogs.forEach(log => {
+            stats[log.dateStr] = (stats[log.dateStr] || 0) + 1;
+        });
+        return Object.entries(stats).sort((a, b) => a[0].localeCompare(b[0])); // 日付順
+    }, [dividerLogs]);
+
+    const renderDividerAnalysis = () => {
+        if (dividerLogs.length === 0) {
+            return (
+                <div className="text-center text-gray-500 py-12 bg-white rounded border border-gray-200">
+                    仕切り調整（境界線移動）ログが見つかりませんでした。
+                </div>
+            );
+        }
+
+        const totalRuns = dividerLogs.length;
+        const uniqueUsersCount = dividerUserStats.length;
+        const heights = dividerLogs.map(l => l.toHeight).filter(h => h !== null);
+        const avgHeight = heights.length > 0 ? Math.round(heights.reduce((sum, h) => sum + h, 0) / heights.length) : '不明';
+
+        return (
+            <div className="space-y-6 text-left">
+                {/* サマリー */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded border border-blue-100 shadow-sm">
+                        <div className="text-sm text-gray-600 font-medium">仕切り操作総回数</div>
+                        <div className="text-2xl font-bold text-blue-600 mt-1">{totalRuns.toLocaleString()} 回</div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded border border-green-100 shadow-sm">
+                        <div className="text-sm text-gray-600 font-medium">操作したユーザー数</div>
+                        <div className="text-2xl font-bold text-green-600 mt-1">{uniqueUsersCount} 人</div>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded border border-purple-100 shadow-sm">
+                        <div className="text-sm text-gray-600 font-medium">平均調整高さ</div>
+                        <div className="text-2xl font-bold text-purple-600 mt-1">{avgHeight} px</div>
+                    </div>
+                </div>
+
+                {/* 2カラムレイアウト: 左側はユーザー統計、右側は日付トレンド */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* ユーザー別統計 */}
+                    <div className="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-3">ユーザー別の仕切り調整状況</h3>
+                        <div className="overflow-x-auto flex-1 max-h-[300px]">
+                            <table className="w-full border-collapse">
+                                <thead className="bg-gray-50 sticky top-0 z-10">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">ユーザー</th>
+                                        <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50">調整回数</th>
+                                        <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50">最終高さ</th>
+                                        <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50">最終行数</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dividerUserStats.map(([user, stat]) => (
+                                        <tr 
+                                            key={user} 
+                                            className={`hover:bg-gray-50 cursor-pointer ${dividerUserFilter === user ? 'bg-blue-50 hover:bg-blue-100' : ''}`}
+                                            onClick={() => setDividerUserFilter(dividerUserFilter === user ? '' : user)}
+                                        >
+                                            <td className="px-3 py-2.5 text-sm font-medium text-blue-600 border-b">{user}</td>
+                                            <td className="px-3 py-2.5 text-sm text-right text-gray-600 border-b font-medium">{stat.count}回</td>
+                                            <td className="px-3 py-2.5 text-sm text-right text-gray-600 border-b">{stat.lastHeight ? `${stat.lastHeight} px` : '不明'}</td>
+                                            <td className="px-3 py-2.5 text-sm text-right text-gray-600 border-b">{stat.lastLines ? `${stat.lastLines}行` : '不明'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {dividerUserFilter && (
+                            <div className="mt-3 text-xs text-blue-600 flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-100">
+                                <span>ユーザー 「{dividerUserFilter}」 で絞り込み中</span>
+                                <button onClick={() => setDividerUserFilter('')} className="font-bold hover:underline">フィルター解除</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 日付別トレンド */}
+                    <div className="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-3">日付別の調整回数</h3>
+                        <div className="overflow-x-auto flex-1 max-h-[300px]">
+                            {dividerDateStats.length === 0 ? (
+                                <div className="text-center text-gray-500 py-8">データなし</div>
+                            ) : (
+                                <table className="w-full border-collapse">
+                                    <thead className="bg-gray-50 sticky top-0 z-10">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">日付</th>
+                                            <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50">調整回数</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dividerDateStats.map(([date, count]) => (
+                                            <tr 
+                                                key={date} 
+                                                className={`hover:bg-gray-50 cursor-pointer ${dividerDateFilter === date ? 'bg-blue-50 hover:bg-blue-100' : ''}`}
+                                                onClick={() => setDividerDateFilter(dividerDateFilter === date ? '' : date)}
+                                            >
+                                                <td className="px-3 py-2.5 text-sm font-medium text-blue-600 border-b">{date}</td>
+                                                <td className="px-3 py-2.5 text-sm text-right text-gray-600 border-b font-medium">{count}回</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                        {dividerDateFilter && (
+                            <div className="mt-3 text-xs text-blue-600 flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-100">
+                                <span>日付 「{dividerDateFilter}」 で絞り込み中</span>
+                                <button onClick={() => setDividerDateFilter('')} className="font-bold hover:underline">フィルター解除</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ログ一覧 */}
+                <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
+                        <h3 className="font-semibold text-gray-900 text-sm">詳細履歴 (全{filteredDividerLogs.length}件)</h3>
+                        {(dividerUserFilter || dividerDateFilter) && (
+                            <button 
+                                onClick={() => { setDividerUserFilter(''); setDividerDateFilter(''); }}
+                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                                フィルターを全て解除
+                            </button>
+                        )}
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                        <table className="w-full border-collapse font-sans text-left">
+                            <thead className="bg-gray-50 sticky top-0 z-10">
+                                <tr>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">日時</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">ユーザー</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">アクション</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">変更内容</th>
+                                    <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50 w-16"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredDividerLogs.map((log, i) => {
+                                    const isExpanded = expandedLogIndexes.includes(i);
+                                    
+                                    let changeText = '不明';
+                                    if (log.action === 'calculate-lines') {
+                                        changeText = `設定高さ: ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (計算行数: ${log.toLines !== null ? `${log.toLines}行` : '不明'})`;
+                                    } else if (log.action === 'divider-move') {
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'}`;
+                                    } else if (log.action === 'move-divider') {
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (行数: ${log.fromLines !== null ? `${log.fromLines}行` : '不明'} → ${log.toLines !== null ? `${log.toLines}行` : '不明'})`;
+                                    } else if (log.action === 'height-change') {
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'}`;
+                                    }
+
+                                    if (log.isGroup) {
+                                        const directionText = log.hasDirectionChange ? ' (迷いあり)' : '';
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (${log.subLogs.length}回の中間移動を集約)${directionText}`;
+                                    }
+
+                                    return (
+                                        <React.Fragment key={i}>
+                                            <tr className={`hover:bg-gray-50 transition-colors ${isExpanded ? 'bg-blue-50/30' : ''}`}>
+                                                <td className="px-3 py-2.5 text-sm text-gray-600 border-b whitespace-nowrap">{formatDate(log.timestamp)}</td>
+                                                <td className="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b">{log.user}</td>
+                                                <td className="px-3 py-2.5 text-xs border-b">
+                                                    <span className={`px-1.5 py-0.5 rounded font-mono ${
+                                                        log.isGroup ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                                                        log.action === 'move-divider' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                                        log.action === 'calculate-lines' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                                        'bg-gray-100 text-gray-700 border border-gray-200'
+                                                    }`}>
+                                                        {log.isGroup ? 'move-group' : log.action}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2.5 text-sm text-gray-700 border-b font-medium">{changeText}</td>
+                                                <td className="px-3 py-2.5 text-sm text-right border-b whitespace-nowrap">
+                                                    {log.isGroup && (
+                                                        <button 
+                                                            onClick={() => toggleExpandLog(i)}
+                                                            className={`p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors inline-flex items-center justify-center font-bold text-lg select-none leading-none ${isExpanded ? 'bg-gray-200 text-blue-600' : ''}`}
+                                                            title="中間ログ（DBデータ）を表示"
+                                                            style={{ width: '28px', height: '28px', minWidth: '28px' }}
+                                                        >
+                                                            ⋮
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            {log.isGroup && isExpanded && (
+                                                <tr>
+                                                    <td colSpan="5" className="px-4 py-3 bg-gray-50/80 border-b shadow-inner">
+                                                        <div className="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1.5">
+                                                            <span className="inline-block w-1.5 h-3 bg-blue-600 rounded"></span>
+                                                            DBに記録されている生データ（全 {log.subLogs.length} 件）
+                                                        </div>
+                                                        <div className="overflow-x-auto rounded border border-gray-200 bg-white">
+                                                            <table className="w-full text-xs text-left">
+                                                                <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
+                                                                    <tr>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">記録日時</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">ユーザー</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">アクション</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">元の記録値</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-gray-100">
+                                                                    {log.subLogs.map((sub, idx) => {
+                                                                        let subChangeText = '不明';
+                                                                        if (sub.action === 'calculate-lines') {
+                                                                            subChangeText = `高さ: ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'} (計算行数: ${sub.toLines !== null ? `${sub.toLines}行` : '不明'})`;
+                                                                        } else if (sub.action === 'divider-move') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'}`;
+                                                                        } else if (sub.action === 'move-divider') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'} (行数: ${sub.fromLines !== null ? `${sub.fromLines}行` : '不明'} → ${sub.toLines !== null ? `${sub.toLines}行` : '不明'})`;
+                                                                        } else if (sub.action === 'height-change') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'}`;
+                                                                        }
+
+                                                                        return (
+                                                                            <tr key={idx} className="hover:bg-gray-50/50">
+                                                                                <td className="px-3 py-1.5 text-gray-500 font-mono">{formatDate(sub.timestamp)}</td>
+                                                                                <td className="px-3 py-1.5 font-semibold text-gray-700">{sub.user}</td>
+                                                                                <td className="px-3 py-1.5 text-gray-600 font-mono">{sub.action}</td>
+                                                                                <td className="px-3 py-1.5 text-gray-800 font-medium">{subChangeText}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     // 日付ごとのログ件数を計算（カレンダー表示用）
@@ -897,6 +1318,7 @@ const LogAnalysisPage = () => {
                         { id: 'actions', label: 'アクション統計' },
                         { id: 'users', label: 'ユーザー統計' },
                         { id: 'timeline', label: 'タイムライン' },
+                        { id: 'divider', label: '仕切り調整分析' },
                         { id: 'recent', label: '最近のログ' },
                         { id: 'all', label: '全ログ一覧' }
                     ].map(tab => (
@@ -919,6 +1341,7 @@ const LogAnalysisPage = () => {
                     {activeTab === 'actions' && renderActions()}
                     {activeTab === 'users' && renderUsers()}
                     {activeTab === 'timeline' && renderTimeline()}
+                    {activeTab === 'divider' && renderDividerAnalysis()}
                     {activeTab === 'recent' && renderRecentLogs()}
                     {activeTab === 'all' && renderAllLogs()}
                 </div>
