@@ -18,6 +18,13 @@ const LogAnalysisPage = () => {
     const [calendarMonth, setCalendarMonth] = useState(new Date()); // カレンダーで表示中の月
     const [dividerUserFilter, setDividerUserFilter] = useState(''); // 仕切り分析のユーザー絞り込み用
     const [dividerDateFilter, setDividerDateFilter] = useState(''); // 仕切り分析の日付絞り込み用
+    const [expandedLogIndexes, setExpandedLogIndexes] = useState([]); // 展開された仕切りログのインデックス
+
+    const toggleExpandLog = (index) => {
+        setExpandedLogIndexes(prev => 
+            prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+        );
+    };
 
     useEffect(() => {
         // タイトルを設定
@@ -118,8 +125,13 @@ const LogAnalysisPage = () => {
                 const date = new Date(timestamp);
                 const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 
-                // ユーザー名を多層的に検索
-                const user = log.userNickname || log.detail?.user || log.detail?.nickname || '不明';
+                // ユーザー名を多層的に検索（フラットキーの互換性対応）
+                const user = log.userNickname || 
+                             log.detail?.user || 
+                             log.detail?.nickname || 
+                             log['detail.user'] || 
+                             log['detail.nickname'] || 
+                             '不明';
                 
                 let fromHeight = null;
                 let toHeight = null;
@@ -127,19 +139,19 @@ const LogAnalysisPage = () => {
                 let toLines = null;
                 
                 if (log.action === 'calculate-lines') {
-                    toHeight = log.detail?.height;
-                    toLines = log.detail?.lines;
+                    toHeight = log.detail?.height !== undefined ? log.detail.height : log['detail.height'];
+                    toLines = log.detail?.lines !== undefined ? log.detail.lines : log['detail.lines'];
                 } else if (log.action === 'divider-move') {
-                    fromHeight = log.detail?.from;
-                    toHeight = log.detail?.to;
+                    fromHeight = log.detail?.from !== undefined ? log.detail.from : log['detail.from'];
+                    toHeight = log.detail?.to !== undefined ? log.detail.to : log['detail.to'];
                 } else if (log.action === 'move-divider') {
-                    fromHeight = log.detail?.oldHeight;
-                    toHeight = log.detail?.newHeight;
-                    fromLines = log.detail?.oldLines;
-                    toLines = log.detail?.newLines;
+                    fromHeight = log.detail?.oldHeight !== undefined ? log.detail.oldHeight : log['detail.oldHeight'];
+                    toHeight = log.detail?.newHeight !== undefined ? log.detail.newHeight : log['detail.newHeight'];
+                    fromLines = log.detail?.oldLines !== undefined ? log.detail.oldLines : log['detail.oldLines'];
+                    toLines = log.detail?.newLines !== undefined ? log.detail.newLines : log['detail.newLines'];
                 } else if (log.action === 'height-change') {
-                    fromHeight = log.detail?.oldHeight;
-                    toHeight = log.detail?.newHeight;
+                    fromHeight = log.detail?.oldHeight !== undefined ? log.detail.oldHeight : log['detail.oldHeight'];
+                    toHeight = log.detail?.newHeight !== undefined ? log.detail.newHeight : log['detail.newHeight'];
                 }
                 
                 return {
@@ -148,18 +160,91 @@ const LogAnalysisPage = () => {
                     dateStr,
                     user,
                     action: log.action,
-                    fromHeight: fromHeight !== null ? Math.round(fromHeight * 10) / 10 : null,
-                    toHeight: toHeight !== null ? Math.round(toHeight * 10) / 10 : null,
-                    fromLines,
-                    toLines
+                    fromHeight: fromHeight !== undefined && fromHeight !== null ? Math.round(Number(fromHeight) * 10) / 10 : null,
+                    toHeight: toHeight !== undefined && toHeight !== null ? Math.round(Number(toHeight) * 10) / 10 : null,
+                    fromLines: fromLines !== undefined && fromLines !== null ? Number(fromLines) : null,
+                    toLines: toLines !== undefined && toLines !== null ? Number(toLines) : null
                 };
             })
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // 新しい順
     }, [analysis]);
 
+    // 仕切りログのグループ化
+    const groupedDividerLogs = useMemo(() => {
+        // まず、グループ化のために古い順（昇順）にソートする
+        const sortedLogs = [...dividerLogs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const groups = [];
+        
+        sortedLogs.forEach(log => {
+            if (groups.length === 0) {
+                groups.push([log]);
+                return;
+            }
+            
+            const lastGroup = groups[groups.length - 1];
+            const lastLog = lastGroup[lastGroup.length - 1];
+            
+            const timeDiff = (new Date(log.timestamp) - new Date(lastLog.timestamp)) / 1000; // 秒数
+            const isSameUser = log.user === lastLog.user;
+            
+            // 接続条件: 1つ前の調整後（toHeight）が現在の調整前（fromHeight）と一致する
+            const isConnected = lastLog.toHeight !== null && log.fromHeight !== null && lastLog.toHeight === log.fromHeight;
+            
+            // 連続する条件: 同じユーザー、高さが繋がっている、時間差が5秒以内（15秒から短縮）
+            if (isSameUser && isConnected && timeDiff <= 5) {
+                lastGroup.push(log);
+            } else {
+                groups.push([log]);
+            }
+        });
+        
+        // グループ化したものを、1つの表示用オブジェクトにマッピング
+        const mappedGroups = groups.map(group => {
+            if (group.length === 1) {
+                return {
+                    ...group[0],
+                    isGroup: false,
+                    hasDirectionChange: false,
+                    subLogs: group
+                };
+            }
+            
+            const firstLog = group[0];
+            const lastLog = group[group.length - 1];
+            
+            // 方向転換（迷い）の検知ロジック
+            let directions = [];
+            group.forEach(l => {
+                if (l.fromHeight !== null && l.toHeight !== null) {
+                    const diff = l.toHeight - l.fromHeight;
+                    if (diff > 0.1) directions.push('up');
+                    if (diff < -0.1) directions.push('down');
+                }
+            });
+            const hasDirectionChange = directions.includes('up') && directions.includes('down');
+            
+            return {
+                timestamp: lastLog.timestamp, // 最新の操作時刻
+                dateStr: lastLog.dateStr,
+                user: firstLog.user,
+                action: 'move-divider', // グループアクション名
+                fromHeight: firstLog.fromHeight,
+                toHeight: lastLog.toHeight,
+                fromLines: firstLog.fromLines || firstLog.toLines,
+                toLines: lastLog.toLines,
+                isGroup: true,
+                hasDirectionChange,
+                subLogs: group // 生のDBログ（グループ内の個別ログ）
+            };
+        });
+        
+        // 再び新しい順（降順）にソートして返す
+        return mappedGroups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }, [dividerLogs]);
+
     // フィルタリングされた仕切りログ
     const filteredDividerLogs = useMemo(() => {
-        let logs = dividerLogs;
+        let logs = groupedDividerLogs;
         if (dividerUserFilter) {
             logs = logs.filter(log => log.user === dividerUserFilter);
         }
@@ -167,7 +252,7 @@ const LogAnalysisPage = () => {
             logs = logs.filter(log => log.dateStr === dividerDateFilter);
         }
         return logs;
-    }, [dividerLogs, dividerUserFilter, dividerDateFilter]);
+    }, [groupedDividerLogs, dividerUserFilter, dividerDateFilter]);
 
     // ユーザー別の操作回数と最終設定値の集計
     const dividerUserStats = useMemo(() => {
@@ -323,17 +408,20 @@ const LogAnalysisPage = () => {
                         )}
                     </div>
                     <div className="max-h-[400px] overflow-y-auto">
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-collapse font-sans text-left">
                             <thead className="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">日時</th>
                                     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">ユーザー</th>
                                     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">アクション</th>
                                     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 border-b bg-gray-50">変更内容</th>
+                                    <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 border-b bg-gray-50 w-16"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredDividerLogs.map((log, i) => {
+                                    const isExpanded = expandedLogIndexes.includes(i);
+                                    
                                     let changeText = '不明';
                                     if (log.action === 'calculate-lines') {
                                         changeText = `設定高さ: ${log.toHeight ? `${log.toHeight} px` : '不明'} (計算行数: ${log.toLines ? `${log.toLines}行` : '不明'})`;
@@ -345,21 +433,86 @@ const LogAnalysisPage = () => {
                                         changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'}`;
                                     }
 
+                                    if (log.isGroup) {
+                                        const directionText = log.hasDirectionChange ? ' (迷いあり)' : '';
+                                        changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'} (${log.subLogs.length}回の中間移動を集約)${directionText}`;
+                                    }
+
                                     return (
-                                        <tr key={i} className="hover:bg-gray-50">
-                                            <td className="px-3 py-2.5 text-sm text-gray-600 border-b whitespace-nowrap">{formatDate(log.timestamp)}</td>
-                                            <td className="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b">{log.user}</td>
-                                            <td className="px-3 py-2.5 text-xs border-b">
-                                                <span className={`px-1.5 py-0.5 rounded font-mono ${
-                                                    log.action === 'move-divider' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                                                    log.action === 'calculate-lines' ? 'bg-green-100 text-green-700 border border-green-200' :
-                                                    'bg-gray-100 text-gray-700 border border-gray-200'
-                                                }`}>
-                                                    {log.action}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-2.5 text-sm text-gray-700 border-b font-medium">{changeText}</td>
-                                        </tr>
+                                        <React.Fragment key={i}>
+                                            <tr className={`hover:bg-gray-50 transition-colors ${isExpanded ? 'bg-blue-50/30' : ''}`}>
+                                                <td className="px-3 py-2.5 text-sm text-gray-600 border-b whitespace-nowrap">{formatDate(log.timestamp)}</td>
+                                                <td className="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b">{log.user}</td>
+                                                <td className="px-3 py-2.5 text-xs border-b">
+                                                    <span className={`px-1.5 py-0.5 rounded font-mono ${
+                                                        log.isGroup ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                                                        log.action === 'move-divider' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                                        log.action === 'calculate-lines' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                                        'bg-gray-100 text-gray-700 border border-gray-200'
+                                                    }`}>
+                                                        {log.isGroup ? 'move-group' : log.action}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2.5 text-sm text-gray-700 border-b font-medium">{changeText}</td>
+                                                <td className="px-3 py-2.5 text-sm text-right border-b whitespace-nowrap">
+                                                    {log.isGroup && (
+                                                        <button 
+                                                            onClick={() => toggleExpandLog(i)}
+                                                            className={`p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors inline-flex items-center justify-center font-bold text-lg select-none leading-none ${isExpanded ? 'bg-gray-200 text-blue-600' : ''}`}
+                                                            title="中間ログ（DBデータ）を表示"
+                                                            style={{ width: '28px', height: '28px', minWidth: '28px' }}
+                                                        >
+                                                            ⋮
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            {log.isGroup && isExpanded && (
+                                                <tr>
+                                                    <td colSpan="5" className="px-4 py-3 bg-gray-50/80 border-b shadow-inner">
+                                                        <div className="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1.5">
+                                                            <span className="inline-block w-1.5 h-3 bg-blue-600 rounded"></span>
+                                                            DBに記録されている生データ（全 {log.subLogs.length} 件）
+                                                        </div>
+                                                        <div className="overflow-x-auto rounded border border-gray-200 bg-white">
+                                                            <table className="w-full text-xs text-left">
+                                                                <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
+                                                                    <tr>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">記録日時</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">ユーザー</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">アクション</th>
+                                                                        <th className="px-3 py-1.5 text-left font-semibold">元の記録値</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-gray-100">
+                                                                    {log.subLogs.map((sub, idx) => {
+                                                                        let subChangeText = '不明';
+                                                                        if (sub.action === 'calculate-lines') {
+                                                                            subChangeText = `高さ: ${sub.toHeight ? `${sub.toHeight} px` : '不明'} (計算行数: ${sub.toLines ? `${sub.toLines}行` : '不明'})`;
+                                                                        } else if (sub.action === 'divider-move') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'}`;
+                                                                        } else if (sub.action === 'move-divider') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'} (行数: ${sub.fromLines ? `${sub.fromLines}行` : '不明'} → ${sub.toLines ? `${sub.toLines}行` : '不明'})`;
+                                                                        } else if (sub.action === 'height-change') {
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'}`;
+                                                                        }
+
+                                                                        return (
+                                                                            <tr key={idx} className="hover:bg-gray-50/50">
+                                                                                <td className="px-3 py-1.5 text-gray-500 font-mono">{formatDate(sub.timestamp)}</td>
+                                                                                <td className="px-3 py-1.5 font-semibold text-gray-700">{sub.user}</td>
+                                                                                <td className="px-3 py-1.5 text-gray-600 font-mono">{sub.action}</td>
+                                                                                <td className="px-3 py-1.5 text-gray-800 font-medium">{subChangeText}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     );
                                 })}
                             </tbody>
