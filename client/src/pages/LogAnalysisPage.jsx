@@ -424,18 +424,18 @@ const LogAnalysisPage = () => {
                                     
                                     let changeText = '不明';
                                     if (log.action === 'calculate-lines') {
-                                        changeText = `設定高さ: ${log.toHeight ? `${log.toHeight} px` : '不明'} (計算行数: ${log.toLines ? `${log.toLines}行` : '不明'})`;
+                                        changeText = `設定高さ: ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (計算行数: ${log.toLines !== null ? `${log.toLines}行` : '不明'})`;
                                     } else if (log.action === 'divider-move') {
-                                        changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'}`;
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'}`;
                                     } else if (log.action === 'move-divider') {
-                                        changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'} (行数: ${log.fromLines ? `${log.fromLines}行` : '不明'} → ${log.toLines ? `${log.toLines}行` : '不明'})`;
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (行数: ${log.fromLines !== null ? `${log.fromLines}行` : '不明'} → ${log.toLines !== null ? `${log.toLines}行` : '不明'})`;
                                     } else if (log.action === 'height-change') {
-                                        changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'}`;
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'}`;
                                     }
 
                                     if (log.isGroup) {
                                         const directionText = log.hasDirectionChange ? ' (迷いあり)' : '';
-                                        changeText = `高さ変更: ${log.fromHeight ? `${log.fromHeight} px` : '不明'} → ${log.toHeight ? `${log.toHeight} px` : '不明'} (${log.subLogs.length}回の中間移動を集約)${directionText}`;
+                                        changeText = `高さ変更: ${log.fromHeight !== null ? `${log.fromHeight} px` : '不明'} → ${log.toHeight !== null ? `${log.toHeight} px` : '不明'} (${log.subLogs.length}回の中間移動を集約)${directionText}`;
                                     }
 
                                     return (
@@ -488,13 +488,13 @@ const LogAnalysisPage = () => {
                                                                     {log.subLogs.map((sub, idx) => {
                                                                         let subChangeText = '不明';
                                                                         if (sub.action === 'calculate-lines') {
-                                                                            subChangeText = `高さ: ${sub.toHeight ? `${sub.toHeight} px` : '不明'} (計算行数: ${sub.toLines ? `${sub.toLines}行` : '不明'})`;
+                                                                            subChangeText = `高さ: ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'} (計算行数: ${sub.toLines !== null ? `${sub.toLines}行` : '不明'})`;
                                                                         } else if (sub.action === 'divider-move') {
-                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'}`;
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'}`;
                                                                         } else if (sub.action === 'move-divider') {
-                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'} (行数: ${sub.fromLines ? `${sub.fromLines}行` : '不明'} → ${sub.toLines ? `${sub.toLines}行` : '不明'})`;
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'} (行数: ${sub.fromLines !== null ? `${sub.fromLines}行` : '不明'} → ${sub.toLines !== null ? `${sub.toLines}行` : '不明'})`;
                                                                         } else if (sub.action === 'height-change') {
-                                                                            subChangeText = `高さ変更: ${sub.fromHeight ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight ? `${sub.toHeight} px` : '不明'}`;
+                                                                            subChangeText = `高さ変更: ${sub.fromHeight !== null ? `${sub.fromHeight} px` : '不明'} → ${sub.toHeight !== null ? `${sub.toHeight} px` : '不明'}`;
                                                                         }
 
                                                                         return (
